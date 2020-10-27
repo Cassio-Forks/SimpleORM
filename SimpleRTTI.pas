@@ -207,7 +207,7 @@ begin
     tkClassRef: ;
     tkPointer: ;
     tkProcedure: ;
-    tkMRecord: ;
+
     else
       aProperty.SetValue(Pointer(aEntity), aValue);
   end;
