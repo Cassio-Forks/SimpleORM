@@ -32,6 +32,7 @@ Type
         function FillParameter(aInstance: T; aId: Variant)
           : iSimpleDAO<T>; overload;
         procedure OnDataChange(Sender: TObject; Field: TField);
+        procedure LoadRelationships(aEntity: T);
     public
         constructor Create(aQuery: iSimpleQuery);
         destructor Destroy; override;
@@ -67,6 +68,7 @@ uses
     SimpleTypes,
     System.TypInfo,
     SimpleRTTI,
+    SimpleRTTIHelper,
     SimpleSQL,
     Variants;
 { TGenericDAO }
@@ -155,6 +157,7 @@ end;
 function TSimpleDAO<T>.Find(aBindList: Boolean = True): iSimpleDAO<T>;
 var
     aSQL: String;
+    I: Integer;
 begin
     Result := Self;
     TSimpleSQL<T>.New(nil).Fields(FSQLAttribute.Fields).Join(FSQLAttribute.Join)
@@ -167,7 +170,11 @@ begin
     FQuery.DataSet.DisableControls;
     FQuery.Open(aSQL);
     if aBindList then
+    begin
         TSimpleRTTI<T>.New(nil).DataSetToEntityList(FQuery.DataSet, FList);
+        for I := 0 to FList.Count - 1 do
+            LoadRelationships(FList[I]);
+    end;
     FSQLAttribute.Clear;
     FQuery.DataSet.EnableControls;
 end;
@@ -183,6 +190,7 @@ begin
     Self.FillParameter(Result, aId);
     FQuery.Open;
     TSimpleRTTI<T>.New(nil).DataSetToEntity(FQuery.DataSet, Result);
+    LoadRelationships(Result);
 end;
 {$IFNDEF CONSOLE}
 
@@ -228,6 +236,7 @@ end;
 function TSimpleDAO<T>.Find(var aList: TObjectList<T>): iSimpleDAO<T>;
 var
     aSQL: String;
+    I: Integer;
 begin
     Result := Self;
     TSimpleSQL<T>.New(nil).Fields(FSQLAttribute.Fields).Join(FSQLAttribute.Join)
@@ -239,6 +248,8 @@ begin
       .Select(aSQL);
     FQuery.Open(aSQL);
     TSimpleRTTI<T>.New(nil).DataSetToEntityList(FQuery.DataSet, aList);
+    for I := 0 to aList.Count - 1 do
+        LoadRelationships(aList[I]);
     FSQLAttribute.Clear;
 end;
 
@@ -364,6 +375,106 @@ begin
     FQuery.SQL.Add(aSQL);
     FQuery.Params.ParamByName(aKey).Value := aValue;
     FQuery.Open;
+end;
+
+procedure TSimpleDAO<T>.LoadRelationships(aEntity: T);
+var
+  ctxRtti: TRttiContext;
+  typRtti: TRttiType;
+  prpRtti: TRttiProperty;
+  Info: PTypeInfo;
+  Rel: Relationship;
+  aSQL: string;
+  FKValue: Variant;
+  FKProp: TRttiProperty;
+  RelObj: TObject;
+  RelField: TField;
+  RelProp: TRttiProperty;
+  RelType: TRttiType;
+  RelTableName: string;
+  RelPKName: string;
+  RelPKProp: TRttiProperty;
+begin
+  Info := System.TypeInfo(T);
+  ctxRtti := TRttiContext.Create;
+  try
+    typRtti := ctxRtti.GetType(Info);
+    for prpRtti in typRtti.GetProperties do
+    begin
+      if not (prpRtti.IsBelongsTo or prpRtti.IsHasOne) then
+        Continue;
+
+      if prpRtti.PropertyType.TypeKind <> tkClass then
+        Continue;
+
+      Rel := prpRtti.GetRelationship;
+      if (Rel = nil) or (Rel.ForeignKey = '') then
+        Continue;
+
+      // Get FK value from the entity
+      FKProp := typRtti.GetProperty(Rel.ForeignKey);
+      if FKProp = nil then
+        Continue;
+      FKValue := FKProp.GetValue(Pointer(aEntity)).AsVariant;
+
+      // Create related object instance
+      RelObj := prpRtti.PropertyType.AsInstance.MetaclassType.Create;
+
+      // Get the related entity's table name and PK using its RTTI
+      RelType := ctxRtti.GetType(prpRtti.PropertyType.AsInstance.MetaclassType);
+
+      RelTableName := '';
+      RelPKName := '';
+
+      if RelType.Tem<Tabela> then
+        RelTableName := RelType.GetAttribute<Tabela>.Name;
+
+      RelPKProp := RelType.GetPKField;
+      if RelPKProp <> nil then
+        RelPKName := RelPKProp.FieldName;
+
+      if (RelTableName = '') or (RelPKName = '') then
+      begin
+        RelObj.Free;
+        Continue;
+      end;
+
+      aSQL := 'SELECT * FROM ' + RelTableName + ' WHERE ' + RelPKName + ' = :pValue';
+      FQuery.SQL.Clear;
+      FQuery.SQL.Add(aSQL);
+      FQuery.Params.ParamByName('pValue').Value := FKValue;
+      FQuery.Open;
+
+      // Map dataset fields to related object properties
+      if not FQuery.DataSet.IsEmpty then
+      begin
+        for RelProp in RelType.GetProperties do
+        begin
+          if RelProp.IsIgnore then
+            Continue;
+          RelField := FQuery.DataSet.FindField(RelProp.FieldName);
+          if RelField = nil then
+            Continue;
+
+          case RelProp.PropertyType.TypeKind of
+            tkInteger, tkInt64:
+              RelProp.SetValue(RelObj, RelField.AsInteger);
+            tkFloat:
+              RelProp.SetValue(RelObj, RelField.AsFloat);
+            tkUString, tkString, tkWString, tkLString:
+              RelProp.SetValue(RelObj, RelField.AsString);
+          end;
+        end;
+      end;
+
+      // Set the related object on the main entity
+      prpRtti.SetValue(Pointer(aEntity), RelObj);
+
+      FQuery.DataSet.Close;
+    end;
+  finally
+    ctxRtti.Free;
+  end;
 end;
 
 end.

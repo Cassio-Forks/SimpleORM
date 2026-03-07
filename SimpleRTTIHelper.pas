@@ -17,6 +17,11 @@ type
     function IsIgnore: Boolean;
     function IsEnum: Boolean;
     function IsAutoInc: Boolean;
+    function IsHasOne: Boolean;
+    function IsBelongsTo: Boolean;
+    function IsHasMany: Boolean;
+    function IsBelongsToMany: Boolean;
+    function GetRelationship: Relationship;
     function EhCampo: Boolean;
     function EhChavePrimaria: Boolean;
     function EhChaveEstrangeira: Boolean;
@@ -113,6 +118,31 @@ end;
 function TRttiPropertyHelper.IsAutoInc: Boolean;
 begin
   Result := Tem<AutoInc>
+end;
+
+function TRttiPropertyHelper.IsHasOne: Boolean;
+begin
+  Result := Tem<HasOne>
+end;
+
+function TRttiPropertyHelper.IsBelongsTo: Boolean;
+begin
+  Result := Tem<BelongsTo>
+end;
+
+function TRttiPropertyHelper.IsHasMany: Boolean;
+begin
+  Result := Tem<HasMany>
+end;
+
+function TRttiPropertyHelper.IsBelongsToMany: Boolean;
+begin
+  Result := Tem<BelongsToMany>
+end;
+
+function TRttiPropertyHelper.GetRelationship: Relationship;
+begin
+  Result := GetAttribute<Relationship>;
 end;
 
 function TRttiPropertyHelper.EhPermitidoNulo: Boolean;
