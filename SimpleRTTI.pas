@@ -131,6 +131,7 @@ Type
       function DataSetToEntityList (aDataSet : TDataSet; var aList : TObjectList<T>) : iSimpleRTTI<T>;
       function DataSetToEntity (aDataSet : TDataSet; var aEntity : T) : iSimpleRTTI<T>;
       function PrimaryKey(var aPK : String) : iSimpleRTTI<T>;
+      function SoftDeleteField(var aFieldName: string): iSimpleRTTI<T>;
       {$IFNDEF CONSOLE}
       function BindClassToForm (aForm : TForm; const aEntity : T): iSimpleRTTI<T>;
       function BindFormToClass (aForm : TForm; var aEntity : T) : iSimpleRTTI<T>;
@@ -761,6 +762,25 @@ begin
     end;
   finally
     ctxRtti.Free;
+  end;
+end;
+
+function TSimpleRTTI<T>.SoftDeleteField(var aFieldName: string): iSimpleRTTI<T>;
+var
+  vInfo: PTypeInfo;
+  vCtxRtti: TRttiContext;
+  vTypRtti: TRttiType;
+begin
+  Result := Self;
+  aFieldName := '';
+  vInfo := System.TypeInfo(T);
+  vCtxRtti := TRttiContext.Create;
+  try
+    vTypRtti := vCtxRtti.GetType(vInfo);
+    if vTypRtti.IsSoftDelete then
+      aFieldName := vTypRtti.GetSoftDeleteField;
+  finally
+    vCtxRtti.Free;
   end;
 end;
 

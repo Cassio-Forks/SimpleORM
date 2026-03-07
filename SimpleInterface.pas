@@ -31,6 +31,7 @@ type
     function Delete(aValue : T) : iSimpleDAO<T>; overload;
     function LastID : iSimpleDAO<T>;
     function LastRecord : iSimpleDAO<T>;
+    function ForceDelete(aValue: T): iSimpleDAO<T>;
     function Delete(aField : String; aValue : String) : iSimpleDAO<T>; overload;
     function DataSource( aDataSource : TDataSource) : iSimpleDAO<T>;
     function Find(aBindList : Boolean = True) : iSimpleDAO<T>; overload;
@@ -78,6 +79,7 @@ type
     function DataSetToEntityList (aDataSet : TDataSet; var aList : TObjectList<T>) : iSimpleRTTI<T>;
     function DataSetToEntity (aDataSet : TDataSet; var aEntity : T) : iSimpleRTTI<T>;
     function PrimaryKey(var aPK : String) : iSimpleRTTI<T>;
+    function SoftDeleteField(var aFieldName: string): iSimpleRTTI<T>;
     {$IFNDEF CONSOLE}
     function BindClassToForm (aForm : TForm;  const aEntity : T) : iSimpleRTTI<T>;
     function BindFormToClass (aForm : TForm; var aEntity : T) : iSimpleRTTI<T>;

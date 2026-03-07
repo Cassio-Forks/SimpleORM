@@ -41,6 +41,7 @@ Type
         function Insert(aValue: T): iSimpleDAO<T>; overload;
         function Update(aValue: T): iSimpleDAO<T>; overload;
         function Delete(aValue: T): iSimpleDAO<T>; overload;
+        function ForceDelete(aValue: T): iSimpleDAO<T>;
         function Delete(aField: String; aValue: String): iSimpleDAO<T>;
           overload;
         function LastID: iSimpleDAO<T>;
@@ -130,6 +131,21 @@ begin
     end;
 end;
 {$ENDIF}
+
+function TSimpleDAO<T>.ForceDelete(aValue: T): iSimpleDAO<T>;
+var
+    aSQL, aClassName, aWhere: String;
+begin
+    Result := Self;
+    TSimpleRTTI<T>.New(aValue)
+      .TableName(aClassName)
+      .Where(aWhere);
+    aSQL := 'DELETE FROM ' + aClassName + ' WHERE ' + aWhere;
+    FQuery.SQL.Clear;
+    FQuery.SQL.Add(aSQL);
+    Self.FillParameter(aValue);
+    FQuery.ExecSQL;
+end;
 
 function TSimpleDAO<T>.Delete(aField, aValue: String): iSimpleDAO<T>;
 var

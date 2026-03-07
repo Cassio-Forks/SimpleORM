@@ -48,14 +48,21 @@ end;
 
 function TSimpleSQL<T>.Delete(var aSQL: String): iSimpleSQL<T>;
 var
-  aClassName, aWhere : String;
+  aClassName, aWhere, aSoftField : String;
 begin
   Result := Self;
   TSimpleRTTI<T>.New(FInstance)
     .TableName(aClassName)
-    .Where(aWhere);
-  aSQL := aSQL + 'DELETE FROM ' + aClassName;
-  aSQL := aSQL + ' WHERE ' + aWhere;
+    .Where(aWhere)
+    .SoftDeleteField(aSoftField);
+
+  if aSoftField <> '' then
+    aSQL := aSQL + 'UPDATE ' + aClassName + ' SET ' + aSoftField + ' = 1 WHERE ' + aWhere
+  else
+  begin
+    aSQL := aSQL + 'DELETE FROM ' + aClassName;
+    aSQL := aSQL + ' WHERE ' + aWhere;
+  end;
 end;
 
 destructor TSimpleSQL<T>.Destroy;
@@ -137,12 +144,22 @@ end;
 
 function TSimpleSQL<T>.Select (var aSQL : String) : iSimpleSQL<T>;
 var
-  aFields, aClassName : String;
+  aFields, aClassName, aSoftField : String;
 begin
   Result := Self;
   TSimpleRTTI<T>.New(nil)
     .Fields(aFields)
-    .TableName(aClassName);
+    .TableName(aClassName)
+    .SoftDeleteField(aSoftField);
+
+  // Auto-filter soft deleted records
+  if aSoftField <> '' then
+  begin
+    if Trim(FWhere) <> '' then
+      FWhere := '(' + FWhere + ') AND ' + aSoftField + ' = 0'
+    else
+      FWhere := aSoftField + ' = 0';
+  end;
 
   // Firebird: FIRST/SKIP goes after SELECT
   if (FSQLType = TSQLType.Firebird) and (FTake > 0) then

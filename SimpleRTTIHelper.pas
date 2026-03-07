@@ -47,6 +47,8 @@ type
       : TRttiProperty; overload;
     function GetPKField: TRttiProperty;
     function IsTabela: Boolean;
+    function IsSoftDelete: Boolean;
+    function GetSoftDeleteField: string;
   end;
 
   TRttiFieldHelper = class helper for TRttiField
@@ -250,6 +252,18 @@ end;
 function TRttiTypeHelper.isTabela: Boolean;
 begin
   Result := Tem<Tabela>
+end;
+
+function TRttiTypeHelper.IsSoftDelete: Boolean;
+begin
+  Result := Tem<SoftDelete>
+end;
+
+function TRttiTypeHelper.GetSoftDeleteField: string;
+begin
+  Result := '';
+  if Tem<SoftDelete> then
+    Result := GetAttribute<SoftDelete>.FieldName;
 end;
 
 function TRttiTypeHelper.Tem<T>: Boolean;

@@ -100,6 +100,14 @@ type
   BelongsToMany = class(Relationship)
   end;
 
+  SoftDelete = class(TCustomAttribute)
+  private
+    FFieldName: string;
+  public
+    constructor Create(const aFieldName: string);
+    property FieldName: string read FFieldName;
+  end;
+
   Enumerator = class(TCustomAttribute)
   private
     FTipo: string;
@@ -214,6 +222,13 @@ constructor Relationship.Create(const aEntityName, aForeignKey: string);
 begin
   FEntityName := aEntityName;
   FForeignKey := aForeignKey;
+end;
+
+{ SoftDelete }
+
+constructor SoftDelete.Create(const aFieldName: string);
+begin
+  FFieldName := aFieldName;
 end;
 
 { Enumerator }
