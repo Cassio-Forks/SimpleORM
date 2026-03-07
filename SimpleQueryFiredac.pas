@@ -66,6 +66,7 @@ end;
 
 function TSimpleQueryFiredac.EndTransaction: iSimpleQuery;
 begin
+  Result := Self;
   if FTransaction.Active then
     FTransaction.Commit;
 end;
@@ -81,7 +82,12 @@ begin
   try
     FQuery.ExecSQL;
   except
-    FTransaction.Rollback;
+    on E: Exception do
+    begin
+      if FTransaction.Active then
+        FTransaction.Rollback;
+      raise;
+    end;
   end;
 
   if Assigned(FParams) then
