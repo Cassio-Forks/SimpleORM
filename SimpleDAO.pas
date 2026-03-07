@@ -4,6 +4,7 @@ interface
 
 uses
     SimpleInterface,
+    SimpleLogger,
     System.RTTI,
     System.Generics.Collections,
     System.Classes,
@@ -28,6 +29,7 @@ Type
         FForm: TForm;
 {$ENDIF}
         FList: TObjectList<T>;
+        FLogger: iSimpleQueryLogger;
         function FillParameter(aInstance: T): iSimpleDAO<T>; overload;
         function FillParameter(aInstance: T; aId: Variant)
           : iSimpleDAO<T>; overload;
@@ -59,6 +61,7 @@ Type
         function UpdateBatch(aList: TObjectList<T>): iSimpleDAO<T>;
         function DeleteBatch(aList: TObjectList<T>): iSimpleDAO<T>;
         function SQL: iSimpleDAOSQLAttribute<T>;
+        function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
 {$IFNDEF CONSOLE}
         function BindForm(aForm: TForm): iSimpleDAO<T>;
 {$ENDIF}
@@ -68,6 +71,7 @@ implementation
 
 uses
     System.SysUtils,
+    System.Diagnostics,
     SimpleAttributes,
     SimpleTypes,
     System.TypInfo,
@@ -105,13 +109,18 @@ end;
 function TSimpleDAO<T>.Delete(aValue: T): iSimpleDAO<T>;
 var
     aSQL: String;
+    SW: TStopwatch;
 begin
     Result := Self;
     TSimpleSQL<T>.New(aValue).Delete(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
     Self.FillParameter(aValue);
+    SW := TStopwatch.StartNew;
     FQuery.ExecSQL;
+    SW.Stop;
+    if Assigned(FLogger) then
+      FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
 end;
 {$IFNDEF CONSOLE}
 
@@ -138,6 +147,7 @@ end;
 function TSimpleDAO<T>.ForceDelete(aValue: T): iSimpleDAO<T>;
 var
     aSQL, aClassName, aWhere: String;
+    SW: TStopwatch;
 begin
     Result := Self;
     TSimpleRTTI<T>.New(aValue)
@@ -147,7 +157,11 @@ begin
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
     Self.FillParameter(aValue);
+    SW := TStopwatch.StartNew;
     FQuery.ExecSQL;
+    SW.Stop;
+    if Assigned(FLogger) then
+      FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
 end;
 
 function TSimpleDAO<T>.Delete(aField, aValue: String): iSimpleDAO<T>;
@@ -178,6 +192,7 @@ function TSimpleDAO<T>.Find(aBindList: Boolean = True): iSimpleDAO<T>;
 var
     aSQL: String;
     I: Integer;
+    SW: TStopwatch;
 begin
     Result := Self;
     TSimpleSQL<T>.New(nil).Fields(FSQLAttribute.Fields).Join(FSQLAttribute.Join)
@@ -188,7 +203,11 @@ begin
       .DatabaseType(FQuery.SQLType)
       .Select(aSQL);
     FQuery.DataSet.DisableControls;
+    SW := TStopwatch.StartNew;
     FQuery.Open(aSQL);
+    SW.Stop;
+    if Assigned(FLogger) then
+      FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
     if aBindList then
     begin
         TSimpleRTTI<T>.New(nil).DataSetToEntityList(FQuery.DataSet, FList);
@@ -257,6 +276,7 @@ function TSimpleDAO<T>.Find(var aList: TObjectList<T>): iSimpleDAO<T>;
 var
     aSQL: String;
     I: Integer;
+    SW: TStopwatch;
 begin
     Result := Self;
     TSimpleSQL<T>.New(nil).Fields(FSQLAttribute.Fields).Join(FSQLAttribute.Join)
@@ -266,7 +286,11 @@ begin
       .Take(FSQLAttribute.GetTake)
       .DatabaseType(FQuery.SQLType)
       .Select(aSQL);
+    SW := TStopwatch.StartNew;
     FQuery.Open(aSQL);
+    SW.Stop;
+    if Assigned(FLogger) then
+      FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
     TSimpleRTTI<T>.New(nil).DataSetToEntityList(FQuery.DataSet, aList);
     for I := 0 to aList.Count - 1 do
         LoadRelationships(aList[I]);
@@ -276,13 +300,18 @@ end;
 function TSimpleDAO<T>.Insert(aValue: T): iSimpleDAO<T>;
 var
     aSQL: String;
+    SW: TStopwatch;
 begin
     Result := Self;
     TSimpleSQL<T>.New(aValue).Insert(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
     Self.FillParameter(aValue);
+    SW := TStopwatch.StartNew;
     FQuery.ExecSQL;
+    SW.Stop;
+    if Assigned(FLogger) then
+      FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
 end;
 
 class function TSimpleDAO<T>.New(aQuery: iSimpleQuery): iSimpleDAO<T>;
@@ -305,6 +334,12 @@ end;
 function TSimpleDAO<T>.SQL: iSimpleDAOSQLAttribute<T>;
 begin
     Result := FSQLAttribute;
+end;
+
+function TSimpleDAO<T>.Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
+begin
+    Result := Self;
+    FLogger := aLogger;
 end;
 {$IFNDEF CONSOLE}
 
@@ -331,13 +366,18 @@ end;
 function TSimpleDAO<T>.Update(aValue: T): iSimpleDAO<T>;
 var
     aSQL: String;
+    SW: TStopwatch;
 begin
     Result := Self;
     TSimpleSQL<T>.New(aValue).Update(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
     Self.FillParameter(aValue);
+    SW := TStopwatch.StartNew;
     FQuery.ExecSQL;
+    SW.Stop;
+    if Assigned(FLogger) then
+      FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
 end;
 
 function TSimpleDAO<T>.FillParameter(aInstance: T): iSimpleDAO<T>;

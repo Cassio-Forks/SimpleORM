@@ -15,7 +15,8 @@ uses
     {$ENDIF}
   {$ENDIF}
   System.SysUtils,
-  SimpleTypes;
+  SimpleTypes,
+  SimpleLogger;
 type
   iSimpleDAOSQLAttribute<T : class> = interface;
 
@@ -42,6 +43,7 @@ type
     function UpdateBatch(aList: TObjectList<T>): iSimpleDAO<T>;
     function DeleteBatch(aList: TObjectList<T>): iSimpleDAO<T>;
     function SQL : iSimpleDAOSQLAttribute<T>;
+    function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
     {$IFNDEF CONSOLE}
     function BindForm(aForm : TForm)  : iSimpleDAO<T>;
     {$ENDIF}
