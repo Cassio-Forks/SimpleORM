@@ -52,13 +52,19 @@ begin
 end;
 
 function TSimpleQueryZeos.ExecSQL: iSimpleQuery;
-var
-  a: string;
 begin
   Result := Self;
-  FQuery.Params.Assign(FParams);
+  if Assigned(FParams) then
+    FQuery.Params.Assign(FParams);
+
   FQuery.Prepare;
-  FQuery.ExecSQL;
+
+  try
+    FQuery.ExecSQL;
+  except
+    on E: Exception do
+      raise;
+  end;
 
   if Assigned(FParams) then
     FreeAndNil(FParams);

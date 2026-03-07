@@ -60,7 +60,11 @@ var
 begin
   Result := Self;
   FQuery.ExecSQL(aErro);
+  if aErro <> '' then
+    raise Exception.Create(aErro);
   FQuery.ApplyUpdates(aErro);
+  if aErro <> '' then
+    raise Exception.Create(aErro);
 end;
 
 class function TSimpleQueryRestDW<T>.New(aConnection : TRESTDWDataBase): iSimpleQuery;

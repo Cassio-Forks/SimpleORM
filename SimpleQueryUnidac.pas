@@ -61,7 +61,13 @@ begin
     FQuery.Params.Assign(FParams);
 
   FQuery.Prepare;
-  FQuery.ExecSQL;
+
+  try
+    FQuery.ExecSQL;
+  except
+    on E: Exception do
+      raise;
+  end;
 
   if Assigned(FParams) then
     FreeAndNil(FParams);
