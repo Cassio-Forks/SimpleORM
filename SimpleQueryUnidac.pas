@@ -6,7 +6,8 @@ uses
   System.Classes,
   Data.DB,
   Uni,
-  SimpleInterface;
+  SimpleInterface,
+  SimpleTypes;
 
 type
   TSimpleQueryUniDac = class(TInterfacedObject, iSimpleQuery)
@@ -14,10 +15,11 @@ type
     FConnection : TUniConnection;
     FQuery : TUniQuery;
     FParams : TParams;
+    FSQLType : TSQLType;
   public
-    constructor Create(aConnection : TUniConnection);
+    constructor Create(aConnection : TUniConnection; aSQLType : TSQLType = TSQLType.Firebird);
     destructor Destroy; override;
-    class function New(aConnection : TUniConnection) : iSimpleQuery;
+    class function New(aConnection : TUniConnection; aSQLType : TSQLType = TSQLType.Firebird) : iSimpleQuery;
 
     function SQL : TStrings;
     function Params : TParams;
@@ -25,6 +27,12 @@ type
     function DataSet : TDataSet;
     function Open(aSQL : String) : iSimpleQuery; overload;
     function Open : iSimpleQuery; overload;
+    function &EndTransaction : iSimpleQuery;
+    function StartTransaction : iSimpleQuery;
+    function Commit : iSimpleQuery;
+    function Rollback : iSimpleQuery;
+    function InTransaction : Boolean;
+    function SQLType : TSQLType;
   end;
 
 implementation
@@ -34,11 +42,12 @@ uses
 
 { TSimpleQueryUniDac }
 
-constructor TSimpleQueryUniDac.Create(aConnection: TUniConnection);
+constructor TSimpleQueryUniDac.Create(aConnection: TUniConnection; aSQLType: TSQLType = TSQLType.Firebird);
 begin
   FQuery := TUniQuery.Create(nil);
   FConnection := aConnection;
   FQuery.Connection := FConnection;
+  FSQLType := aSQLType;
 end;
 
 function TSimpleQueryUniDac.DataSet: TDataSet;
@@ -73,9 +82,9 @@ begin
     FreeAndNil(FParams);
 end;
 
-class function TSimpleQueryUniDac.New(aConnection: TUniConnection): iSimpleQuery;
+class function TSimpleQueryUniDac.New(aConnection: TUniConnection; aSQLType: TSQLType): iSimpleQuery;
 begin
-  Result := Self.Create(aConnection);
+  Result := Self.Create(aConnection, aSQLType);
 end;
 
 function TSimpleQueryUniDac.Open(aSQL: String): iSimpleQuery;
@@ -114,6 +123,42 @@ end;
 function TSimpleQueryUniDac.SQL: TStrings;
 begin
   Result := FQuery.SQL;
+end;
+
+function TSimpleQueryUniDac.EndTransaction: iSimpleQuery;
+begin
+  Result := Commit;
+end;
+
+function TSimpleQueryUniDac.StartTransaction: iSimpleQuery;
+begin
+  Result := Self;
+  if not FConnection.InTransaction then
+    FConnection.StartTransaction;
+end;
+
+function TSimpleQueryUniDac.Commit: iSimpleQuery;
+begin
+  Result := Self;
+  if FConnection.InTransaction then
+    FConnection.Commit;
+end;
+
+function TSimpleQueryUniDac.Rollback: iSimpleQuery;
+begin
+  Result := Self;
+  if FConnection.InTransaction then
+    FConnection.Rollback;
+end;
+
+function TSimpleQueryUniDac.InTransaction: Boolean;
+begin
+  Result := FConnection.InTransaction;
+end;
+
+function TSimpleQueryUniDac.SQLType: TSQLType;
+begin
+  Result := FSQLType;
 end;
 
 end.

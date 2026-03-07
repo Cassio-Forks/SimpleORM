@@ -3,23 +3,30 @@ unit SimpleQueryRestDW;
 interface
 
 uses
-  SimpleInterface, System.Classes, Data.DB, uDWConstsData, uRESTDWPoolerDB;
+  SimpleInterface, SimpleTypes, System.Classes, Data.DB, uDWConstsData, uRESTDWPoolerDB;
 
 Type
   TSimpleQueryRestDW<T : class, constructor> = class(TInterfacedObject, iSimpleQuery)
     private
       FConnection : TRESTDWDataBase;
       FQuery : TRESTDWClientSQL;
+      FSQLType : TSQLType;
     public
-      constructor Create(aConnection : TRESTDWDataBase);
+      constructor Create(aConnection : TRESTDWDataBase; aSQLType : TSQLType = TSQLType.Firebird);
       destructor Destroy; override;
-      class function New(aConnection : TRESTDWDataBase) : iSimpleQuery;
+      class function New(aConnection : TRESTDWDataBase; aSQLType : TSQLType = TSQLType.Firebird) : iSimpleQuery;
       function SQL : TStrings;
       function Params : TParams;
       function ExecSQL : iSimpleQuery;
       function DataSet : TDataSet;
       function Open(aSQL : String) : iSimpleQuery; overload;
       function Open : iSimpleQuery; overload;
+      function &EndTransaction : iSimpleQuery;
+      function StartTransaction : iSimpleQuery;
+      function Commit : iSimpleQuery;
+      function Rollback : iSimpleQuery;
+      function InTransaction : Boolean;
+      function SQLType : TSQLType;
   end;
 
 implementation
@@ -29,7 +36,7 @@ uses
 
 { TSimpleQuery<T> }
 
-constructor TSimpleQueryRestDW<T>.Create(aConnection : TRESTDWDataBase);
+constructor TSimpleQueryRestDW<T>.Create(aConnection : TRESTDWDataBase; aSQLType : TSQLType = TSQLType.Firebird);
 var
   aTable : String;
 begin
@@ -41,6 +48,7 @@ begin
   FQuery.AutoRefreshAfterCommit := True;
   //FQuery.SetInBlockEvents(false);
   FQuery.UpdateTableName := aTable;
+  FSQLType := aSQLType;
 end;
 
 function TSimpleQueryRestDW<T>.DataSet: TDataSet;
@@ -67,9 +75,9 @@ begin
     raise Exception.Create(aErro);
 end;
 
-class function TSimpleQueryRestDW<T>.New(aConnection : TRESTDWDataBase): iSimpleQuery;
+class function TSimpleQueryRestDW<T>.New(aConnection : TRESTDWDataBase; aSQLType : TSQLType): iSimpleQuery;
 begin
-  Result := Self.Create(aConnection);
+  Result := Self.Create(aConnection, aSQLType);
 end;
 
 function TSimpleQueryRestDW<T>.Open: iSimpleQuery;
@@ -94,6 +102,40 @@ end;
 function TSimpleQueryRestDW<T>.SQL: TStrings;
 begin
   Result := FQuery.SQL;
+end;
+
+function TSimpleQueryRestDW<T>.EndTransaction: iSimpleQuery;
+begin
+  Result := Commit;
+end;
+
+function TSimpleQueryRestDW<T>.StartTransaction: iSimpleQuery;
+begin
+  Result := Self;
+  // RestDW does not support explicit transaction control
+end;
+
+function TSimpleQueryRestDW<T>.Commit: iSimpleQuery;
+begin
+  Result := Self;
+  // RestDW does not support explicit transaction control
+end;
+
+function TSimpleQueryRestDW<T>.Rollback: iSimpleQuery;
+begin
+  Result := Self;
+  // RestDW does not support explicit transaction control
+end;
+
+function TSimpleQueryRestDW<T>.InTransaction: Boolean;
+begin
+  Result := False;
+  // RestDW does not support explicit transaction control
+end;
+
+function TSimpleQueryRestDW<T>.SQLType: TSQLType;
+begin
+  Result := FSQLType;
 end;
 
 end.

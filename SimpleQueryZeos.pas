@@ -3,7 +3,7 @@ Unit SimpleQueryZeos;
 interface
 
 uses
-  SimpleInterface,  ZAbstractConnection, ZConnection,
+  SimpleInterface, SimpleTypes, ZAbstractConnection, ZConnection,
   ZAbstractRODataset, ZAbstractDataset, ZAbstractTable, ZDataset, System.Classes, Data.DB;
 
 Type
@@ -12,16 +12,23 @@ Type
       FConnection : TZConnection;
       FQuery : TZQuery;
       FParams : TParams;
+      FSQLType : TSQLType;
     public
-      constructor Create(aConnection : TZConnection);
+      constructor Create(aConnection : TZConnection; aSQLType : TSQLType = TSQLType.Firebird);
       destructor Destroy; override;
-      class function New(aConnection : TZConnection) : iSimpleQuery;
+      class function New(aConnection : TZConnection; aSQLType : TSQLType = TSQLType.Firebird) : iSimpleQuery;
       function SQL : TStrings;
       function Params : TParams;
       function ExecSQL : iSimpleQuery;
       function DataSet : TDataSet;
       function Open(aSQL : String) : iSimpleQuery; overload;
       function Open : iSimpleQuery; overload;
+      function &EndTransaction : iSimpleQuery;
+      function StartTransaction : iSimpleQuery;
+      function Commit : iSimpleQuery;
+      function Rollback : iSimpleQuery;
+      function InTransaction : Boolean;
+      function SQLType : TSQLType;
   end;
 
 implementation
@@ -31,11 +38,12 @@ uses
 
 { TSimpleQuery<T> }
 
-constructor TSimpleQueryZeos.Create(aConnection : TZConnection);
+constructor TSimpleQueryZeos.Create(aConnection : TZConnection; aSQLType : TSQLType = TSQLType.Firebird);
 begin
   FQuery := TZQuery.Create(nil);
   FConnection := aConnection;
   FQuery.Connection := FConnection;
+  FSQLType := aSQLType;
 end;
 
 function TSimpleQueryZeos.DataSet: TDataSet;
@@ -70,9 +78,9 @@ begin
     FreeAndNil(FParams);
 end;
 
-class function TSimpleQueryZeos.New(aConnection : TZConnection): iSimpleQuery;
+class function TSimpleQueryZeos.New(aConnection : TZConnection; aSQLType : TSQLType): iSimpleQuery;
 begin
-  Result := Self.Create(aConnection);
+  Result := Self.Create(aConnection, aSQLType);
 end;
 
 function TSimpleQueryZeos.Open: iSimpleQuery;
@@ -112,6 +120,42 @@ end;
 function TSimpleQueryZeos.SQL: TStrings;
 begin
   Result := FQuery.SQL;
+end;
+
+function TSimpleQueryZeos.EndTransaction: iSimpleQuery;
+begin
+  Result := Commit;
+end;
+
+function TSimpleQueryZeos.StartTransaction: iSimpleQuery;
+begin
+  Result := Self;
+  if not FConnection.InTransaction then
+    FConnection.StartTransaction;
+end;
+
+function TSimpleQueryZeos.Commit: iSimpleQuery;
+begin
+  Result := Self;
+  if FConnection.InTransaction then
+    FConnection.Commit;
+end;
+
+function TSimpleQueryZeos.Rollback: iSimpleQuery;
+begin
+  Result := Self;
+  if FConnection.InTransaction then
+    FConnection.Rollback;
+end;
+
+function TSimpleQueryZeos.InTransaction: Boolean;
+begin
+  Result := FConnection.InTransaction;
+end;
+
+function TSimpleQueryZeos.SQLType: TSQLType;
+begin
+  Result := FSQLType;
 end;
 
 end.
