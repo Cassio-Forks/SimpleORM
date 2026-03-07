@@ -64,6 +64,7 @@ implementation
 uses
     System.SysUtils,
     SimpleAttributes,
+    SimpleTypes,
     System.TypInfo,
     SimpleRTTI,
     SimpleSQL,
@@ -158,7 +159,11 @@ begin
     Result := Self;
     TSimpleSQL<T>.New(nil).Fields(FSQLAttribute.Fields).Join(FSQLAttribute.Join)
       .Where(FSQLAttribute.Where).GroupBy(FSQLAttribute.GroupBy)
-      .OrderBy(FSQLAttribute.OrderBy).Select(aSQL);
+      .OrderBy(FSQLAttribute.OrderBy)
+      .Skip(FSQLAttribute.GetSkip)
+      .Take(FSQLAttribute.GetTake)
+      .DatabaseType(FQuery.SQLType)
+      .Select(aSQL);
     FQuery.DataSet.DisableControls;
     FQuery.Open(aSQL);
     if aBindList then
@@ -227,7 +232,11 @@ begin
     Result := Self;
     TSimpleSQL<T>.New(nil).Fields(FSQLAttribute.Fields).Join(FSQLAttribute.Join)
       .Where(FSQLAttribute.Where).GroupBy(FSQLAttribute.GroupBy)
-      .OrderBy(FSQLAttribute.OrderBy).Select(aSQL);
+      .OrderBy(FSQLAttribute.OrderBy)
+      .Skip(FSQLAttribute.GetSkip)
+      .Take(FSQLAttribute.GetTake)
+      .DatabaseType(FQuery.SQLType)
+      .Select(aSQL);
     FQuery.Open(aSQL);
     TSimpleRTTI<T>.New(nil).DataSetToEntityList(FQuery.DataSet, aList);
     FSQLAttribute.Clear;

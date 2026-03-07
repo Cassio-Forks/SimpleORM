@@ -1,7 +1,8 @@
 unit SimpleSQL;
 interface
 uses
-  SimpleInterface;
+  SimpleInterface,
+  SimpleTypes;
 Type
   TSimpleSQL<T : class, constructor> = class(TInterfacedObject, iSimpleSQL<T>)
     private
@@ -11,6 +12,9 @@ Type
       FOrderBy : String;
       FGroupBy : String;
       FJoin : String;
+      FSkip : Integer;
+      FTake : Integer;
+      FSQLType : TSQLType;
     public
       constructor Create(aInstance : T);
       destructor Destroy; override;
@@ -27,6 +31,9 @@ Type
       function Join (aSQL : String) : iSimpleSQL<T>;
       function LastID (var aSQL : String) : iSimpleSQL<T>;
       function LastRecord (var aSQL : String) : iSimpleSQL<T>;
+      function Skip(aValue: Integer): iSimpleSQL<T>;
+      function Take(aValue: Integer): iSimpleSQL<T>;
+      function DatabaseType(aType: TSQLType): iSimpleSQL<T>;
   end;
 implementation
 
@@ -136,11 +143,29 @@ begin
   TSimpleRTTI<T>.New(nil)
     .Fields(aFields)
     .TableName(aClassName);
-  if Trim(FFields) <> '' then
-    aSQL := aSQL + ' SELECT ' + FFields
+
+  // Firebird: FIRST/SKIP goes after SELECT
+  if (FSQLType = TSQLType.Firebird) and (FTake > 0) then
+  begin
+    aSQL := aSQL + ' SELECT';
+    aSQL := aSQL + ' FIRST ' + IntToStr(FTake);
+    if FSkip > 0 then
+      aSQL := aSQL + ' SKIP ' + IntToStr(FSkip);
+    if Trim(FFields) <> '' then
+      aSQL := aSQL + ' ' + FFields
+    else
+      aSQL := aSQL + ' ' + aFields;
+  end
   else
-    aSQL := aSQL + ' SELECT ' + aFields;
+  begin
+    if Trim(FFields) <> '' then
+      aSQL := aSQL + ' SELECT ' + FFields
+    else
+      aSQL := aSQL + ' SELECT ' + aFields;
+  end;
+
   aSQL := aSQL + ' FROM ' + aClassName;
+
   if Trim(FJoin) <> '' then
     aSQL := aSQL + ' ' + FJoin + ' ';
   if Trim(FWhere) <> '' then
@@ -149,6 +174,40 @@ begin
     aSQL := aSQL + ' GROUP BY ' + FGroupBy;
   if Trim(FOrderBy) <> '' then
     aSQL := aSQL + ' ORDER BY ' + FOrderBy;
+
+  // MySQL/SQLite: LIMIT/OFFSET at the end
+  if (FSQLType in [TSQLType.MySQL, TSQLType.SQLite]) and (FTake > 0) then
+  begin
+    aSQL := aSQL + ' LIMIT ' + IntToStr(FTake);
+    if FSkip > 0 then
+      aSQL := aSQL + ' OFFSET ' + IntToStr(FSkip);
+  end;
+
+  // Oracle: OFFSET ROWS FETCH NEXT at the end
+  if (FSQLType = TSQLType.Oracle) and (FTake > 0) then
+  begin
+    if FSkip > 0 then
+      aSQL := aSQL + ' OFFSET ' + IntToStr(FSkip) + ' ROWS';
+    aSQL := aSQL + ' FETCH NEXT ' + IntToStr(FTake) + ' ROWS ONLY';
+  end;
+end;
+
+function TSimpleSQL<T>.Skip(aValue: Integer): iSimpleSQL<T>;
+begin
+  Result := Self;
+  FSkip := aValue;
+end;
+
+function TSimpleSQL<T>.Take(aValue: Integer): iSimpleSQL<T>;
+begin
+  Result := Self;
+  FTake := aValue;
+end;
+
+function TSimpleSQL<T>.DatabaseType(aType: TSQLType): iSimpleSQL<T>;
+begin
+  Result := Self;
+  FSQLType := aType;
 end;
 
 function TSimpleSQL<T>.SelectId(var aSQL: String): iSimpleSQL<T>;

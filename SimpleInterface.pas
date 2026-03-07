@@ -98,6 +98,9 @@ type
     function Join (aSQL : String) : iSimpleSQL<T>;
     function LastID (var aSQL : String) : iSimpleSQL<T>;
     function LastRecord (var aSQL : String) : iSimpleSQL<T>;
+    function Skip(aValue: Integer): iSimpleSQL<T>;
+    function Take(aValue: Integer): iSimpleSQL<T>;
+    function DatabaseType(aType: TSQLType): iSimpleSQL<T>;
   end;
 
   iSimpleQuery = interface
