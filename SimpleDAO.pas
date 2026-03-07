@@ -70,6 +70,7 @@ uses
     SimpleRTTI,
     SimpleRTTIHelper,
     SimpleSQL,
+    SimpleProxy,
     Variants;
 { TGenericDAO }
 {$IFNDEF CONSOLE}
@@ -401,6 +402,13 @@ begin
     typRtti := ctxRtti.GetType(Info);
     for prpRtti in typRtti.GetProperties do
     begin
+      // HasMany: use TSimpleLazyLoader<T> explicitly in entity constructor
+      // Runtime generic instantiation via RTTI is not feasible in Delphi,
+      // so HasMany relationships should be set up by the developer using
+      // TSimpleLazyLoader<TRelatedEntity>.Create(Query, 'fk_field', PKValue)
+      if prpRtti.IsHasMany then
+        Continue;
+
       if not (prpRtti.IsBelongsTo or prpRtti.IsHasOne) then
         Continue;
 
