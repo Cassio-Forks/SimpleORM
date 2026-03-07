@@ -55,6 +55,9 @@ Type
         function Find(var aList: TObjectList<T>): iSimpleDAO<T>; overload;
         function Find(aId: Integer): T; overload;
         function Find(aKey: String; aValue: Variant): iSimpleDAO<T>; overload;
+        function InsertBatch(aList: TObjectList<T>): iSimpleDAO<T>;
+        function UpdateBatch(aList: TObjectList<T>): iSimpleDAO<T>;
+        function DeleteBatch(aList: TObjectList<T>): iSimpleDAO<T>;
         function SQL: iSimpleDAOSQLAttribute<T>;
 {$IFNDEF CONSOLE}
         function BindForm(aForm: TForm): iSimpleDAO<T>;
@@ -498,6 +501,63 @@ begin
     end;
   finally
     ctxRtti.Free;
+  end;
+end;
+
+function TSimpleDAO<T>.InsertBatch(aList: TObjectList<T>): iSimpleDAO<T>;
+var
+  Item: T;
+begin
+  Result := Self;
+  FQuery.StartTransaction;
+  try
+    for Item in aList do
+      Insert(Item);
+    FQuery.Commit;
+  except
+    on E: Exception do
+    begin
+      FQuery.Rollback;
+      raise;
+    end;
+  end;
+end;
+
+function TSimpleDAO<T>.UpdateBatch(aList: TObjectList<T>): iSimpleDAO<T>;
+var
+  Item: T;
+begin
+  Result := Self;
+  FQuery.StartTransaction;
+  try
+    for Item in aList do
+      Update(Item);
+    FQuery.Commit;
+  except
+    on E: Exception do
+    begin
+      FQuery.Rollback;
+      raise;
+    end;
+  end;
+end;
+
+function TSimpleDAO<T>.DeleteBatch(aList: TObjectList<T>): iSimpleDAO<T>;
+var
+  Item: T;
+begin
+  Result := Self;
+  FQuery.StartTransaction;
+  try
+    for Item in aList do
+      Delete(Item);
+    FQuery.Commit;
+  except
+    on E: Exception do
+    begin
+      FQuery.Rollback;
+      raise;
+    end;
   end;
 end;
 

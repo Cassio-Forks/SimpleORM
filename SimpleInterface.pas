@@ -38,6 +38,9 @@ type
     function Find(var aList : TObjectList<T>) : iSimpleDAO<T> ; overload;
     function Find(aId : Integer) : T; overload;
     function Find(aKey : String; aValue : Variant) : iSimpleDAO<T>; overload;
+    function InsertBatch(aList: TObjectList<T>): iSimpleDAO<T>;
+    function UpdateBatch(aList: TObjectList<T>): iSimpleDAO<T>;
+    function DeleteBatch(aList: TObjectList<T>): iSimpleDAO<T>;
     function SQL : iSimpleDAOSQLAttribute<T>;
     {$IFNDEF CONSOLE}
     function BindForm(aForm : TForm)  : iSimpleDAO<T>;
