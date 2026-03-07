@@ -13,6 +13,8 @@ type
   private
     class procedure ValidateNotNull(const aErrros: TStrings; const aObject:
       TObject; const aProperty: TRttiProperty); static;
+    class procedure ValidateNotZero(const aErrros: TStrings; const aObject:
+      TObject; const aProperty: TRttiProperty); static;
   public
     class procedure Validate(const aObject: TObject); overload; static;
     class procedure Validate(const aObject: TObject; const aErrors:
@@ -23,10 +25,10 @@ type
 implementation
 
 const
-  sMSG_NOT_NULL = 'O Campo %s não foi informado!';
-  sMSG_NUMBER_NOT_NULL = 'O Campo %s não pode ser Zero!';
-  sMSG_TIME_NOT_NULL = 'É obrigatório informar uma hora válida para %s';
-  sMSG_DATE_NOT_NULL = 'É obrigatório informar uma data válida para %s';
+  sMSG_NOT_NULL = 'O Campo %s nï¿½o foi informado!';
+  sMSG_NUMBER_NOT_NULL = 'O Campo %s nï¿½o pode ser Zero!';
+  sMSG_TIME_NOT_NULL = 'ï¿½ obrigatï¿½rio informar uma hora vï¿½lida para %s';
+  sMSG_DATE_NOT_NULL = 'ï¿½ obrigatï¿½rio informar uma data vï¿½lida para %s';
 
 class procedure TSimpleValidator.Validate(const aObject: TObject; const
   aErrors: TStrings);
@@ -50,6 +52,9 @@ begin
 
     if prpRtti.IsNotNull then
       ValidateNotNull(aErrors, aObject, prpRtti);
+
+    if prpRtti.IsNotZero then
+      ValidateNotZero(aErrors, aObject, prpRtti);
   end;
 end;
 
@@ -89,8 +94,7 @@ begin
       if string.IsNullOrWhiteSpace(Value.AsString) then
         aErrros.Add(Format(sMSG_NOT_NULL, [aProperty.DisplayName]));
     tkInteger:
-      if (Value.AsInteger = 0) then
-        aErrros.Add(Format(sMSG_NUMBER_NOT_NULL, [aProperty.DisplayName]));
+      ; // Integers always have a value in Delphi, NotNull is inherently satisfied
     tkFloat:
       begin
         if (Value.AsExtended <> 0) then
@@ -109,6 +113,22 @@ begin
   else
     if Value.IsEmpty then
       aErrros.Add(Format(sMSG_NOT_NULL, [aProperty.DisplayName]));
+  end;
+end;
+
+class procedure TSimpleValidator.ValidateNotZero(const aErrros: TStrings; const
+  aObject: TObject; const aProperty: TRttiProperty);
+var
+  Value: TValue;
+begin
+  Value := aProperty.GetValue(aObject);
+  case Value.Kind of
+    tkInteger:
+      if Value.AsInteger = 0 then
+        aErrros.Add(Format(sMSG_NUMBER_NOT_NULL, [aProperty.DisplayName]));
+    tkFloat:
+      if Value.AsExtended = 0 then
+        aErrros.Add(Format(sMSG_NUMBER_NOT_NULL, [aProperty.DisplayName]));
   end;
 end;
 

@@ -31,6 +31,9 @@ type
   NotNull = class(TCustomAttribute)
   end;
 
+  NotZero = class(TCustomAttribute)
+  end;
+
   Ignore = class(TCustomAttribute)
   end;
 
