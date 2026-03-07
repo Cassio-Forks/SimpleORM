@@ -108,6 +108,35 @@ type
     property Tipo: string read FTipo;
   end;
 
+  Email = class(TCustomAttribute)
+  end;
+
+  MinValue = class(TCustomAttribute)
+  private
+    FValue: Double;
+  public
+    constructor Create(aValue: Double);
+    property Value: Double read FValue;
+  end;
+
+  MaxValue = class(TCustomAttribute)
+  private
+    FValue: Double;
+  public
+    constructor Create(aValue: Double);
+    property Value: Double read FValue;
+  end;
+
+  Regex = class(TCustomAttribute)
+  private
+    FPattern: string;
+    FMessage: string;
+  public
+    constructor Create(const aPattern: string; const aMessage: string = '');
+    property Pattern: string read FPattern;
+    property Message: string read FMessage;
+  end;
+
 implementation
 
 
@@ -192,6 +221,28 @@ end;
 constructor Enumerator.Create(aTipo: string);
 begin
   FTipo := aTipo;
+end;
+
+{ MinValue }
+
+constructor MinValue.Create(aValue: Double);
+begin
+  FValue := aValue;
+end;
+
+{ MaxValue }
+
+constructor MaxValue.Create(aValue: Double);
+begin
+  FValue := aValue;
+end;
+
+{ Regex }
+
+constructor Regex.Create(const aPattern: string; const aMessage: string = '');
+begin
+  FPattern := aPattern;
+  FMessage := aMessage;
 end;
 
 end.

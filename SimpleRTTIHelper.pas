@@ -30,6 +30,11 @@ type
     function DisplayName: string;
     function FieldName: string;
     function EnumName: string;
+    function IsEmail: Boolean;
+    function HasMinValue: Boolean;
+    function HasMaxValue: Boolean;
+    function HasRegex: Boolean;
+    function HasFormat: Boolean;
   end;
 
   TRttiTypeHelper = class helper for TRttiType
@@ -168,6 +173,32 @@ begin
   if IsEnum then
     Result := GetAttribute<Enumerator>.Tipo;
 end;
+
+function TRttiPropertyHelper.IsEmail: Boolean;
+begin
+  Result := Tem<Email>
+end;
+
+function TRttiPropertyHelper.HasMinValue: Boolean;
+begin
+  Result := Tem<MinValue>
+end;
+
+function TRttiPropertyHelper.HasMaxValue: Boolean;
+begin
+  Result := Tem<MaxValue>
+end;
+
+function TRttiPropertyHelper.HasRegex: Boolean;
+begin
+  Result := Tem<Regex>
+end;
+
+function TRttiPropertyHelper.HasFormat: Boolean;
+begin
+  Result := Tem<SimpleAttributes.Format>
+end;
+
 function TRttiPropertyHelper.Tem<T>: Boolean;
 begin
   Result := GetAttribute<T> <> nil
