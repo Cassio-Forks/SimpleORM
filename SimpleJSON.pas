@@ -48,7 +48,7 @@ type
   public
     property Owner: TSimpleJsonBase read GetOwner;
 
-  end;
+  end deprecated 'Use SimpleJSONUtil instead';
 
   TSimpleJsonObject = class;
   TSimpleJsonArray = class;
@@ -103,7 +103,7 @@ type
     property IsNull: Boolean read GetIsNull write SetIsNull;
     property IsEmpty: Boolean read GetIsEmpty write SetIsEmpty;
 
-  end;
+  end deprecated 'Use SimpleJSONUtil instead';
 
   TSimpleJsonArray = class(TSimpleJsonBase)
   private
@@ -140,7 +140,7 @@ type
     property Count: Integer read GetCount;
     property Items[Index: Integer]: TSimpleJsonValue read GetItems; default;
 
-  end;
+  end deprecated 'Use SimpleJSONUtil instead';
 
   TSimpleJsonPair = class(TSimpleJsonBase)
   private
@@ -162,7 +162,7 @@ type
     property Name: String read FName write SetName;
     property Value: TSimpleJsonValue read FValue;
 
-  end;
+  end deprecated 'Use SimpleJSONUtil instead';
 
   TSimpleJsonObject = class(TSimpleJsonBase)
   private
@@ -208,7 +208,7 @@ type
     property Values[Name: String]: TSimpleJsonValue read GetValues; default;
     property AutoAdd: Boolean read FAutoAdd write FAutoAdd;
 
-  end;
+  end deprecated 'Use SimpleJSONUtil instead';
 
   TSimpleJson = class(TSimpleJsonBase)
   private
@@ -281,7 +281,7 @@ type
     property Count: Integer read GetCount;
     property Values[Name: String]: TSimpleJsonValue read GetValues; default; //for JsonObject
 
-  end;
+  end deprecated 'Use SimpleJSONUtil instead';
 
 implementation
 
