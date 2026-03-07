@@ -129,19 +129,16 @@ end;
 
 function TSimpleDAO<T>.Delete(aField, aValue: String): iSimpleDAO<T>;
 var
-    aSQL: String;
-    Entity: T;
     aTableName: string;
+    Entity: T;
 begin
     Result := Self;
     Entity := T.Create;
     try
-        TSimpleSQL<T>.New(Entity).Delete(aSQL);
         TSimpleRTTI<T>.New(Entity).TableName(aTableName);
-        aSQL := 'DELETE FROM ' + aTableName + ' WHERE ' + aField +
-          ' = ' + aValue;
         FQuery.SQL.Clear;
-        FQuery.SQL.Add(aSQL);
+        FQuery.SQL.Add('DELETE FROM ' + aTableName + ' WHERE ' + aField + ' = :pValue');
+        FQuery.Params.ParamByName('pValue').Value := aValue;
         FQuery.ExecSQL;
     finally
         FreeAndNil(Entity);
