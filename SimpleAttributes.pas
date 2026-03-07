@@ -80,9 +80,12 @@ type
   Relationship = class abstract(TCustomAttribute)
   private
     FEntityName: string;
+    FForeignKey: string;
   public
-    constructor Create(const aEntityName: string);
+    constructor Create(const aEntityName: string); overload;
+    constructor Create(const aEntityName, aForeignKey: string); overload;
     property EntityName: string read FEntityName write FEntityName;
+    property ForeignKey: string read FForeignKey write FForeignKey;
   end;
 
   HasOne = class(Relationship)
@@ -175,6 +178,13 @@ end;
 constructor Relationship.Create(const aEntityName: string);
 begin
   FEntityName := aEntityName;
+  FForeignKey := '';
+end;
+
+constructor Relationship.Create(const aEntityName, aForeignKey: string);
+begin
+  FEntityName := aEntityName;
+  FForeignKey := aForeignKey;
 end;
 
 { Enumerator }
