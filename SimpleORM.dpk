@@ -62,6 +62,10 @@ contains
   SimpleEntity in 'SimpleEntity.pas',
   SimpleJSONUtil in 'SimpleJSONUtil.pas',
   SimpleJSON in 'SimpleJSON.pas',
-  SimpleQueryUnidac in 'SimpleQueryUnidac.pas';
+  SimpleQueryUnidac in 'SimpleQueryUnidac.pas',
+  SimpleQueryZeos in 'SimpleQueryZeos.pas',
+  SimpleTypes in 'SimpleTypes.pas',
+  SimpleProxy in 'SimpleProxy.pas',
+  SimpleLogger in 'SimpleLogger.pas';
 
 end.
