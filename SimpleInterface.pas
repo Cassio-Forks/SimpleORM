@@ -14,7 +14,8 @@ uses
       Vcl.Forms,
     {$ENDIF}
   {$ENDIF}
-  System.SysUtils;
+  System.SysUtils,
+  SimpleTypes;
 type
   iSimpleDAOSQLAttribute<T : class> = interface;
 
@@ -103,7 +104,12 @@ type
     function DataSet : TDataSet;
     function Open(aSQL : String) : iSimpleQuery; overload;
     function Open : iSimpleQuery; overload;
+    function StartTransaction: iSimpleQuery;
+    function Commit: iSimpleQuery;
+    function Rollback: iSimpleQuery;
     function &EndTransaction: iSimpleQuery;
+    function InTransaction: Boolean;
+    function SQLType: TSQLType;
   end;
 
 
