@@ -3,7 +3,7 @@ unit SimpleQueryFiredac;
 interface
 
 uses
-  SimpleInterface, FireDAC.Comp.Client, System.Classes, Data.DB,
+  SimpleInterface, SimpleTypes, FireDAC.Comp.Client, System.Classes, Data.DB,
   FireDAC.Stan.Param, FireDAC.DatS,
   FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet;
 
@@ -14,10 +14,11 @@ Type
     FTransaction: TFDTransaction;
     FQuery: TFDQuery;
     FParams: TParams;
+    FSQLType: TSQLType;
   public
-    constructor Create(aConnection: TFDConnection);
+    constructor Create(aConnection: TFDConnection; aSQLType: TSQLType = TSQLType.Firebird);
     destructor Destroy; override;
-    class function New(aConnection: TFDConnection): iSimpleQuery;
+    class function New(aConnection: TFDConnection; aSQLType: TSQLType = TSQLType.Firebird): iSimpleQuery;
     function SQL: TStrings;
     function Params: TParams;
     function ExecSQL: iSimpleQuery;
@@ -25,6 +26,11 @@ Type
     function Open(aSQL: String): iSimpleQuery; overload;
     function Open: iSimpleQuery; overload;
     function &EndTransaction: iSimpleQuery;
+    function StartTransaction: iSimpleQuery;
+    function Commit: iSimpleQuery;
+    function Rollback: iSimpleQuery;
+    function InTransaction: Boolean;
+    function SQLType: TSQLType;
   end;
 
 implementation
@@ -34,7 +40,7 @@ uses
 
 { TSimpleQuery<T> }
 
-constructor TSimpleQueryFiredac.Create(aConnection: TFDConnection);
+constructor TSimpleQueryFiredac.Create(aConnection: TFDConnection; aSQLType: TSQLType = TSQLType.Firebird);
 begin
   FQuery := TFDQuery.Create(nil);
   FConnection := aConnection;
@@ -42,12 +48,9 @@ begin
 
   FTransaction := TFDTransaction.Create(nil);
   FTransaction.Connection := FConnection;
-
   FQuery.Transaction := FTransaction;
 
-  if FTransaction.Active then
-    FTransaction.Commit;
-  FTransaction.StartTransaction;
+  FSQLType := aSQLType;
 end;
 
 function TSimpleQueryFiredac.DataSet: TDataSet;
@@ -66,9 +69,7 @@ end;
 
 function TSimpleQueryFiredac.EndTransaction: iSimpleQuery;
 begin
-  Result := Self;
-  if FTransaction.Active then
-    FTransaction.Commit;
+  Result := Commit;
 end;
 
 function TSimpleQueryFiredac.ExecSQL: iSimpleQuery;
@@ -94,10 +95,9 @@ begin
     FreeAndNil(FParams);
 end;
 
-class function TSimpleQueryFiredac.New(aConnection: TFDConnection)
-  : iSimpleQuery;
+class function TSimpleQueryFiredac.New(aConnection: TFDConnection; aSQLType: TSQLType): iSimpleQuery;
 begin
-  Result := Self.Create(aConnection);
+  Result := Self.Create(aConnection, aSQLType);
 end;
 
 function TSimpleQueryFiredac.Open: iSimpleQuery;
@@ -135,6 +135,37 @@ end;
 function TSimpleQueryFiredac.SQL: TStrings;
 begin
   Result := FQuery.SQL;
+end;
+
+function TSimpleQueryFiredac.StartTransaction: iSimpleQuery;
+begin
+  Result := Self;
+  if not FTransaction.Active then
+    FTransaction.StartTransaction;
+end;
+
+function TSimpleQueryFiredac.Commit: iSimpleQuery;
+begin
+  Result := Self;
+  if FTransaction.Active then
+    FTransaction.Commit;
+end;
+
+function TSimpleQueryFiredac.Rollback: iSimpleQuery;
+begin
+  Result := Self;
+  if FTransaction.Active then
+    FTransaction.Rollback;
+end;
+
+function TSimpleQueryFiredac.InTransaction: Boolean;
+begin
+  Result := FTransaction.Active;
+end;
+
+function TSimpleQueryFiredac.SQLType: TSQLType;
+begin
+  Result := FSQLType;
 end;
 
 end.
