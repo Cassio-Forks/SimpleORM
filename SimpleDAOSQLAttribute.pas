@@ -16,6 +16,8 @@ Type
         FOrderBy: String;
         FGroupBy: String;
         FJoin: String;
+        FSkip: Integer;
+        FTake: Integer;
     public
         constructor Create(Parent: iSimpleDAO<T>);
         destructor Destroy; override;
@@ -31,6 +33,10 @@ Type
         function Where: String; overload;
         function OrderBy: String; overload;
         function GroupBy: String; overload;
+        function Skip(aValue: Integer): iSimpleDAOSQLAttribute<T>;
+        function Take(aValue: Integer): iSimpleDAOSQLAttribute<T>;
+        function GetSkip: Integer;
+        function GetTake: Integer;
         function &End: iSimpleDAO<T>;
     end;
 
@@ -84,6 +90,8 @@ begin
     FOrderBy := '';
     FGroupBy := '';
     FJoin := '';
+    FSkip := 0;
+    FTake := 0;
 end;
 
 constructor TSimpleDAOSQLAttribute<T>.Create(Parent: iSimpleDAO<T>);
@@ -134,6 +142,28 @@ end;
 function TSimpleDAOSQLAttribute<T>.Where: String;
 begin
     Result := FWhere;
+end;
+
+function TSimpleDAOSQLAttribute<T>.Skip(aValue: Integer): iSimpleDAOSQLAttribute<T>;
+begin
+    Result := Self;
+    FSkip := aValue;
+end;
+
+function TSimpleDAOSQLAttribute<T>.Take(aValue: Integer): iSimpleDAOSQLAttribute<T>;
+begin
+    Result := Self;
+    FTake := aValue;
+end;
+
+function TSimpleDAOSQLAttribute<T>.GetSkip: Integer;
+begin
+    Result := FSkip;
+end;
+
+function TSimpleDAOSQLAttribute<T>.GetTake: Integer;
+begin
+    Result := FTake;
 end;
 
 end.

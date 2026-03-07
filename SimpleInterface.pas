@@ -56,6 +56,10 @@ type
     function OrderBy : String; overload;
     function GroupBy : String; overload;
     function Clear : iSimpleDAOSQLAttribute<T>;
+    function Skip(aValue: Integer): iSimpleDAOSQLAttribute<T>;
+    function Take(aValue: Integer): iSimpleDAOSQLAttribute<T>;
+    function GetSkip: Integer;
+    function GetTake: Integer;
     function &End : iSimpleDAO<T>;
   end;
 
