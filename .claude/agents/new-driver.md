@@ -50,9 +50,10 @@ type
 1. Register in `SimpleORM.dpk` (contains section)
 2. Register in `SimpleORM.dpr` (uses section)
 3. **Create a sample project** in `samples/` demonstrating the driver (MANDATORY — see `.claude/rules/sample-creation.md`)
-4. **Update `docs/index.html`** with the new driver documentation (MANDATORY — see `.claude/rules/documentation.md`)
-5. Update `CHANGELOG.md` with the new driver
-6. Commit with message: `feat: add SimpleQueryXxx driver for [database/protocol]`
+4. **Create DUnit tests** for the driver in `tests/TestSimpleQueryXxx.pas` (MANDATORY — see `.claude/rules/testing.md`)
+5. **Update `docs/index.html`** with the new driver documentation (MANDATORY — see `.claude/rules/documentation.md`)
+6. Update `CHANGELOG.md` with the new driver
+7. Commit with message: `feat: add SimpleQueryXxx driver for [database/protocol]`
 
 ## Self-Review Checklist
 
@@ -65,6 +66,7 @@ type
 - [ ] No exceptions swallowed silently
 - [ ] No SQL injection (all params via `:fieldname`)
 - [ ] Registered in .dpk and .dpr
+- [ ] **DUnit tests created** in `tests/TestSimpleQueryXxx.pas`
 - [ ] **Sample project created** (`.dpr` + `README.md`, NOT `.dproj`/`.res`)
 - [ ] **`docs/index.html` updated** with new driver documentation
 - [ ] CHANGELOG updated

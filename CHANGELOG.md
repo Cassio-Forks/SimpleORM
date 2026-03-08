@@ -15,6 +15,8 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 - **SimpleHorseRouter** - Auto-geracao de rotas CRUD no Horse a partir de entidades SimpleORM com callbacks opcionais OnBeforeInsert/OnAfterInsert/OnBeforeUpdate/OnBeforeDelete (`SimpleHorseRouter.pas`)
 - **SimpleQueryHorse** - Driver REST cliente que implementa `iSimpleQuery` via HTTP, com suporte a Bearer token e hook `OnBeforeRequest` (`SimpleQueryHorse.pas`)
 - **Sample horse-integration** - Exemplos de servidor (HorseServer.dpr) e cliente (HorseClient.dpr) usando a integracao Horse
+- **DUnit Test Suite** - Suite completa de testes unitarios com 99 testes cobrindo SimpleAttributes, SimpleRTTIHelper, SimpleSQL, SimpleValidator e SimpleSerializer (`tests/SimpleORMTests.dpr`)
+- **Regra de testes obrigatorios** - Toda nova feature deve incluir testes DUnit (`.claude/rules/testing.md`)
 
 ## [2.0.0] - 2026-03-08
 

@@ -69,6 +69,7 @@ LDAO := TSimpleDAO<T>.New(TSimpleQueryHorse.New('http://server:9000', 'my-token'
 
 ## After Creating
 
+- **Create DUnit tests** for the endpoint logic (MANDATORY — see `.claude/rules/testing.md`)
 - **Create/update sample project** demonstrating the endpoint (MANDATORY — see `.claude/rules/sample-creation.md`)
 - **Update `docs/index.html`** with endpoint documentation (MANDATORY — see `.claude/rules/documentation.md`)
 - Update `CHANGELOG.md`
@@ -81,6 +82,7 @@ LDAO := TSimpleDAO<T>.New(TSimpleQueryHorse.New('http://server:9000', 'my-token'
 - [ ] RegisterEntity receives iSimpleQuery (not iSimpleDAO)
 - [ ] Each handler creates own TSimpleDAO instance
 - [ ] ParseJSONValue nil-checked
+- [ ] **DUnit tests created** for endpoint logic
 - [ ] **Sample project created/updated** (`.dpr` + `README.md`, NOT `.dproj`/`.res`)
 - [ ] **`docs/index.html` updated** with endpoint documentation
 - [ ] ALL `.claude/rules/` followed

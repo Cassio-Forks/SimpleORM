@@ -12,7 +12,7 @@ SimpleORM is a Delphi ORM library that simplifies CRUD operations. It supports m
 - **Manual install**: Add the `src/` directory to the Delphi Library Path
 - **Package file**: `SimpleORM.dpk` (design-time package, no component installation required)
 - **Project group**: `SimpleORM_Group.groupproj` contains the library and sample projects
-- No test suite exists in this repository
+- **Test suite**: `tests/SimpleORMTests.dpr` — DUnit console runner. Open in Delphi IDE, compile and run. Use `-pause` flag to keep console open after tests
 
 ## Repository Structure
 
@@ -116,4 +116,5 @@ Class helpers on `TRttiProperty`, `TRttiType`, and `TRttiField` that provide att
 - Batch operations (`InsertBatch`/`UpdateBatch`/`DeleteBatch`) auto-wrap in transactions
 - `SimpleJSON.pas` is deprecated - use `SimpleJSONUtil.pas` for all JSON operations
 - **Every new feature MUST include a sample project** in `samples/` demonstrating the feature — without a sample, the feature is NOT complete
+- **Every new feature MUST include DUnit tests** in `tests/` — without tests, the feature is NOT complete
 - **Never create `.dproj`, `.res`, or `.dfm` files** — these are generated exclusively by the Delphi IDE. Only create `.dpr` (program files) and `.pas` (unit files)

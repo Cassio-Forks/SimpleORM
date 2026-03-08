@@ -77,6 +77,7 @@
     <li><a href="#bind-form">Bind de Formularios</a></li>
     <li><a href="#interfaces">API de Interfaces</a></li>
     <li><a href="#tipos-banco">Tipos de Banco</a></li>
+    <li><a href="#testes">Testes Unitarios (DUnit)</a> <span class="badge badge-new">NEW</span></li>
   </ul>
 </nav>
 
@@ -791,6 +792,78 @@ TSimpleQueryFiredac.New(Conn, TSQLType.SQLite);
 
 // Oracle
 TSimpleQueryFiredac.New(Conn, TSQLType.Oracle);</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="testes">
+<h2>Testes Unitarios (DUnit) <span class="badge badge-new">NEW</span></h2>
+
+<p>O SimpleORM possui suite completa de testes unitarios usando DUnit, cobrindo atributos, RTTI helpers, geracao SQL, validacao e serializacao.</p>
+
+<h3>Estrutura</h3>
+<pre><code>tests/
+  SimpleORMTests.dpr          -- Test runner console
+  Entities/
+    TestEntities.pas           -- Entidades de teste decoradas com atributos
+  TestSimpleAttributes.pas     -- Testes dos atributos (22 testes)
+  TestSimpleRTTIHelper.pas     -- Testes dos RTTI helpers (26 testes)
+  TestSimpleSQL.pas            -- Testes de geracao SQL (20 testes)
+  TestSimpleValidator.pas      -- Testes de validacao (21 testes)
+  TestSimpleSerializer.pas     -- Testes de serializacao JSON (10 testes)</code></pre>
+
+<h3>Executando os Testes</h3>
+<pre><code>// 1. Abra tests/SimpleORMTests.dpr no Delphi IDE
+// 2. Compile (IDE gera .dproj e .res automaticamente)
+// 3. Execute
+
+// Com pausa apos execucao:
+SimpleORMTests.exe -pause</code></pre>
+
+<h3>Cobertura de Testes</h3>
+<table>
+<tr><th>Unit</th><th>Testes</th><th>O que cobre</th></tr>
+<tr><td><code>SimpleAttributes</code></td><td>22</td><td>Construtores, propriedades, GetNumericMask, relacionamentos</td></tr>
+<tr><td><code>SimpleRTTIHelper</code></td><td>26</td><td>IsNotNull, IsAutoInc, FieldName, DisplayName, EhChavePrimaria, SoftDelete, ValueHelper</td></tr>
+<tr><td><code>SimpleSQL</code></td><td>20</td><td>INSERT, UPDATE, DELETE, SELECT, paginacao (Firebird/MySQL/SQLite/Oracle), SoftDelete</td></tr>
+<tr><td><code>SimpleValidator</code></td><td>21</td><td>NotNull, NotZero, Format, Email, MinValue, MaxValue, Regex, exception</td></tr>
+<tr><td><code>SimpleSerializer</code></td><td>10</td><td>EntityToJSON, JSONToEntity, listas, roundtrip, campos ignorados</td></tr>
+</table>
+
+<h3>Adicionando Novos Testes</h3>
+<pre><code>unit TestSimpleNovaFeature;
+
+interface
+
+uses
+  TestFramework;
+
+type
+  TTestNovaFeature = class(TTestCase)
+  published
+    procedure TestCenario_ShouldPass;
+    procedure TestCenario_ShouldFail;
+  end;
+
+implementation
+
+procedure TTestNovaFeature.TestCenario_ShouldPass;
+begin
+  CheckTrue(True, 'Descricao do teste');
+end;
+
+procedure TTestNovaFeature.TestCenario_ShouldFail;
+begin
+  // testar cenario de erro
+end;
+
+initialization
+  RegisterTest('NovaFeature', TTestNovaFeature.Suite);
+
+end.</code></pre>
+
+<div class="note">
+<strong>Regra:</strong> Toda nova feature implementada no SimpleORM DEVE incluir testes unitarios DUnit. Adicione a unit de teste no <code>uses</code> do <code>SimpleORMTests.dpr</code>.
+</div>
 </section>
 
 <footer>
