@@ -42,7 +42,8 @@ implementation
 
 uses
   SimpleAttributes, SimpleRTTIHelper, SimpleDAO, SimpleRTTI,
-  SimpleSerializer, SimpleMigration, SimpleValidator, Data.DB;
+  SimpleSerializer, SimpleMigration, SimpleValidator, Data.DB,
+  SimpleMCPTransport.Stdio;
 
 { TSimpleMCPServer }
 
@@ -853,7 +854,7 @@ end;
 
 procedure TSimpleMCPServer.StartStdio;
 begin
-  raise Exception.Create('StartStdio not implemented. Use SimpleMCPTransportStdio unit.');
+  SimpleMCPTransport.Stdio.RunStdioLoop(Self);
 end;
 
 procedure TSimpleMCPServer.StartHttp(aPort: Integer);
