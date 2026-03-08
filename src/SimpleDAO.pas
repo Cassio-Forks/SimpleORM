@@ -46,6 +46,7 @@ Type
         procedure OnDataChange(Sender: TObject; Field: TField);
         procedure LoadRelationships(aEntity: T);
         procedure ApplyScopes;
+        procedure ExecuteCascadeDelete(aValue: T);
     public
         constructor Create(aQuery: iSimpleQuery);
         destructor Destroy; override;
@@ -148,6 +149,7 @@ begin
     Result := Self;
     if Assigned(FOnBeforeDelete) then
       FOnBeforeDelete(aValue);
+    ExecuteCascadeDelete(aValue);
     TSimpleSQL<T>.New(aValue).Delete(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
@@ -190,6 +192,7 @@ begin
     Result := Self;
     if Assigned(FOnBeforeDelete) then
       FOnBeforeDelete(aValue);
+    ExecuteCascadeDelete(aValue);
     TSimpleRTTI<T>.New(aValue)
       .TableName(aClassName)
       .Where(aWhere);
@@ -621,6 +624,44 @@ begin
     end;
   finally
     ctxRtti.Free;
+  end;
+end;
+
+procedure TSimpleDAO<T>.ExecuteCascadeDelete(aValue: T);
+var
+  LCtx: TRttiContext;
+  LType: TRttiType;
+  LProp: TRttiProperty;
+  LRelation: Relationship;
+  LPKProp: TRttiProperty;
+  LPKValue: TValue;
+begin
+  LCtx := TRttiContext.Create;
+  try
+    LType := LCtx.GetType(TObject(aValue).ClassType);
+    LPKProp := LType.GetPKField;
+    if LPKProp = nil then
+      Exit;
+
+    LPKValue := LPKProp.GetValue(Pointer(aValue));
+
+    for LProp in LType.GetProperties do
+    begin
+      if not LProp.IsCascadeDelete then
+        Continue;
+
+      LRelation := LProp.GetRelationship;
+      if LRelation = nil then
+        Continue;
+
+      FQuery.SQL.Clear;
+      FQuery.SQL.Add('DELETE FROM ' + LRelation.EntityName +
+        ' WHERE ' + LRelation.ForeignKey + ' = :pCascadeFK');
+      FQuery.Params.ParamByName('pCascadeFK').Value := LPKValue.AsVariant;
+      FQuery.ExecSQL;
+    end;
+  finally
+    LCtx.Free;
   end;
 end;
 

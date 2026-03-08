@@ -163,6 +163,9 @@ type
   UpdatedAt = class(TCustomAttribute)
   end;
 
+  CascadeDelete = class(TCustomAttribute)
+  end;
+
 implementation
 
 

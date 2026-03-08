@@ -41,6 +41,7 @@ type
     function IsJSONBase64: Boolean;
     function IsCreatedAt: Boolean;
     function IsUpdatedAt: Boolean;
+    function IsCascadeDelete: Boolean;
   end;
 
   TRttiTypeHelper = class helper for TRttiType
@@ -235,6 +236,11 @@ end;
 function TRttiPropertyHelper.IsUpdatedAt: Boolean;
 begin
   Result := Tem<UpdatedAt>
+end;
+
+function TRttiPropertyHelper.IsCascadeDelete: Boolean;
+begin
+  Result := Tem<CascadeDelete>
 end;
 
 function TRttiPropertyHelper.Tem<T>: Boolean;
