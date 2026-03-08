@@ -101,8 +101,8 @@ var
   LObj: T;
 begin
   LObj := T.Create;
-  LContext := TRttiContext.Create;
   try
+    LContext := TRttiContext.Create;
     LType := LContext.GetType(TObject(LObj).ClassType);
     for LProp in LType.GetProperties do
     begin
@@ -154,10 +154,11 @@ begin
         end;
       end;
     end;
-  finally
-    LContext.Free;
+    Result := LObj;
+  except
+    TObject(LObj).Free;
+    raise;
   end;
-  Result := LObj;
 end;
 
 class function TSimpleSerializer.EntityListToJSONArray<T>(aList: TObjectList<T>): TJSONArray;
@@ -174,8 +175,13 @@ var
   I: Integer;
 begin
   Result := TObjectList<T>.Create;
-  for I := 0 to aArray.Count - 1 do
-    Result.Add(JSONToEntity<T>(aArray.Items[I] as TJSONObject));
+  try
+    for I := 0 to aArray.Count - 1 do
+      Result.Add(JSONToEntity<T>(aArray.Items[I] as TJSONObject));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 end.
