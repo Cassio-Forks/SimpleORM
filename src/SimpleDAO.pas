@@ -40,6 +40,8 @@ Type
         FActiveScopes: TList<String>;
         FRawSQL: String;
         FRawParams: TDictionary<String, Variant>;
+        FCacheEnabled: Boolean;
+        FCache: TDictionary<String, T>;
         function FillParameter(aInstance: T): iSimpleDAO<T>; overload;
         function FillParameter(aInstance: T; aId: Variant)
           : iSimpleDAO<T>; overload;
@@ -94,6 +96,9 @@ Type
         function RawSQLWithParams(const aSQL: String; const aParamNames: array of String; const aParamValues: array of Variant): iSimpleDAO<T>;
         function FindRaw: TObjectList<T>;
         function ExecRawSQL(const aSQL: String): iSimpleDAO<T>;
+        function EnableCache: iSimpleDAO<T>;
+        function DisableCache: iSimpleDAO<T>;
+        function ClearCache: iSimpleDAO<T>;
 {$IFNDEF CONSOLE}
         function BindForm(aForm: TForm): iSimpleDAO<T>;
 {$ENDIF}
@@ -131,6 +136,8 @@ begin
     FScopes := TDictionary<String, String>.Create;
     FActiveScopes := TList<String>.Create;
     FRawParams := TDictionary<String, Variant>.Create;
+    FCacheEnabled := False;
+    FCache := TDictionary<String, T>.Create;
 end;
 
 function TSimpleDAO<T>.DataSource(aDataSource: TDataSource): iSimpleDAO<T>;
@@ -159,6 +166,8 @@ begin
     SW.Stop;
     if Assigned(FLogger) then
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+    if FCacheEnabled then
+      FCache.Clear;
     if Assigned(FOnAfterDelete) then
       FOnAfterDelete(aValue);
 end;
@@ -205,6 +214,8 @@ begin
     SW.Stop;
     if Assigned(FLogger) then
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+    if FCacheEnabled then
+      FCache.Clear;
     if Assigned(FOnAfterDelete) then
       FOnAfterDelete(aValue);
 end;
@@ -233,6 +244,7 @@ begin
     FreeAndNil(FScopes);
     FreeAndNil(FActiveScopes);
     FreeAndNil(FRawParams);
+    FreeAndNil(FCache);
     inherited;
 end;
 
@@ -270,7 +282,14 @@ end;
 function TSimpleDAO<T>.Find(aId: Integer): T;
 var
     aSQL: String;
+    LCacheKey: String;
 begin
+    if FCacheEnabled then
+    begin
+      LCacheKey := IntToStr(aId);
+      if FCache.ContainsKey(LCacheKey) then
+        Exit(FCache[LCacheKey]);
+    end;
     Result := T.Create;
     TSimpleSQL<T>.New(nil).SelectId(aSQL);
     FQuery.SQL.Clear;
@@ -279,6 +298,8 @@ begin
     FQuery.Open;
     TSimpleRTTI<T>.New(nil).DataSetToEntity(FQuery.DataSet, Result);
     LoadRelationships(Result);
+    if FCacheEnabled then
+      FCache.AddOrSetValue(IntToStr(aId), Result);
 end;
 {$IFNDEF CONSOLE}
 
@@ -364,6 +385,8 @@ begin
     SW.Stop;
     if Assigned(FLogger) then
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+    if FCacheEnabled then
+      FCache.Clear;
     if Assigned(FOnAfterInsert) then
       FOnAfterInsert(aValue);
 end;
@@ -434,6 +457,8 @@ begin
     SW.Stop;
     if Assigned(FLogger) then
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+    if FCacheEnabled then
+      FCache.Clear;
     if Assigned(FOnAfterUpdate) then
       FOnAfterUpdate(aValue);
 end;
@@ -977,6 +1002,24 @@ begin
   FQuery.SQL.Clear;
   FQuery.SQL.Add(aSQL);
   FQuery.ExecSQL;
+end;
+
+function TSimpleDAO<T>.EnableCache: iSimpleDAO<T>;
+begin
+  Result := Self;
+  FCacheEnabled := True;
+end;
+
+function TSimpleDAO<T>.DisableCache: iSimpleDAO<T>;
+begin
+  Result := Self;
+  FCacheEnabled := False;
+end;
+
+function TSimpleDAO<T>.ClearCache: iSimpleDAO<T>;
+begin
+  Result := Self;
+  FCache.Clear;
 end;
 
 end.

@@ -66,6 +66,9 @@ type
     function RawSQLWithParams(const aSQL: String; const aParamNames: array of String; const aParamValues: array of Variant): iSimpleDAO<T>;
     function FindRaw: TObjectList<T>;
     function ExecRawSQL(const aSQL: String): iSimpleDAO<T>;
+    function EnableCache: iSimpleDAO<T>;
+    function DisableCache: iSimpleDAO<T>;
+    function ClearCache: iSimpleDAO<T>;
     {$IFNDEF CONSOLE}
     function BindForm(aForm : TForm)  : iSimpleDAO<T>;
     {$ENDIF}
