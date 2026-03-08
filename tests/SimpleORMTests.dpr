@@ -23,7 +23,10 @@ uses
   TestSimpleValidator in 'TestSimpleValidator.pas',
   TestSimpleSerializer in 'TestSimpleSerializer.pas',
   SimpleMigration in '..\src\SimpleMigration.pas',
-  TestSimpleMigration in 'TestSimpleMigration.pas';
+  TestSimpleMigration in 'TestSimpleMigration.pas',
+  SimpleMCPServer in '..\src\SimpleMCPServer.pas',
+  SimpleMCPTypes in '..\src\SimpleMCPTypes.pas',
+  TestSimpleMCPServer in 'TestSimpleMCPServer.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
