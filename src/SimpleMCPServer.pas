@@ -43,7 +43,7 @@ implementation
 uses
   SimpleAttributes, SimpleRTTIHelper, SimpleDAO, SimpleRTTI,
   SimpleSerializer, SimpleMigration, SimpleValidator, Data.DB,
-  SimpleMCPTransport.Stdio;
+  SimpleMCPTransport.Stdio, SimpleMCPTransport.Http;
 
 { TSimpleMCPServer }
 
@@ -859,7 +859,7 @@ end;
 
 procedure TSimpleMCPServer.StartHttp(aPort: Integer);
 begin
-  raise Exception.Create('StartHttp not implemented. Use SimpleMCPTransportHttp unit.');
+  SimpleMCPTransport.Http.StartHttpTransport(Self, aPort);
 end;
 
 end.
