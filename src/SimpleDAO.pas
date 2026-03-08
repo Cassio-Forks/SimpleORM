@@ -66,6 +66,11 @@ Type
         function InsertBatch(aList: TObjectList<T>): iSimpleDAO<T>;
         function UpdateBatch(aList: TObjectList<T>): iSimpleDAO<T>;
         function DeleteBatch(aList: TObjectList<T>): iSimpleDAO<T>;
+        function Count: Integer;
+        function Sum(const aField: String): Double;
+        function Min(const aField: String): Double;
+        function Max(const aField: String): Double;
+        function Avg(const aField: String): Double;
         function SQL: iSimpleDAOSQLAttribute<T>;
         function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
         function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
@@ -652,6 +657,86 @@ begin
       raise;
     end;
   end;
+end;
+
+function TSimpleDAO<T>.Count: Integer;
+var
+  aSQL: String;
+begin
+  TSimpleSQL<T>.New(nil)
+    .DatabaseType(FQuery.SQLType)
+    .Where(FSQLAttribute.Where)
+    .Join(FSQLAttribute.Join)
+    .Count(aSQL);
+
+  FQuery.SQL.Clear;
+  FQuery.SQL.Add(aSQL);
+  FQuery.Open;
+  Result := FQuery.DataSet.Fields[0].AsInteger;
+end;
+
+function TSimpleDAO<T>.Sum(const aField: String): Double;
+var
+  aSQL: String;
+begin
+  TSimpleSQL<T>.New(nil)
+    .DatabaseType(FQuery.SQLType)
+    .Where(FSQLAttribute.Where)
+    .Join(FSQLAttribute.Join)
+    .Aggregate(aSQL, 'SUM', aField);
+
+  FQuery.SQL.Clear;
+  FQuery.SQL.Add(aSQL);
+  FQuery.Open;
+  Result := FQuery.DataSet.Fields[0].AsFloat;
+end;
+
+function TSimpleDAO<T>.Min(const aField: String): Double;
+var
+  aSQL: String;
+begin
+  TSimpleSQL<T>.New(nil)
+    .DatabaseType(FQuery.SQLType)
+    .Where(FSQLAttribute.Where)
+    .Join(FSQLAttribute.Join)
+    .Aggregate(aSQL, 'MIN', aField);
+
+  FQuery.SQL.Clear;
+  FQuery.SQL.Add(aSQL);
+  FQuery.Open;
+  Result := FQuery.DataSet.Fields[0].AsFloat;
+end;
+
+function TSimpleDAO<T>.Max(const aField: String): Double;
+var
+  aSQL: String;
+begin
+  TSimpleSQL<T>.New(nil)
+    .DatabaseType(FQuery.SQLType)
+    .Where(FSQLAttribute.Where)
+    .Join(FSQLAttribute.Join)
+    .Aggregate(aSQL, 'MAX', aField);
+
+  FQuery.SQL.Clear;
+  FQuery.SQL.Add(aSQL);
+  FQuery.Open;
+  Result := FQuery.DataSet.Fields[0].AsFloat;
+end;
+
+function TSimpleDAO<T>.Avg(const aField: String): Double;
+var
+  aSQL: String;
+begin
+  TSimpleSQL<T>.New(nil)
+    .DatabaseType(FQuery.SQLType)
+    .Where(FSQLAttribute.Where)
+    .Join(FSQLAttribute.Join)
+    .Aggregate(aSQL, 'AVG', aField);
+
+  FQuery.SQL.Clear;
+  FQuery.SQL.Add(aSQL);
+  FQuery.Open;
+  Result := FQuery.DataSet.Fields[0].AsFloat;
 end;
 
 function TSimpleDAO<T>.OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;

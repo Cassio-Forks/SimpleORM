@@ -31,6 +31,8 @@ Type
       function Join (aSQL : String) : iSimpleSQL<T>;
       function LastID (var aSQL : String) : iSimpleSQL<T>;
       function LastRecord (var aSQL : String) : iSimpleSQL<T>;
+      function Count(var aSQL: String): iSimpleSQL<T>;
+      function Aggregate(var aSQL: String; const aFunction, aField: String): iSimpleSQL<T>;
       function Skip(aValue: Integer): iSimpleSQL<T>;
       function Take(aValue: Integer): iSimpleSQL<T>;
       function DatabaseType(aType: TSQLType): iSimpleSQL<T>;
@@ -285,6 +287,68 @@ function TSimpleSQL<T>.Where(aSQL: String): iSimpleSQL<T>;
 begin
   Result := Self;
   FWhere := aSQL;
+end;
+
+function TSimpleSQL<T>.Count(var aSQL: String): iSimpleSQL<T>;
+var
+  aClassName: String;
+  aSoftDeleteField: String;
+begin
+  Result := Self;
+  aSQL := '';
+  TSimpleRTTI<T>.New(FInstance)
+    .TableName(aClassName)
+    .SoftDeleteField(aSoftDeleteField);
+
+  aSQL := 'select count(*) from ' + aClassName;
+
+  if FJoin <> '' then
+    aSQL := aSQL + ' ' + FJoin;
+
+  if (aSoftDeleteField <> '') or (FWhere <> '') then
+    aSQL := aSQL + ' where ';
+
+  if aSoftDeleteField <> '' then
+    aSQL := aSQL + aSoftDeleteField + ' = 0';
+
+  if FWhere <> '' then
+  begin
+    if aSoftDeleteField <> '' then
+      aSQL := aSQL + ' and ' + FWhere
+    else
+      aSQL := aSQL + FWhere;
+  end;
+end;
+
+function TSimpleSQL<T>.Aggregate(var aSQL: String; const aFunction, aField: String): iSimpleSQL<T>;
+var
+  aClassName: String;
+  aSoftDeleteField: String;
+begin
+  Result := Self;
+  aSQL := '';
+  TSimpleRTTI<T>.New(FInstance)
+    .TableName(aClassName)
+    .SoftDeleteField(aSoftDeleteField);
+
+  aSQL := 'select ' + aFunction + '(' + aField + ') from ' + aClassName;
+
+  if FJoin <> '' then
+    aSQL := aSQL + ' ' + FJoin;
+
+  if (aSoftDeleteField <> '') or (FWhere <> '') then
+    aSQL := aSQL + ' where ';
+
+  if aSoftDeleteField <> '' then
+    aSQL := aSQL + aSoftDeleteField + ' = 0';
+
+  if FWhere <> '' then
+  begin
+    if aSoftDeleteField <> '' then
+      aSQL := aSQL + ' and ' + FWhere
+    else
+      aSQL := aSQL + FWhere;
+  end;
 end;
 
 end.

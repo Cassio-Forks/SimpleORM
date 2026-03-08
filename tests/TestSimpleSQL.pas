@@ -55,6 +55,19 @@ type
     procedure TestSelectSoftDeleteWithWhere;
   end;
 
+  TTestSimpleSQLCount = class(TTestCase)
+  published
+    procedure TestCountBasic;
+    procedure TestCountWithSoftDelete;
+    procedure TestCountWithWhere;
+    procedure TestAggregateSumBasic;
+    procedure TestAggregateMinBasic;
+    procedure TestAggregateMaxBasic;
+    procedure TestAggregateAvgBasic;
+    procedure TestAggregateWithSoftDelete;
+    procedure TestAggregateWithWhere;
+  end;
+
   TTestSimpleSQLSelectId = class(TTestCase)
   published
     procedure TestSelectIdBasic;
@@ -601,11 +614,92 @@ begin
   end;
 end;
 
+{ TTestSimpleSQLCount }
+
+procedure TTestSimpleSQLCount.TestCountBasic;
+var
+  LSQLStr: String;
+begin
+  TSimpleSQL<TPedidoTest>.New(nil).Count(LSQLStr);
+  CheckTrue(Pos('count(*)', LowerCase(LSQLStr)) > 0, 'Deve conter count(*): ' + LSQLStr);
+  CheckTrue(Pos('from', LowerCase(LSQLStr)) > 0, 'Deve conter from: ' + LSQLStr);
+  CheckTrue(Pos('pedido', LowerCase(LSQLStr)) > 0, 'Deve conter nome da tabela: ' + LSQLStr);
+end;
+
+procedure TTestSimpleSQLCount.TestCountWithSoftDelete;
+var
+  LSQLStr: String;
+begin
+  TSimpleSQL<TClienteTest>.New(nil).Count(LSQLStr);
+  CheckTrue(Pos('count(*)', LowerCase(LSQLStr)) > 0, 'Deve conter count(*): ' + LSQLStr);
+  CheckTrue(Pos('excluido = 0', LowerCase(LSQLStr)) > 0, 'Deve filtrar soft delete: ' + LSQLStr);
+end;
+
+procedure TTestSimpleSQLCount.TestCountWithWhere;
+var
+  LSQLStr: String;
+begin
+  TSimpleSQL<TPedidoTest>.New(nil).Where('VALOR > 100').Count(LSQLStr);
+  CheckTrue(Pos('count(*)', LowerCase(LSQLStr)) > 0, 'Deve conter count(*): ' + LSQLStr);
+  CheckTrue(Pos('valor > 100', LowerCase(LSQLStr)) > 0, 'Deve conter where: ' + LSQLStr);
+end;
+
+procedure TTestSimpleSQLCount.TestAggregateSumBasic;
+var
+  LSQLStr: String;
+begin
+  TSimpleSQL<TPedidoTest>.New(nil).Aggregate(LSQLStr, 'SUM', 'VALOR');
+  CheckTrue(Pos('sum(valor)', LowerCase(LSQLStr)) > 0, 'Deve conter SUM(VALOR): ' + LSQLStr);
+end;
+
+procedure TTestSimpleSQLCount.TestAggregateMinBasic;
+var
+  LSQLStr: String;
+begin
+  TSimpleSQL<TPedidoTest>.New(nil).Aggregate(LSQLStr, 'MIN', 'VALOR');
+  CheckTrue(Pos('min(valor)', LowerCase(LSQLStr)) > 0, 'Deve conter MIN(VALOR): ' + LSQLStr);
+end;
+
+procedure TTestSimpleSQLCount.TestAggregateMaxBasic;
+var
+  LSQLStr: String;
+begin
+  TSimpleSQL<TPedidoTest>.New(nil).Aggregate(LSQLStr, 'MAX', 'VALOR');
+  CheckTrue(Pos('max(valor)', LowerCase(LSQLStr)) > 0, 'Deve conter MAX(VALOR): ' + LSQLStr);
+end;
+
+procedure TTestSimpleSQLCount.TestAggregateAvgBasic;
+var
+  LSQLStr: String;
+begin
+  TSimpleSQL<TPedidoTest>.New(nil).Aggregate(LSQLStr, 'AVG', 'VALOR');
+  CheckTrue(Pos('avg(valor)', LowerCase(LSQLStr)) > 0, 'Deve conter AVG(VALOR): ' + LSQLStr);
+end;
+
+procedure TTestSimpleSQLCount.TestAggregateWithSoftDelete;
+var
+  LSQLStr: String;
+begin
+  TSimpleSQL<TClienteTest>.New(nil).Aggregate(LSQLStr, 'SUM', 'SALDO');
+  CheckTrue(Pos('sum(saldo)', LowerCase(LSQLStr)) > 0, 'Deve conter SUM(SALDO): ' + LSQLStr);
+  CheckTrue(Pos('excluido = 0', LowerCase(LSQLStr)) > 0, 'Deve filtrar soft delete: ' + LSQLStr);
+end;
+
+procedure TTestSimpleSQLCount.TestAggregateWithWhere;
+var
+  LSQLStr: String;
+begin
+  TSimpleSQL<TPedidoTest>.New(nil).Where('CLIENTE = 1').Aggregate(LSQLStr, 'SUM', 'VALOR');
+  CheckTrue(Pos('sum(valor)', LowerCase(LSQLStr)) > 0, 'Deve conter SUM(VALOR): ' + LSQLStr);
+  CheckTrue(Pos('cliente = 1', LowerCase(LSQLStr)) > 0, 'Deve conter where: ' + LSQLStr);
+end;
+
 initialization
   RegisterTest('SQL.Insert', TTestSimpleSQLInsert.Suite);
   RegisterTest('SQL.Update', TTestSimpleSQLUpdate.Suite);
   RegisterTest('SQL.Delete', TTestSimpleSQLDelete.Suite);
   RegisterTest('SQL.Select', TTestSimpleSQLSelect.Suite);
+  RegisterTest('SQL.Count', TTestSimpleSQLCount.Suite);
   RegisterTest('SQL.SelectId', TTestSimpleSQLSelectId.Suite);
   RegisterTest('SQL.LastID', TTestSimpleSQLLastID.Suite);
   RegisterTest('SQL.LastRecord', TTestSimpleSQLLastRecord.Suite);

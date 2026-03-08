@@ -45,6 +45,11 @@ type
     function UpdateBatch(aList: TObjectList<T>): iSimpleDAO<T>;
     function DeleteBatch(aList: TObjectList<T>): iSimpleDAO<T>;
     function SQL : iSimpleDAOSQLAttribute<T>;
+    function Count: Integer;
+    function Sum(const aField: String): Double;
+    function Min(const aField: String): Double;
+    function Max(const aField: String): Double;
+    function Avg(const aField: String): Double;
     function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
     function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
@@ -113,6 +118,8 @@ type
     function Join (aSQL : String) : iSimpleSQL<T>;
     function LastID (var aSQL : String) : iSimpleSQL<T>;
     function LastRecord (var aSQL : String) : iSimpleSQL<T>;
+    function Count(var aSQL: String): iSimpleSQL<T>;
+    function Aggregate(var aSQL: String; const aFunction, aField: String): iSimpleSQL<T>;
     function Skip(aValue: Integer): iSimpleSQL<T>;
     function Take(aValue: Integer): iSimpleSQL<T>;
     function DatabaseType(aType: TSQLType): iSimpleSQL<T>;
