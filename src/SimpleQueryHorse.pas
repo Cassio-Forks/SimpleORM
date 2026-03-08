@@ -3,8 +3,8 @@ unit SimpleQueryHorse;
 interface
 
 uses
-  SimpleInterface, SimpleTypes, System.Classes, Data.DB, System.SysUtils,
-  System.JSON, System.Net.HttpClient, System.Net.URLClient,
+  SimpleInterface, SimpleTypes, System.Classes, System.Variants, Data.DB,
+  System.SysUtils, System.JSON, System.Net.HttpClient, System.Net.URLClient,
   Datasnap.DBClient, System.Generics.Collections;
 
 type
@@ -479,6 +479,7 @@ var
   LResponse: IHTTPResponse;
   LHeaders: TStringList;
   LContent: TStringStream;
+  I: Integer;
 begin
   Result := '';
   LClient := THTTPClient.Create;
@@ -492,7 +493,6 @@ begin
     if Assigned(FOnBeforeRequest) then
     begin
       FOnBeforeRequest(LHeaders);
-      var I: Integer;
       for I := 0 to LHeaders.Count - 1 do
         LClient.CustomHeaders[LHeaders.Names[I]] := LHeaders.ValueFromIndex[I];
     end;
@@ -525,7 +525,11 @@ begin
     end;
 
     if Assigned(LResponse) then
+    begin
+      if (LResponse.StatusCode >= 400) then
+        raise Exception.CreateFmt('HTTP %d: %s', [LResponse.StatusCode, LResponse.ContentAsString(TEncoding.UTF8)]);
       Result := LResponse.ContentAsString(TEncoding.UTF8);
+    end;
   finally
     LHeaders.Free;
     LClient.Free;
