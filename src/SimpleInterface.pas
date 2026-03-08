@@ -50,6 +50,11 @@ type
     function Min(const aField: String): Double;
     function Max(const aField: String): Double;
     function Avg(const aField: String): Double;
+    function RegisterScope(const aName, aWhere: String): iSimpleDAO<T>;
+    function Scope(const aName: String): iSimpleDAO<T>;
+    function ClearScopes: iSimpleDAO<T>;
+    function FindOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
+    function UpdateOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
     function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
     function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;

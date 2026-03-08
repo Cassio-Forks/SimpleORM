@@ -36,11 +36,14 @@ Type
         FOnAfterUpdate: TSimpleCallback;
         FOnBeforeDelete: TSimpleCallback;
         FOnAfterDelete: TSimpleCallback;
+        FScopes: TDictionary<String, String>;
+        FActiveScopes: TList<String>;
         function FillParameter(aInstance: T): iSimpleDAO<T>; overload;
         function FillParameter(aInstance: T; aId: Variant)
           : iSimpleDAO<T>; overload;
         procedure OnDataChange(Sender: TObject; Field: TField);
         procedure LoadRelationships(aEntity: T);
+        procedure ApplyScopes;
     public
         constructor Create(aQuery: iSimpleQuery);
         destructor Destroy; override;
@@ -72,6 +75,11 @@ Type
         function Max(const aField: String): Double;
         function Avg(const aField: String): Double;
         function SQL: iSimpleDAOSQLAttribute<T>;
+        function RegisterScope(const aName, aWhere: String): iSimpleDAO<T>;
+        function Scope(const aName: String): iSimpleDAO<T>;
+        function ClearScopes: iSimpleDAO<T>;
+        function FindOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
+        function UpdateOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
         function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
         function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
         function OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
@@ -113,6 +121,8 @@ begin
     FQuery := aQuery;
     FSQLAttribute := TSimpleDAOSQLAttribute<T>.New(Self);
     FList := TObjectList<T>.Create;
+    FScopes := TDictionary<String, String>.Create;
+    FActiveScopes := TList<String>.Create;
 end;
 
 function TSimpleDAO<T>.DataSource(aDataSource: TDataSource): iSimpleDAO<T>;
@@ -210,6 +220,8 @@ end;
 destructor TSimpleDAO<T>.Destroy;
 begin
     FreeAndNil(FList);
+    FreeAndNil(FScopes);
+    FreeAndNil(FActiveScopes);
     inherited;
 end;
 
@@ -220,6 +232,7 @@ var
     SW: TStopwatch;
 begin
     Result := Self;
+    ApplyScopes;
     TSimpleSQL<T>.New(nil).Fields(FSQLAttribute.Fields).Join(FSQLAttribute.Join)
       .Where(FSQLAttribute.Where).GroupBy(FSQLAttribute.GroupBy)
       .OrderBy(FSQLAttribute.OrderBy)
@@ -304,6 +317,7 @@ var
     SW: TStopwatch;
 begin
     Result := Self;
+    ApplyScopes;
     TSimpleSQL<T>.New(nil).Fields(FSQLAttribute.Fields).Join(FSQLAttribute.Join)
       .Where(FSQLAttribute.Where).GroupBy(FSQLAttribute.GroupBy)
       .OrderBy(FSQLAttribute.OrderBy)
@@ -663,6 +677,7 @@ function TSimpleDAO<T>.Count: Integer;
 var
   aSQL: String;
 begin
+  ApplyScopes;
   TSimpleSQL<T>.New(nil)
     .DatabaseType(FQuery.SQLType)
     .Where(FSQLAttribute.Where)
@@ -679,6 +694,7 @@ function TSimpleDAO<T>.Sum(const aField: String): Double;
 var
   aSQL: String;
 begin
+  ApplyScopes;
   TSimpleSQL<T>.New(nil)
     .DatabaseType(FQuery.SQLType)
     .Where(FSQLAttribute.Where)
@@ -695,6 +711,7 @@ function TSimpleDAO<T>.Min(const aField: String): Double;
 var
   aSQL: String;
 begin
+  ApplyScopes;
   TSimpleSQL<T>.New(nil)
     .DatabaseType(FQuery.SQLType)
     .Where(FSQLAttribute.Where)
@@ -711,6 +728,7 @@ function TSimpleDAO<T>.Max(const aField: String): Double;
 var
   aSQL: String;
 begin
+  ApplyScopes;
   TSimpleSQL<T>.New(nil)
     .DatabaseType(FQuery.SQLType)
     .Where(FSQLAttribute.Where)
@@ -727,6 +745,7 @@ function TSimpleDAO<T>.Avg(const aField: String): Double;
 var
   aSQL: String;
 begin
+  ApplyScopes;
   TSimpleSQL<T>.New(nil)
     .DatabaseType(FQuery.SQLType)
     .Where(FSQLAttribute.Where)
@@ -737,6 +756,97 @@ begin
   FQuery.SQL.Add(aSQL);
   FQuery.Open;
   Result := FQuery.DataSet.Fields[0].AsFloat;
+end;
+
+procedure TSimpleDAO<T>.ApplyScopes;
+var
+  LScope: String;
+  LScopeWhere: String;
+begin
+  if FActiveScopes.Count = 0 then
+    Exit;
+
+  LScopeWhere := '';
+  for LScope in FActiveScopes do
+  begin
+    if LScopeWhere <> '' then
+      LScopeWhere := LScopeWhere + ' and ';
+    LScopeWhere := LScopeWhere + LScope;
+  end;
+
+  if FSQLAttribute.Where <> '' then
+    FSQLAttribute.Where(FSQLAttribute.Where + ' and ' + LScopeWhere)
+  else
+    FSQLAttribute.Where(LScopeWhere);
+
+  FActiveScopes.Clear;
+end;
+
+function TSimpleDAO<T>.RegisterScope(const aName, aWhere: String): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FScopes.AddOrSetValue(LowerCase(aName), aWhere);
+end;
+
+function TSimpleDAO<T>.Scope(const aName: String): iSimpleDAO<T>;
+begin
+  Result := Self;
+  if FScopes.ContainsKey(LowerCase(aName)) then
+    FActiveScopes.Add(FScopes[LowerCase(aName)]);
+end;
+
+function TSimpleDAO<T>.ClearScopes: iSimpleDAO<T>;
+begin
+  Result := Self;
+  FActiveScopes.Clear;
+end;
+
+function TSimpleDAO<T>.FindOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
+var
+  aSQL: String;
+begin
+  TSimpleSQL<T>.New(nil)
+    .DatabaseType(FQuery.SQLType)
+    .Where(aField + ' = :pValue')
+    .Select(aSQL);
+
+  FQuery.SQL.Clear;
+  FQuery.SQL.Add(aSQL);
+  FQuery.Params.ParamByName('pValue').Value := aValue;
+  FQuery.Open;
+
+  if FQuery.DataSet.IsEmpty then
+  begin
+    Insert(aEntity);
+    Result := aEntity;
+  end
+  else
+  begin
+    Result := T.Create;
+    TSimpleRTTI<T>.New(nil).DataSetToEntity(FQuery.DataSet, Result);
+  end;
+end;
+
+function TSimpleDAO<T>.UpdateOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
+var
+  aSQL: String;
+begin
+  TSimpleSQL<T>.New(nil)
+    .DatabaseType(FQuery.SQLType)
+    .Where(aField + ' = :pValue')
+    .Select(aSQL);
+
+  FQuery.SQL.Clear;
+  FQuery.SQL.Add(aSQL);
+  FQuery.Params.ParamByName('pValue').Value := aValue;
+  FQuery.Open;
+
+  if FQuery.DataSet.IsEmpty then
+    Insert(aEntity)
+  else
+    Update(aEntity);
+
+  Result := aEntity;
 end;
 
 function TSimpleDAO<T>.OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
