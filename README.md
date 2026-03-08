@@ -4,7 +4,11 @@ ORM Simples para Aplicações Delphi
 
 O SimpleORM tem o Objetivo de facilitar suas implementações de CRUD, agilizando mais de 80% do seu processo de desenvolvimento de software.
 
-Homologado para os drivers de Conexão Firedac e RestDataware.
+Homologado para os drivers de Conexão Firedac, RestDataware, UniDAC, Zeos e Horse (REST).
+
+### 📖 [Documentação Completa](https://academiadocodigo.github.io/SimpleORM/)
+
+Acesse a documentação completa com exemplos de código, referência de API, todos os atributos, e guias de integração Horse.
 
 #### Link do Grupo no Telegram
 [Grupo SimpleORM](https://t.me/joinchat/Tv8fVFe_hdz0rJwq)

@@ -118,8 +118,9 @@ end.
 
 1. Verify .dpr has correct structure (program, not unit)
 2. Verify `{$R *.res}` is present
-3. Update `CHANGELOG.md`
-4. Note to developer: "Open .dpr in Delphi IDE to generate .dproj and .res"
+3. **Update `docs/index.html`** if the sample demonstrates a new feature (MANDATORY — see `.claude/rules/documentation.md`)
+4. Update `CHANGELOG.md`
+5. Note to developer: "Open .dpr in Delphi IDE to generate .dproj and .res"
 
 ## Self-Review Checklist
 
@@ -133,5 +134,6 @@ end.
 - [ ] Shared entities reused from Entidades/
 - [ ] README.md present with setup instructions
 - [ ] Demonstrates the feature with output
+- [ ] **`docs/index.html` updated** (if new feature)
 - [ ] CHANGELOG updated
 - [ ] ALL `.claude/rules/` followed

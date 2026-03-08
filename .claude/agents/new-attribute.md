@@ -72,8 +72,9 @@ class procedure ValidateMyAttr(const aErrors: TStrings; const aObject:
 ## After Creating
 
 1. **Create a sample project** demonstrating the attribute (MANDATORY — see `.claude/rules/sample-creation.md`)
-2. Update `CHANGELOG.md` (follow `.claude/rules/changelog.md`)
-3. Commit: `feat: add [AttributeName] attribute for [purpose]`
+2. **Update `docs/index.html`** with the new attribute documentation (MANDATORY — see `.claude/rules/documentation.md`)
+3. Update `CHANGELOG.md` (follow `.claude/rules/changelog.md`)
+4. Commit: `feat: add [AttributeName] attribute for [purpose]`
 
 ## Self-Review Checklist
 
@@ -83,5 +84,6 @@ class procedure ValidateMyAttr(const aErrors: TStrings; const aObject:
 - [ ] No `SysUtils.Format` / `SimpleAttributes.Format` conflict
 - [ ] SQL integration (if affects queries)
 - [ ] **Sample project created** (`.dpr` + `README.md`, NOT `.dproj`/`.res`)
+- [ ] **`docs/index.html` updated** with new attribute documentation
 - [ ] CHANGELOG updated
 - [ ] ALL `.claude/rules/` followed

@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SimpleORM - Documentacao completa do ORM Delphi. Entity mapping, CRUD, validacao, paginacao, Horse integration, drivers de banco de dados.">
+  <meta name="keywords" content="SimpleORM, Delphi, ORM, FireDAC, Horse, CRUD, RTTI, Entity Mapping">
+  <meta name="author" content="Academia do Codigo - Thulio Bittencourt">
+  <meta name="robots" content="index, follow">
+  <meta name="ai-content-type" content="technical-documentation">
+  <meta name="ai-project" content="SimpleORM">
+  <meta name="ai-language" content="Delphi/Object Pascal">
+  <title>SimpleORM - Documentacao Completa</title>
+  <style>
+    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950; --orange: #d29922; --red: #f85149; --code-bg: #0d1117; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+    h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--accent); }
+    h2 { font-size: 1.6rem; margin-top: 3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
+    h3 { font-size: 1.2rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text); }
+    p { margin-bottom: 1rem; color: var(--text2); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; background: var(--surface); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; color: var(--green); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1.5rem; }
+    pre code { background: none; padding: 0; color: var(--text); }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { text-align: left; padding: 0.6rem 0.8rem; border: 1px solid var(--border); }
+    th { background: var(--surface); color: var(--text); font-weight: 600; }
+    td { color: var(--text2); }
+    td code { color: var(--green); }
+    nav { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem; }
+    nav ul { list-style: none; columns: 2; }
+    nav li { margin-bottom: 0.3rem; }
+    .badge { display: inline-block; padding: 0.15em 0.5em; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
+    .badge-new { background: #1f3a1f; color: var(--green); }
+    .badge-driver { background: #1a2a3a; color: var(--accent); }
+    .subtitle { color: var(--text2); font-size: 1.1rem; margin-bottom: 2rem; }
+    .version { color: var(--text2); font-size: 0.9rem; }
+    section { margin-bottom: 2rem; }
+    .note { background: #1a2332; border-left: 3px solid var(--accent); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    .warning { background: #2a1f0a; border-left: 3px solid var(--orange); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text2); font-size: 0.9rem; }
+    @media (max-width: 600px) { nav ul { columns: 1; } }
+  </style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>SimpleORM</h1>
+  <p class="subtitle">ORM completo para Delphi — Entity mapping, CRUD, validacao, paginacao, Horse integration</p>
+  <p class="version">Repositorio: <a href="https://github.com/academiadocodigo/SimpleORM">github.com/academiadocodigo/SimpleORM</a></p>
+</header>
+
+<nav aria-label="Indice">
+  <strong>Indice</strong>
+  <ul>
+    <li><a href="#instalacao">Instalacao</a></li>
+    <li><a href="#entity-mapping">Entity Mapping</a></li>
+    <li><a href="#atributos">Todos os Atributos</a></li>
+    <li><a href="#inicializacao">Inicializacao</a></li>
+    <li><a href="#crud">Operacoes CRUD</a></li>
+    <li><a href="#fluent-sql">Fluent SQL Builder</a></li>
+    <li><a href="#paginacao">Paginacao</a></li>
+    <li><a href="#validacao">Validacao</a></li>
+    <li><a href="#relacionamentos">Relacionamentos</a></li>
+    <li><a href="#soft-delete">Soft Delete</a></li>
+    <li><a href="#batch">Batch Operations</a></li>
+    <li><a href="#transacoes">Transacoes</a></li>
+    <li><a href="#logging">Query Logging</a></li>
+    <li><a href="#drivers">Drivers de Banco</a></li>
+    <li><a href="#horse-server">Horse Server</a></li>
+    <li><a href="#horse-client">Horse Client REST</a></li>
+    <li><a href="#serializer">SimpleSerializer</a></li>
+    <li><a href="#bind-form">Bind de Formularios</a></li>
+    <li><a href="#interfaces">API de Interfaces</a></li>
+    <li><a href="#tipos-banco">Tipos de Banco</a></li>
+  </ul>
+</nav>
+
+<!-- ============================================ -->
+<section id="instalacao">
+<h2>Instalacao</h2>
+
+<h3>Via Boss (recomendado)</h3>
+<pre><code>boss install academiadocodigo/SimpleORM</code></pre>
+
+<h3>Manual</h3>
+<p>Adicione o diretorio <code>src/</code> ao Library Path do Delphi. Nao e necessario instalar componentes.</p>
+
+<h3>Uses necessarias</h3>
+<pre><code>uses
+  SimpleInterface,    // Interfaces (iSimpleDAO, iSimpleQuery, etc)
+  SimpleDAO,          // TSimpleDAO&lt;T&gt;
+  SimpleAttributes,   // Atributos (Tabela, Campo, PK, etc)
+  SimpleQueryFiredac; // Driver de conexao (ou outro driver)</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="entity-mapping">
+<h2>Entity Mapping</h2>
+
+<p>Entidades sao classes Delphi mapeadas para tabelas do banco via atributos RTTI. As propriedades devem estar na secao <code>published</code>.</p>
+
+<pre><code>uses SimpleAttributes;
+
+type
+  [Tabela('PEDIDO')]
+  TPEDIDO = class
+  private
+    FID: Integer;
+    FCLIENTE: String;
+    FDATAPEDIDO: TDatetime;
+    FVALORTOTAL: Currency;
+    procedure SetID(const Value: Integer);
+    procedure SetCLIENTE(const Value: String);
+    procedure SetDATAPEDIDO(const Value: TDatetime);
+    procedure SetVALORTOTAL(const Value: Currency);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    [Campo('ID'), Pk, AutoInc]
+    property ID: Integer read FID write SetID;
+    [Campo('NOME')]
+    property CLIENTE: String read FCLIENTE write SetCLIENTE;
+    [Campo('DATA')]
+    property DATAPEDIDO: TDatetime read FDATAPEDIDO write SetDATAPEDIDO;
+    [Campo('VALOR')]
+    property VALORTOTAL: Currency read FVALORTOTAL write SetVALORTOTAL;
+  end;</code></pre>
+
+<div class="note">
+  <p>Quando o nome da <code>property</code> e igual ao nome da coluna no banco, o atributo <code>[Campo]</code> e opcional. Exemplo: <code>property ID</code> mapeia automaticamente para coluna <code>ID</code>.</p>
+</div>
+
+<h3>Regras de Entidade</h3>
+<ul>
+  <li><code>[Tabela('NOME')]</code> na classe — obrigatorio</li>
+  <li><code>[Campo('COLUNA')]</code> nas properties — obrigatorio para mapeamento SQL</li>
+  <li>Exatamente um <code>[PK]</code> por entidade</li>
+  <li>Properties na secao <code>published</code> — RTTI nao enxerga <code>public</code></li>
+  <li>Getter/setter explicitos para cada property</li>
+  <li><code>constructor Create</code> e <code>destructor Destroy; override</code> sempre presentes</li>
+</ul>
+</section>
+
+<!-- ============================================ -->
+<section id="atributos">
+<h2>Todos os Atributos</h2>
+
+<p>Todos os atributos ficam em <code>SimpleAttributes.pas</code>.</p>
+
+<h3>Mapeamento</h3>
+<table>
+  <tr><th>Atributo</th><th>Alvo</th><th>Descricao</th></tr>
+  <tr><td><code>Tabela('NOME')</code></td><td>Classe</td><td>Mapeia classe para tabela do banco</td></tr>
+  <tr><td><code>Campo('NOME')</code></td><td>Property</td><td>Mapeia property para coluna do banco</td></tr>
+</table>
+
+<h3>Chaves e Auto-Incremento</h3>
+<table>
+  <tr><th>Atributo</th><th>Descricao</th></tr>
+  <tr><td><code>PK</code></td><td>Chave primaria (exatamente uma por entidade)</td></tr>
+  <tr><td><code>FK</code></td><td>Chave estrangeira</td></tr>
+  <tr><td><code>AutoInc</code></td><td>Auto-incremento (excluido do INSERT automaticamente)</td></tr>
+</table>
+
+<h3>Restricoes</h3>
+<table>
+  <tr><th>Atributo</th><th>Descricao</th></tr>
+  <tr><td><code>NotNull</code></td><td>Campo obrigatorio (string nao vazia, data nao zero)</td></tr>
+  <tr><td><code>NotZero</code></td><td>Valor numerico nao pode ser zero</td></tr>
+  <tr><td><code>Ignore</code></td><td>Ignora a property em todas operacoes SQL e serializacao</td></tr>
+  <tr><td><code>NumberOnly</code></td><td>Aceita somente numeros</td></tr>
+</table>
+
+<h3>Validacao</h3>
+<table>
+  <tr><th>Atributo</th><th>Descricao</th></tr>
+  <tr><td><code>Email</code></td><td>Valida formato de email</td></tr>
+  <tr><td><code>MinValue(n)</code></td><td>Valor numerico minimo</td></tr>
+  <tr><td><code>MaxValue(n)</code></td><td>Valor numerico maximo</td></tr>
+  <tr><td><code>Regex('pattern', 'msg')</code></td><td>Validacao por expressao regular</td></tr>
+  <tr><td><code>Format(maxSize, precision)</code></td><td>Tamanho maximo, tamanho minimo, precisao ou mascara</td></tr>
+</table>
+
+<h3>Display e Binding</h3>
+<table>
+  <tr><th>Atributo</th><th>Descricao</th></tr>
+  <tr><td><code>Display('Label')</code></td><td>Nome para exibicao em grids/forms</td></tr>
+  <tr><td><code>Bind('CAMPO')</code></td><td>Liga componente visual a property da entidade</td></tr>
+</table>
+
+<h3>Relacionamentos</h3>
+<table>
+  <tr><th>Atributo</th><th>Cardinalidade</th><th>Carregamento</th></tr>
+  <tr><td><code>HasOne('Entity', 'FK')</code></td><td>1:1</td><td>Eager (automatico no Find)</td></tr>
+  <tr><td><code>BelongsTo('Entity', 'FK')</code></td><td>N:1</td><td>Eager (automatico no Find)</td></tr>
+  <tr><td><code>HasMany('Entity', 'FK')</code></td><td>1:N</td><td>Lazy (TSimpleLazyLoader)</td></tr>
+  <tr><td><code>BelongsToMany('Entity', 'FK')</code></td><td>M:N</td><td>Manual</td></tr>
+</table>
+
+<h3>Especiais</h3>
+<table>
+  <tr><th>Atributo</th><th>Descricao</th></tr>
+  <tr><td><code>SoftDelete('CAMPO')</code></td><td>Na classe — ativa exclusao logica (0=ativo, 1=deletado)</td></tr>
+  <tr><td><code>Enumerator('TIPO')</code></td><td>Cast de enum para PostgreSQL</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="inicializacao">
+<h2>Inicializacao</h2>
+
+<pre><code>var
+  Conn: iSimpleQuery;
+  DAOPedido: iSimpleDAO&lt;TPEDIDO&gt;;
+begin
+  // 1. Criar conexao via driver
+  Conn := TSimpleQueryFiredac.New(FDConnection1);
+
+  // 2. Criar DAO tipado
+  DAOPedido := TSimpleDAO&lt;TPEDIDO&gt;.New(Conn);
+
+  // 3. (Opcional) Vincular DataSource e Form
+  DAOPedido
+    .DataSource(DataSource1)  // dados no DataSet para grids
+    .BindForm(Self);          // bind automatico de componentes
+end;</code></pre>
+
+<p><code>iSimpleQuery</code> abstrai o driver de banco. <code>iSimpleDAO&lt;T&gt;</code> e o DAO generico que executa CRUD sobre qualquer entidade mapeada.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="crud">
+<h2>Operacoes CRUD</h2>
+
+<h3>Insert</h3>
+<pre><code>// Com objeto
+var LPedido: TPEDIDO;
+begin
+  LPedido := TPEDIDO.Create;
+  try
+    LPedido.CLIENTE := 'Fulano';
+    LPedido.DATAPEDIDO := Now;
+    LPedido.VALORTOTAL := 150.50;
+    DAOPedido.Insert(LPedido);
+  finally
+    LPedido.Free;
+  end;
+end;
+
+// Com Bind (VCL/FMX — pega valores do form automaticamente)
+DAOPedido.Insert;</code></pre>
+
+<h3>Update</h3>
+<pre><code>// Com objeto (PK identifica o registro)
+var LPedido: TPEDIDO;
+begin
+  LPedido := TPEDIDO.Create;
+  try
+    LPedido.ID := 1;
+    LPedido.CLIENTE := 'Nome Atualizado';
+    LPedido.DATAPEDIDO := Now;
+    LPedido.VALORTOTAL := 200.00;
+    DAOPedido.Update(LPedido);
+  finally
+    LPedido.Free;
+  end;
+end;
+
+// Com Bind
+DAOPedido.Update;</code></pre>
+
+<h3>Delete</h3>
+<pre><code>// Com objeto (usa PK)
+DAOPedido.Delete(LPedido);
+
+// Com Bind (usa PK do form)
+DAOPedido.Delete;
+
+// Por campo e valor
+DAOPedido.Delete('ID', '1');
+
+// Force Delete (ignora SoftDelete)
+DAOPedido.ForceDelete(LPedido);</code></pre>
+
+<h3>Find (Select)</h3>
+<pre><code>// Todos os registros (popula DataSource se vinculado)
+DAOPedido.Find;
+
+// Retorna lista de objetos
+var LList: TObjectList&lt;TPEDIDO&gt;;
+begin
+  LList := TObjectList&lt;TPEDIDO&gt;.Create;
+  try
+    DAOPedido.Find(LList);
+    for I := 0 to LList.Count - 1 do
+      Writeln(LList[I].CLIENTE);
+  finally
+    LList.Free;
+  end;
+end;
+
+// Busca por ID (retorna objeto — caller deve dar Free)
+var LPedido: TPEDIDO;
+begin
+  LPedido := DAOPedido.Find(1);
+  try
+    if Assigned(LPedido) then
+      Writeln(LPedido.CLIENTE);
+  finally
+    LPedido.Free;
+  end;
+end;
+
+// Busca por campo/valor
+DAOPedido.Find('CLIENTE', 'Fulano');
+
+// Ultimo ID e ultimo registro
+DAOPedido.LastID;
+DAOPedido.LastRecord;</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="fluent-sql">
+<h2>Fluent SQL Builder</h2>
+
+<p>O <code>iSimpleDAOSQLAttribute&lt;T&gt;</code> permite construir queries customizadas via fluent interface:</p>
+
+<pre><code>DAOPedido
+  .SQL
+    .Fields('ID, NOME, VALOR')            // campos especificos
+    .Where('VALOR &gt; 100')                 // clausula WHERE
+    .OrderBy('NOME')                       // ordenacao
+    .GroupBy('CATEGORIA')                  // agrupamento
+    .Join('INNER JOIN CLIENTE ON CLIENTE.ID = PEDIDO.ID_CLIENTE')
+    .Skip(10)                              // pular N registros
+    .Take(20)                              // limitar a N registros
+  .&amp;End                                    // retorna ao DAO
+  .Find;                                   // executa</code></pre>
+
+<p>O metodo <code>.&amp;End</code> (com <code>&amp;</code> para escapar a palavra reservada) retorna ao <code>iSimpleDAO&lt;T&gt;</code> para executar a query construida.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="paginacao">
+<h2>Paginacao</h2>
+
+<p>Paginacao e suportada via <code>Skip(n)</code> e <code>Take(n)</code> com SQL gerado automaticamente conforme o banco:</p>
+
+<pre><code>// Buscar registros 11 a 30
+DAOPedido.SQL.Skip(10).Take(20).&amp;End.Find(LList);</code></pre>
+
+<table>
+  <tr><th>Banco</th><th>SQL Gerado</th><th>Posicao</th></tr>
+  <tr><td>Firebird</td><td><code>SELECT FIRST 20 SKIP 10 ...</code></td><td>Apos SELECT</td></tr>
+  <tr><td>MySQL</td><td><code>... LIMIT 20 OFFSET 10</code></td><td>Fim da query</td></tr>
+  <tr><td>SQLite</td><td><code>... LIMIT 20 OFFSET 10</code></td><td>Fim da query</td></tr>
+  <tr><td>Oracle</td><td><code>... OFFSET 10 ROWS FETCH NEXT 20 ROWS ONLY</code></td><td>Fim da query</td></tr>
+</table>
+
+<p>O tipo de banco e definido pelo <code>TSQLType</code> do driver de query.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="validacao">
+<h2>Validacao</h2>
+
+<p><code>TSimpleValidator</code> valida entidades via atributos RTTI. Lanca <code>ESimpleValidator</code> com mensagens acumuladas.</p>
+
+<pre><code>uses SimpleValidator;
+
+var LCliente: TCliente;
+begin
+  LCliente := TCliente.Create;
+  try
+    LCliente.Parse(Self);              // preenche via Bind do form
+    TSimpleValidator.Validate(LCliente); // valida — lanca exception se invalido
+    DAOCliente.Insert(LCliente);
+  finally
+    LCliente.Free;
+  end;
+end;</code></pre>
+
+<h3>Atributos de validacao</h3>
+<table>
+  <tr><th>Atributo</th><th>O que valida</th></tr>
+  <tr><td><code>NotNull</code></td><td>String nao vazia, data nao zero</td></tr>
+  <tr><td><code>NotZero</code></td><td>Numerico diferente de zero</td></tr>
+  <tr><td><code>Email</code></td><td>Formato de email valido</td></tr>
+  <tr><td><code>MinValue(n)</code></td><td>Valor numerico &gt;= n</td></tr>
+  <tr><td><code>MaxValue(n)</code></td><td>Valor numerico &lt;= n</td></tr>
+  <tr><td><code>Regex('pattern', 'msg')</code></td><td>Match contra expressao regular</td></tr>
+  <tr><td><code>Format(max, precision)</code></td><td>Tamanho de string e precisao numerica</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="relacionamentos">
+<h2>Relacionamentos</h2>
+
+<h3>HasOne / BelongsTo (Eager Loading)</h3>
+<p>Carregados automaticamente pelo DAO no <code>Find</code>:</p>
+<pre><code>[Tabela('ITEM_PEDIDO')]
+TItemPedido = class
+published
+  [Campo('ID'), PK, AutoInc]
+  property ID: Integer ...;
+
+  [Campo('ID_PEDIDO'), FK]
+  property IdPedido: Integer ...;
+
+  [HasOne('PEDIDO', 'ID_PEDIDO')]
+  property Pedido: TPedido ...;
+end;</code></pre>
+
+<h3>HasMany (Lazy Loading)</h3>
+<p>Usa <code>TSimpleLazyLoader&lt;T&gt;</code> de <code>SimpleProxy.pas</code>. Os dados sao carregados na primeira chamada a <code>Count</code> ou <code>ToArray</code>:</p>
+<pre><code>uses SimpleProxy;
+
+// No construtor ou sob demanda:
+FItens := TSimpleLazyLoader&lt;TItemPedido&gt;.Create(Query, 'ID_PEDIDO', Self.Id);</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="soft-delete">
+<h2>Soft Delete</h2>
+
+<p>Exclusao logica — registros nao sao removidos do banco, apenas marcados.</p>
+
+<pre><code>[Tabela('PRODUTO'), SoftDelete('DELETADO')]
+TProduto = class
+published
+  [Campo('ID'), PK, AutoInc]
+  property ID: Integer ...;
+  [Campo('DELETADO')]
+  property Deletado: Integer ...;  // 0=ativo, 1=deletado
+end;</code></pre>
+
+<h3>Comportamento automatico</h3>
+<table>
+  <tr><th>Operacao</th><th>SQL Gerado</th></tr>
+  <tr><td><code>Delete(entity)</code></td><td><code>UPDATE PRODUTO SET DELETADO = 1 WHERE ID = :ID</code></td></tr>
+  <tr><td><code>Find</code></td><td><code>SELECT ... WHERE DELETADO = 0</code> (filtro automatico)</td></tr>
+  <tr><td><code>ForceDelete(entity)</code></td><td><code>DELETE FROM PRODUTO WHERE ID = :ID</code> (ignora soft delete)</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="batch">
+<h2>Batch Operations</h2>
+
+<p>Operacoes em lote com transacao automatica (StartTransaction/Commit/Rollback):</p>
+
+<pre><code>var LList: TObjectList&lt;TPEDIDO&gt;;
+begin
+  LList := TObjectList&lt;TPEDIDO&gt;.Create;
+  try
+    // Preencher lista...
+    DAOPedido.InsertBatch(LList);   // insere todos em transacao
+    DAOPedido.UpdateBatch(LList);   // atualiza todos em transacao
+    DAOPedido.DeleteBatch(LList);   // deleta todos em transacao
+  finally
+    LList.Free;
+  end;
+end;</code></pre>
+
+<p>Se qualquer operacao falhar, a transacao faz rollback automaticamente e a exception e re-lancada.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="transacoes">
+<h2>Transacoes</h2>
+
+<p>Controle explicito de transacoes via <code>iSimpleQuery</code>:</p>
+
+<pre><code>var LQuery: iSimpleQuery;
+begin
+  LQuery := TSimpleQueryFiredac.New(Connection);
+
+  LQuery.StartTransaction;
+  try
+    // Operacoes...
+    LQuery.Commit;
+  except
+    LQuery.Rollback;
+    raise;
+  end;
+end;</code></pre>
+
+<table>
+  <tr><th>Metodo</th><th>Descricao</th></tr>
+  <tr><td><code>StartTransaction</code></td><td>Inicia transacao (verifica se ja esta ativa)</td></tr>
+  <tr><td><code>Commit</code></td><td>Confirma transacao ativa</td></tr>
+  <tr><td><code>Rollback</code></td><td>Desfaz transacao ativa</td></tr>
+  <tr><td><code>InTransaction</code></td><td>Retorna True se transacao esta ativa</td></tr>
+  <tr><td><code>&amp;EndTransaction</code></td><td>Alias para Commit</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="logging">
+<h2>Query Logging</h2>
+
+<p>Registra SQL, parametros e tempo de execucao:</p>
+
+<pre><code>uses SimpleLogger;
+
+DAOPedido.Logger(TSimpleQueryLoggerConsole.New);
+
+// A partir daqui, toda operacao do DAO sera logada:
+// SQL: SELECT ID, NOME FROM PEDIDO WHERE ID = :ID
+// Params: ID=1
+// Duration: 3ms</code></pre>
+
+<p><code>TSimpleQueryLoggerConsole</code> envia para <code>OutputDebugString</code> (Windows) ou <code>Writeln</code> (console). Implemente <code>iSimpleQueryLogger</code> para loggers customizados.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="drivers">
+<h2>Drivers de Banco</h2>
+
+<p>Todos implementam <code>iSimpleQuery</code> — troque o driver sem alterar nenhum codigo do DAO.</p>
+
+<table>
+  <tr><th>Driver</th><th>Classe</th><th>Conexao</th><th>Unit</th></tr>
+  <tr><td>FireDAC</td><td><code>TSimpleQueryFiredac</code></td><td><code>TFDConnection</code></td><td><code>SimpleQueryFiredac.pas</code></td></tr>
+  <tr><td>UniDAC</td><td><code>TSimpleQueryUnidac</code></td><td><code>TUniConnection</code></td><td><code>SimpleQueryUnidac.pas</code></td></tr>
+  <tr><td>Zeos</td><td><code>TSimpleQueryZeos</code></td><td><code>TZConnection</code></td><td><code>SimpleQueryZeos.pas</code></td></tr>
+  <tr><td>RestDW</td><td><code>TSimpleQueryRestDW</code></td><td><code>TRESTDWClientSQL</code></td><td><code>SimpleQueryRestDW.pas</code></td></tr>
+  <tr><td>Horse (REST)</td><td><code>TSimpleQueryHorse</code></td><td>URL string</td><td><code>SimpleQueryHorse.pas</code></td></tr>
+</table>
+
+<h3>Exemplo: trocar driver</h3>
+<pre><code>// FireDAC (banco local)
+LDAO := TSimpleDAO&lt;T&gt;.New(TSimpleQueryFiredac.New(FDConnection1));
+
+// UniDAC (banco local)
+LDAO := TSimpleDAO&lt;T&gt;.New(TSimpleQueryUnidac.New(UniConnection1));
+
+// Horse REST (servidor remoto)
+LDAO := TSimpleDAO&lt;T&gt;.New(TSimpleQueryHorse.New('http://server:9000'));
+
+// O codigo do DAO e IDENTICO para todos os drivers</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="horse-server">
+<h2>Horse Server <span class="badge badge-new">NEW</span></h2>
+
+<p>Auto-gera 5 rotas CRUD no Horse (ExpxHorse) por entidade com uma unica linha:</p>
+
+<pre><code>uses Horse, SimpleInterface, SimpleQueryFiredac, SimpleHorseRouter;
+
+// Uma linha = 5 rotas REST
+TSimpleHorseRouter.RegisterEntity&lt;TPEDIDO&gt;(THorse, LQuery);
+
+THorse.Listen(9000);</code></pre>
+
+<h3>Rotas geradas</h3>
+<table>
+  <tr><th>Metodo</th><th>Rota</th><th>Status</th><th>Resposta</th></tr>
+  <tr><td>GET</td><td><code>/pedido?skip=N&amp;take=N</code></td><td>200</td><td><code>{"data": [...], "count": N}</code></td></tr>
+  <tr><td>GET</td><td><code>/pedido/:id</code></td><td>200/404</td><td>JSON da entidade ou <code>{"error": "Not found"}</code></td></tr>
+  <tr><td>POST</td><td><code>/pedido</code></td><td>201</td><td>Entidade criada em JSON</td></tr>
+  <tr><td>PUT</td><td><code>/pedido/:id</code></td><td>200</td><td>Entidade atualizada em JSON</td></tr>
+  <tr><td>DELETE</td><td><code>/pedido/:id</code></td><td>204</td><td>Sem corpo</td></tr>
+</table>
+
+<p>O path e derivado do atributo <code>[Tabela]</code> lowercased, ou customizado via 3o parametro.</p>
+
+<h3>Callbacks</h3>
+<pre><code>TSimpleHorseRouter.RegisterEntity&lt;TPEDIDO&gt;(THorse, LQuery)
+  .OnBeforeInsert(
+    procedure(aEntity: TObject; var aContinue: Boolean)
+    begin
+      TSimpleValidator.Validate(aEntity);
+      aContinue := True;  // False retorna 400
+    end
+  )
+  .OnAfterInsert(
+    procedure(aEntity: TObject)
+    begin
+      Writeln('Inserido: ', TPEDIDO(aEntity).CLIENTE);
+    end
+  )
+  .OnBeforeUpdate(
+    procedure(aEntity: TObject; var aContinue: Boolean)
+    begin
+      aContinue := True;
+    end
+  )
+  .OnBeforeDelete(
+    procedure(aId: string; var aContinue: Boolean)
+    begin
+      aContinue := True;
+    end
+  );</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="horse-client">
+<h2>Horse Client REST <span class="badge badge-new">NEW</span></h2>
+
+<p><code>TSimpleQueryHorse</code> implementa <code>iSimpleQuery</code> via HTTP. A unica diferenca em relacao ao acesso direto ao banco e a linha de criacao do query:</p>
+
+<pre><code>// ANTES: acesso direto ao banco
+LDAO := TSimpleDAO&lt;TPEDIDO&gt;.New(TSimpleQueryFiredac.New(Connection));
+
+// DEPOIS: via servidor Horse (mesma interface!)
+LDAO := TSimpleDAO&lt;TPEDIDO&gt;.New(TSimpleQueryHorse.New('http://server:9000'));
+
+// O resto do codigo e IDENTICO
+LDAO.Insert(LPedido);
+LDAO.Find(LList);
+LDAO.SQL.Skip(0).Take(10).&amp;End.Find(LList);</code></pre>
+
+<h3>Autenticacao</h3>
+<pre><code>// Bearer token
+TSimpleQueryHorse.New('http://server:9000', 'meu-token');
+
+// Headers customizados
+var LQuery: iSimpleQuery;
+begin
+  LQuery := TSimpleQueryHorse.New('http://server:9000');
+  TSimpleQueryHorse(LQuery).OnBeforeRequest(
+    procedure(aHeaders: TStrings)
+    begin
+      aHeaders.Values['X-Custom-Header'] := 'valor';
+    end
+  );
+  LDAO := TSimpleDAO&lt;TPEDIDO&gt;.New(LQuery);
+end;</code></pre>
+
+<div class="note">
+  <p>Transacoes sao no-ops no driver REST (HTTP e stateless). <code>InTransaction</code> sempre retorna <code>False</code>.</p>
+</div>
+</section>
+
+<!-- ============================================ -->
+<section id="serializer">
+<h2>SimpleSerializer <span class="badge badge-new">NEW</span></h2>
+
+<p>Converte entidades para JSON e vice-versa via RTTI, usando os nomes de <code>[Campo]</code> como chaves JSON:</p>
+
+<pre><code>uses SimpleSerializer;
+
+// Entity -&gt; JSON
+var LJSON: TJSONObject;
+LJSON := TSimpleSerializer.EntityToJSON&lt;TPEDIDO&gt;(LPedido);
+// {"ID": 1, "NOME": "Fulano", "DATA": "2026-03-08T10:00:00", "VALOR": 150.5}
+
+// JSON -&gt; Entity (caller deve dar Free no resultado)
+var LPedido: TPEDIDO;
+LPedido := TSimpleSerializer.JSONToEntity&lt;TPEDIDO&gt;(LJSON);
+
+// Listas
+var LArray: TJSONArray;
+LArray := TSimpleSerializer.EntityListToJSONArray&lt;TPEDIDO&gt;(LList);
+
+var LList: TObjectList&lt;TPEDIDO&gt;;
+LList := TSimpleSerializer.JSONArrayToEntityList&lt;TPEDIDO&gt;(LArray);</code></pre>
+
+<h3>Tipos suportados</h3>
+<table>
+  <tr><th>Delphi</th><th>JSON</th></tr>
+  <tr><td><code>String</code></td><td>string</td></tr>
+  <tr><td><code>Integer</code></td><td>number</td></tr>
+  <tr><td><code>Int64</code></td><td>number</td></tr>
+  <tr><td><code>Double/Currency</code></td><td>number</td></tr>
+  <tr><td><code>TDateTime</code></td><td>ISO8601 string</td></tr>
+  <tr><td><code>Boolean</code></td><td>true/false</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="bind-form">
+<h2>Bind de Formularios</h2>
+
+<p>O SimpleORM faz bind automatico entre componentes visuais e properties da entidade:</p>
+
+<pre><code>type
+  TForm1 = class(TForm)
+    [Bind('CLIENTE')]
+    Edit1: TEdit;
+    [Bind('ID')]
+    Edit2: TEdit;
+    [Bind('VALORTOTAL')]
+    Edit3: TEdit;
+    [Bind('DATAPEDIDO')]
+    DateTimePicker1: TDateTimePicker;
+  end;</code></pre>
+
+<p>O atributo <code>[Bind]</code> no componente indica qual property (ou coluna) da entidade ele representa. Com o bind configurado:</p>
+
+<pre><code>// Insert pega os valores dos componentes automaticamente
+DAOPedido.Insert;
+
+// Update tambem
+DAOPedido.Update;
+
+// Find preenche os componentes com dados do banco
+DAOPedido.Find;</code></pre>
+
+<div class="note">
+  <p>Bind funciona com VCL (<code>TEdit</code>, <code>TComboBox</code>, <code>TCheckBox</code>, <code>TDateTimePicker</code>, etc) e FMX. Requer compilacao SEM <code>{$DEFINE CONSOLE}</code>.</p>
+</div>
+</section>
+
+<!-- ============================================ -->
+<section id="interfaces">
+<h2>API de Interfaces</h2>
+
+<p>Todas as interfaces ficam em <code>SimpleInterface.pas</code>.</p>
+
+<h3>iSimpleDAO&lt;T&gt;</h3>
+<table>
+  <tr><th>Metodo</th><th>Retorno</th><th>Descricao</th></tr>
+  <tr><td><code>Insert(aValue: T)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Insere entidade</td></tr>
+  <tr><td><code>Update(aValue: T)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Atualiza por PK</td></tr>
+  <tr><td><code>Delete(aValue: T)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Deleta por PK (ou soft delete)</td></tr>
+  <tr><td><code>Delete(aField, aValue)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Deleta por campo/valor</td></tr>
+  <tr><td><code>ForceDelete(aValue: T)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Deleta fisicamente (ignora soft delete)</td></tr>
+  <tr><td><code>Find</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Busca todos (popula DataSource)</td></tr>
+  <tr><td><code>Find(var aList)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Busca todos em lista de objetos</td></tr>
+  <tr><td><code>Find(aId: Integer)</code></td><td><code>T</code></td><td>Busca por ID (retorna objeto)</td></tr>
+  <tr><td><code>Find(aKey, aValue)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Busca por campo/valor</td></tr>
+  <tr><td><code>InsertBatch(aList)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Insert em lote com transacao</td></tr>
+  <tr><td><code>UpdateBatch(aList)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Update em lote com transacao</td></tr>
+  <tr><td><code>DeleteBatch(aList)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Delete em lote com transacao</td></tr>
+  <tr><td><code>LastID</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Busca ultimo ID inserido</td></tr>
+  <tr><td><code>LastRecord</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Busca ultimo registro</td></tr>
+  <tr><td><code>SQL</code></td><td><code>iSimpleDAOSQLAttribute&lt;T&gt;</code></td><td>Acessa fluent SQL builder</td></tr>
+  <tr><td><code>Logger(aLogger)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Define logger de queries</td></tr>
+  <tr><td><code>DataSource(aDS)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Vincula DataSource</td></tr>
+  <tr><td><code>BindForm(aForm)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Vincula form para bind</td></tr>
+</table>
+
+<h3>iSimpleDAOSQLAttribute&lt;T&gt;</h3>
+<table>
+  <tr><th>Metodo</th><th>Descricao</th></tr>
+  <tr><td><code>Fields(aSQL)</code></td><td>Campos do SELECT</td></tr>
+  <tr><td><code>Where(aSQL)</code></td><td>Clausula WHERE</td></tr>
+  <tr><td><code>OrderBy(aSQL)</code></td><td>Ordenacao</td></tr>
+  <tr><td><code>GroupBy(aSQL)</code></td><td>Agrupamento</td></tr>
+  <tr><td><code>Join(aSQL)</code></td><td>JOINs</td></tr>
+  <tr><td><code>Skip(n)</code></td><td>Pular N registros (paginacao)</td></tr>
+  <tr><td><code>Take(n)</code></td><td>Limitar a N registros (paginacao)</td></tr>
+  <tr><td><code>Clear</code></td><td>Limpa todos os filtros</td></tr>
+  <tr><td><code>&amp;End</code></td><td>Retorna ao iSimpleDAO&lt;T&gt;</td></tr>
+</table>
+
+<h3>iSimpleQuery</h3>
+<table>
+  <tr><th>Metodo</th><th>Retorno</th><th>Descricao</th></tr>
+  <tr><td><code>SQL</code></td><td><code>TStrings</code></td><td>Texto SQL</td></tr>
+  <tr><td><code>Params</code></td><td><code>TParams</code></td><td>Parametros da query</td></tr>
+  <tr><td><code>ExecSQL</code></td><td><code>iSimpleQuery</code></td><td>Executa INSERT/UPDATE/DELETE</td></tr>
+  <tr><td><code>DataSet</code></td><td><code>TDataSet</code></td><td>Resultado do SELECT</td></tr>
+  <tr><td><code>Open(aSQL)</code></td><td><code>iSimpleQuery</code></td><td>Define SQL e abre</td></tr>
+  <tr><td><code>Open</code></td><td><code>iSimpleQuery</code></td><td>Abre com SQL ja definido</td></tr>
+  <tr><td><code>StartTransaction</code></td><td><code>iSimpleQuery</code></td><td>Inicia transacao</td></tr>
+  <tr><td><code>Commit</code></td><td><code>iSimpleQuery</code></td><td>Confirma transacao</td></tr>
+  <tr><td><code>Rollback</code></td><td><code>iSimpleQuery</code></td><td>Desfaz transacao</td></tr>
+  <tr><td><code>&amp;EndTransaction</code></td><td><code>iSimpleQuery</code></td><td>Alias para Commit</td></tr>
+  <tr><td><code>InTransaction</code></td><td><code>Boolean</code></td><td>True se transacao ativa</td></tr>
+  <tr><td><code>SQLType</code></td><td><code>TSQLType</code></td><td>Tipo do banco</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="tipos-banco">
+<h2>Tipos de Banco (TSQLType)</h2>
+
+<pre><code>TSQLType = (Firebird, MySQL, SQLite, Oracle);</code></pre>
+
+<p>Definido em <code>SimpleTypes.pas</code>. Afeta a geracao de SQL para paginacao. O tipo e passado no construtor do driver:</p>
+
+<pre><code>// Firebird (padrao)
+TSimpleQueryFiredac.New(Conn);
+
+// MySQL
+TSimpleQueryFiredac.New(Conn, TSQLType.MySQL);
+
+// SQLite
+TSimpleQueryFiredac.New(Conn, TSQLType.SQLite);
+
+// Oracle
+TSimpleQueryFiredac.New(Conn, TSQLType.Oracle);</code></pre>
+</section>
+
+<footer>
+  <p>SimpleORM &mdash; <a href="https://github.com/academiadocodigo/SimpleORM">github.com/academiadocodigo/SimpleORM</a></p>
+  <p>Documentacao gerada em 2026-03-08. Atualizada a cada nova feature.</p>
+  <p><a href="https://t.me/joinchat/Tv8fVFe_hdz0rJwq">Grupo no Telegram</a></p>
+</footer>
+
+</div>
+</body>
+</html>
