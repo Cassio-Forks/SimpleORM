@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SimpleORM MCP Server - Servidor MCP embutido para AI assistants interagirem com o banco de dados via ORM com seguranca e permissoes granulares.">
+  <meta name="keywords" content="SimpleORM, MCP, Model Context Protocol, Delphi, AI, Claude, JSON-RPC, ORM">
+  <meta name="author" content="Academia do Codigo - Thulio Bittencourt">
+  <meta name="robots" content="index, follow">
+  <meta name="ai-content-type" content="technical-documentation">
+  <meta name="ai-project" content="SimpleORM">
+  <meta name="ai-language" content="Delphi/Object Pascal">
+  <title>SimpleORM MCP Server - Documentacao</title>
+  <style>
+    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950; --orange: #d29922; --red: #f85149; --purple: #bc8cff; --code-bg: #0d1117; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+    h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--accent); }
+    h2 { font-size: 1.6rem; margin-top: 3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
+    h3 { font-size: 1.2rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text); }
+    p { margin-bottom: 1rem; color: var(--text2); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--text2); }
+    li { margin-bottom: 0.3rem; }
+    code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; background: var(--surface); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; color: var(--green); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1.5rem; }
+    pre code { background: none; padding: 0; color: var(--text); }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { text-align: left; padding: 0.6rem 0.8rem; border: 1px solid var(--border); }
+    th { background: var(--surface); color: var(--text); font-weight: 600; }
+    td { color: var(--text2); }
+    td code { color: var(--green); }
+    nav { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem; }
+    nav ul { list-style: none; columns: 2; padding-left: 0; }
+    nav li { margin-bottom: 0.3rem; }
+    .badge { display: inline-block; padding: 0.15em 0.5em; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
+    .badge-new { background: #1f3a1f; color: var(--green); }
+    .badge-ai { background: #2a1a3a; color: var(--purple); }
+    .subtitle { color: var(--text2); font-size: 1.1rem; margin-bottom: 2rem; }
+    .version { color: var(--text2); font-size: 0.9rem; }
+    .breadcrumb { margin-bottom: 1.5rem; color: var(--text2); font-size: 0.9rem; }
+    .breadcrumb a { color: var(--accent); }
+    section { margin-bottom: 2rem; }
+    .note { background: #1a2332; border-left: 3px solid var(--accent); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    .warning { background: #2a1f0a; border-left: 3px solid var(--orange); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    .danger { background: #2a0a0a; border-left: 3px solid var(--red); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    .arch-diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.85em; line-height: 1.8; text-align: center; color: var(--text); }
+    .perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; margin-bottom: 1.5rem; }
+    .perm-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem; text-align: center; }
+    .perm-card code { font-size: 0.85em; }
+    .perm-card .perm-desc { font-size: 0.75em; color: var(--text2); margin-top: 0.2rem; }
+    footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text2); font-size: 0.9rem; }
+    @media (max-width: 600px) { nav ul { columns: 1; } .perm-grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+<div class="container">
+
+<p class="breadcrumb"><a href="index.html">&larr; SimpleORM Documentacao</a></p>
+
+<header>
+  <h1>SimpleORM MCP Server <span class="badge badge-ai">AI</span></h1>
+  <p class="subtitle">Servidor MCP embutido que permite AI assistants (Claude, Cursor, etc.) interagir diretamente com o banco de dados da sua aplicacao atraves do SimpleORM</p>
+  <p class="version">Protocolo: MCP 2025-03-26 &bull; JSON-RPC 2.0 &bull; Transportes: stdio + HTTP</p>
+</header>
+
+<nav aria-label="Indice">
+  <strong>Indice</strong>
+  <ul>
+    <li><a href="#overview">O que e o MCP?</a></li>
+    <li><a href="#arquitetura">Arquitetura</a></li>
+    <li><a href="#instalacao">Instalacao</a></li>
+    <li><a href="#uso-basico">Uso Basico</a></li>
+    <li><a href="#permissoes">Permissoes</a></li>
+    <li><a href="#tools-geradas">Tools Geradas</a></li>
+    <li><a href="#tools-globais">Tools Globais</a></li>
+    <li><a href="#transporte-stdio">Transporte Stdio</a></li>
+    <li><a href="#transporte-http">Transporte HTTP</a></li>
+    <li><a href="#autenticacao">Autenticacao</a></li>
+    <li><a href="#seguranca">Seguranca</a></li>
+    <li><a href="#protocolo">Protocolo JSON-RPC</a></li>
+    <li><a href="#config-claude">Configuracao no Claude</a></li>
+    <li><a href="#api">API Completa</a></li>
+  </ul>
+</nav>
+
+<!-- ============================================ -->
+<section id="overview">
+<h2>O que e o MCP?</h2>
+
+<p>O <strong>Model Context Protocol (MCP)</strong> e um protocolo aberto que permite AI assistants como Claude, Cursor e outros se conectarem a ferramentas e fontes de dados externas. O SimpleORM MCP Server transforma sua aplicacao Delphi em um servidor MCP, permitindo que AIs consultem, insiram, atualizem e deletem dados diretamente no seu banco de dados &mdash; tudo passando pelo ORM com validacao, permissoes e seguranca.</p>
+
+<h3>Por que usar?</h3>
+<ul>
+  <li><strong>Zero codigo extra</strong> &mdash; Registre suas entidades existentes e o servidor gera automaticamente todas as tools MCP</li>
+  <li><strong>Seguro por padrao</strong> &mdash; Permissoes granulares por entidade, validacao via SimpleValidator, queries parametrizadas</li>
+  <li><strong>Dois transportes</strong> &mdash; Stdio para uso local (Claude Code), HTTP para acesso remoto (com autenticacao Bearer token)</li>
+  <li><strong>Reutiliza tudo</strong> &mdash; Usa o mesmo DAO, Serializer, Validator e Migration que voce ja tem</li>
+</ul>
+</section>
+
+<!-- ============================================ -->
+<section id="arquitetura">
+<h2>Arquitetura</h2>
+
+<div class="arch-diagram">
+Client AI (Claude / Cursor / IDE)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&darr; JSON-RPC 2.0<br>
+[ Transporte: Stdio ou HTTP+Bearer ]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&darr;<br>
+[ TSimpleMCPServer &mdash; Core ]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&darr; dispatch por tool name<br>
+[ TSimpleDAO&lt;T&gt; + TSimpleSerializer ]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&darr; usa SimpleORM<br>
+[ iSimpleQuery &rarr; Banco de Dados ]
+</div>
+
+<h3>Componentes</h3>
+<table>
+  <tr><th>Unit</th><th>Responsabilidade</th></tr>
+  <tr><td><code>SimpleMCPTypes.pas</code></td><td>Types: TMCPPermission, TMCPTool, constantes JSON-RPC</td></tr>
+  <tr><td><code>SimpleMCPServer.pas</code></td><td>Core: registry de entidades, dispatch de tools, JSON-RPC processing</td></tr>
+  <tr><td><code>SimpleMCPTransport.Stdio.pas</code></td><td>Transporte stdio (ReadLn/WriteLn) para uso local</td></tr>
+  <tr><td><code>SimpleMCPTransport.Http.pas</code></td><td>Transporte HTTP via Horse com Bearer token</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="instalacao">
+<h2>Instalacao</h2>
+
+<p>As units MCP fazem parte do SimpleORM. Basta adicionar ao <code>uses</code> do seu projeto:</p>
+
+<pre><code>uses
+  SimpleMCPServer,      // Core do servidor
+  SimpleMCPTypes,       // Types e permissoes
+  SimpleMCPTransport.Stdio,  // Para transporte stdio
+  SimpleMCPTransport.Http;   // Para transporte HTTP (requer Horse)</code></pre>
+
+<div class="note">
+  <p>O transporte HTTP requer o framework <a href="https://github.com/HashLoad/horse">Horse</a> instalado no projeto.</p>
+</div>
+</section>
+
+<!-- ============================================ -->
+<section id="uso-basico">
+<h2>Uso Basico</h2>
+
+<h3>Servidor Stdio (uso local com Claude Code)</h3>
+<pre><code>program MeuMCPServer;
+
+{$APPTYPE CONSOLE}
+
+uses
+  SimpleMCPServer, SimpleMCPTypes, SimpleMCPTransport.Stdio,
+  SimpleInterface, SimpleQueryFiredac,
+  FireDAC.Comp.Client,
+  Entidade.Usuario in 'Entidade.Usuario.pas',
+  Entidade.Produto in 'Entidade.Produto.pas';
+
+var
+  Server: TSimpleMCPServer;
+  Conn: TFDConnection;
+  Query: iSimpleQuery;
+begin
+  // 1. Configurar conexao
+  Conn := TFDConnection.Create(nil);
+  Conn.Params.Database := 'C:\database\MEUBANCO.FDB';
+  Query := TSimpleQueryFiredac.New(Conn);
+
+  // 2. Criar servidor e registrar entidades
+  Server := TSimpleMCPServer.New;
+  try
+    Server
+      .RegisterEntity&lt;TUsuario&gt;(Query, [mcpRead, mcpInsert, mcpUpdate])
+      .RegisterEntity&lt;TProduto&gt;(Query, [mcpRead, mcpCount, mcpDDL])
+      .EnableRawQuery(Query)
+      .StartStdio;
+  finally
+    Server.Free;
+    Conn.Free;
+  end;
+end.</code></pre>
+
+<h3>Servidor HTTP (acesso remoto)</h3>
+<pre><code>Server := TSimpleMCPServer.New;
+try
+  Server
+    .RegisterEntity&lt;TUsuario&gt;(Query, [mcpRead, mcpInsert, mcpUpdate, mcpDelete])
+    .RegisterEntity&lt;TProduto&gt;(Query, [mcpRead, mcpCount])
+    .EnableRawQuery(Query)
+    .Token('meu-token-secreto')    // Obrigatorio para HTTP
+    .StartHttp(9000);              // POST http://localhost:9000/mcp
+finally
+  Server.Free;
+end;</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="permissoes">
+<h2>Permissoes</h2>
+
+<p>Cada entidade e registrada com um conjunto de permissoes que determina quais tools MCP serao geradas. Apenas as tools com permissao concedida ficam disponiveis para o AI assistant.</p>
+
+<div class="perm-grid">
+  <div class="perm-card">
+    <code>mcpRead</code>
+    <div class="perm-desc">Query, Get, Describe</div>
+  </div>
+  <div class="perm-card">
+    <code>mcpInsert</code>
+    <div class="perm-desc">Insert com validacao</div>
+  </div>
+  <div class="perm-card">
+    <code>mcpUpdate</code>
+    <div class="perm-desc">Update com validacao</div>
+  </div>
+  <div class="perm-card">
+    <code>mcpDelete</code>
+    <div class="perm-desc">Delete (soft delete)</div>
+  </div>
+  <div class="perm-card">
+    <code>mcpCount</code>
+    <div class="perm-desc">Count com where</div>
+  </div>
+  <div class="perm-card">
+    <code>mcpDDL</code>
+    <div class="perm-desc">CREATE TABLE DDL</div>
+  </div>
+</div>
+
+<pre><code>// Somente leitura
+Server.RegisterEntity&lt;TLog&gt;(Query, [mcpRead, mcpCount]);
+
+// CRUD completo
+Server.RegisterEntity&lt;TUsuario&gt;(Query, [mcpRead, mcpInsert, mcpUpdate, mcpDelete, mcpCount, mcpDDL]);
+
+// Apenas contagem e schema
+Server.RegisterEntity&lt;TAuditoria&gt;(Query, [mcpCount, mcpDDL]);</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="tools-geradas">
+<h2>Tools Geradas por Entidade</h2>
+
+<p>Para cada entidade registrada (ex: <code>TUsuario</code> com <code>[Tabela('USUARIOS')]</code>), o servidor gera automaticamente as seguintes tools conforme as permissoes:</p>
+
+<table>
+  <tr><th>Tool Name</th><th>Permissao</th><th>Descricao</th><th>Parametros</th></tr>
+  <tr>
+    <td><code>usuarios_describe</code></td>
+    <td><code>mcpRead</code></td>
+    <td>Schema da entidade (campos, tipos, constraints)</td>
+    <td>Nenhum</td>
+  </tr>
+  <tr>
+    <td><code>usuarios_query</code></td>
+    <td><code>mcpRead</code></td>
+    <td>SELECT com filtros e paginacao</td>
+    <td><code>where</code>, <code>orderBy</code>, <code>skip</code>, <code>take</code></td>
+  </tr>
+  <tr>
+    <td><code>usuarios_get</code></td>
+    <td><code>mcpRead</code></td>
+    <td>Busca por ID</td>
+    <td><code>id</code> (required)</td>
+  </tr>
+  <tr>
+    <td><code>usuarios_insert</code></td>
+    <td><code>mcpInsert</code></td>
+    <td>INSERT com validacao</td>
+    <td><code>data</code> (required) &mdash; JSON object</td>
+  </tr>
+  <tr>
+    <td><code>usuarios_update</code></td>
+    <td><code>mcpUpdate</code></td>
+    <td>UPDATE com validacao</td>
+    <td><code>data</code> (required) &mdash; JSON object com PK</td>
+  </tr>
+  <tr>
+    <td><code>usuarios_delete</code></td>
+    <td><code>mcpDelete</code></td>
+    <td>DELETE (respeita soft delete)</td>
+    <td><code>id</code> (required)</td>
+  </tr>
+  <tr>
+    <td><code>usuarios_count</code></td>
+    <td><code>mcpCount</code></td>
+    <td>COUNT com filtro opcional</td>
+    <td><code>where</code> (opcional)</td>
+  </tr>
+  <tr>
+    <td><code>usuarios_ddl</code></td>
+    <td><code>mcpDDL</code></td>
+    <td>Gera CREATE TABLE DDL</td>
+    <td>Nenhum</td>
+  </tr>
+</table>
+
+<h3>Exemplo: Tool query</h3>
+<pre><code>// Request do AI assistant
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "usuarios_query",
+    "arguments": {
+      "where": "ATIVO = 1",
+      "orderBy": "NOME ASC",
+      "take": 10
+    }
+  }
+}
+
+// Response do servidor
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [{
+      "type": "text",
+      "text": "[{\"ID\":1,\"NOME\":\"Joao\"},{\"ID\":2,\"NOME\":\"Maria\"}]"
+    }]
+  }
+}</code></pre>
+
+<h3>Exemplo: Tool describe</h3>
+<pre><code>// Response de usuarios_describe
+{
+  "content": [{
+    "type": "text",
+    "text": "[{\"name\":\"ID\",\"property\":\"Id\",\"type\":\"integer\",\"primaryKey\":true,\"autoIncrement\":true},{\"name\":\"NOME\",\"property\":\"Nome\",\"type\":\"string\",\"notNull\":true},{\"name\":\"EMAIL\",\"property\":\"Email\",\"type\":\"string\"},{\"name\":\"ATIVO\",\"property\":\"Ativo\",\"type\":\"boolean\"}]"
+  }]
+}</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="tools-globais">
+<h2>Tools Globais</h2>
+
+<h3>list_entities</h3>
+<p>Registrada automaticamente. Lista todas as entidades registradas com suas permissoes:</p>
+<pre><code>// tools/call com name: "list_entities"
+// Response:
+{
+  "content": [{
+    "type": "text",
+    "text": "[{\"table\":\"USUARIOS\",\"permissions\":[\"mcpRead\",\"mcpInsert\",\"mcpUpdate\"]},{\"table\":\"PRODUTOS\",\"permissions\":[\"mcpRead\",\"mcpCount\"]}]"
+  }]
+}</code></pre>
+
+<h3>raw_query</h3>
+<p>Registrada via <code>EnableRawQuery(aQuery)</code>. Executa SQL SELECT customizado (somente leitura):</p>
+<pre><code>// tools/call
+{
+  "name": "raw_query",
+  "arguments": {
+    "sql": "SELECT U.NOME, COUNT(P.ID) AS TOTAL FROM USUARIOS U JOIN PEDIDOS P ON P.ID_USUARIO = U.ID GROUP BY U.NOME"
+  }
+}</code></pre>
+
+<div class="warning">
+  <p><strong>Seguranca:</strong> <code>raw_query</code> aceita APENAS queries que comecam com <code>SELECT</code>. Semicolons e keywords como <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>DROP</code>, <code>ALTER</code>, <code>CREATE</code>, <code>TRUNCATE</code>, <code>EXEC</code>, <code>GRANT</code>, <code>REVOKE</code> sao bloqueados.</p>
+</div>
+</section>
+
+<!-- ============================================ -->
+<section id="transporte-stdio">
+<h2>Transporte Stdio</h2>
+
+<p>O transporte stdio usa <code>ReadLn</code>/<code>WriteLn</code> para comunicacao. E o transporte padrao para uso local com Claude Code, Cursor e outros AI assistants que lancam o servidor como processo filho.</p>
+
+<pre><code>Server.StartStdio;  // Bloqueia, lendo stdin ate EOF</code></pre>
+
+<h3>Fluxo</h3>
+<ol>
+  <li>AI assistant lanca o executavel como processo filho</li>
+  <li>Envia JSON-RPC via stdin (uma mensagem por linha)</li>
+  <li>Servidor processa e responde via stdout</li>
+  <li>Erros do servidor vao para stderr (nunca stdout)</li>
+</ol>
+
+<div class="note">
+  <p>Stdio nao requer autenticacao &mdash; a seguranca e garantida pelo fato de ser um processo local.</p>
+</div>
+</section>
+
+<!-- ============================================ -->
+<section id="transporte-http">
+<h2>Transporte HTTP</h2>
+
+<p>O transporte HTTP usa o framework Horse para receber requisicoes JSON-RPC via POST. Ideal para acesso remoto ou quando o AI assistant se conecta via rede.</p>
+
+<pre><code>Server
+  .Token('meu-token-secreto')  // Obrigatorio para HTTP
+  .StartHttp(9000);            // POST http://localhost:9000/mcp</code></pre>
+
+<h3>Endpoint</h3>
+<table>
+  <tr><th>Metodo</th><th>Path</th><th>Content-Type</th><th>Auth</th></tr>
+  <tr><td>POST</td><td><code>/mcp</code> (customizavel)</td><td><code>application/json</code></td><td><code>Bearer &lt;token&gt;</code></td></tr>
+</table>
+
+<h3>Path customizado</h3>
+<pre><code>// Usando diretamente o transporte
+uses SimpleMCPTransport.Http;
+
+StartHttpTransport(Server, 9000, '/api/mcp');  // POST http://localhost:9000/api/mcp</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="autenticacao">
+<h2>Autenticacao</h2>
+
+<table>
+  <tr><th>Transporte</th><th>Autenticacao</th><th>Motivo</th></tr>
+  <tr><td>Stdio</td><td>Nenhuma</td><td>Processo local, seguro por natureza</td></tr>
+  <tr><td>HTTP</td><td>Bearer token obrigatorio</td><td>Acesso via rede requer autenticacao</td></tr>
+</table>
+
+<h3>Configurando o token</h3>
+<pre><code>Server.Token('meu-token-secreto');</code></pre>
+
+<h3>Enviando o token (client HTTP)</h3>
+<pre><code>POST /mcp HTTP/1.1
+Authorization: Bearer meu-token-secreto
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":1,"method":"initialize",...}</code></pre>
+
+<p>Sem token valido, o servidor retorna:</p>
+<pre><code>HTTP/1.1 401 Unauthorized
+{"jsonrpc":"2.0","id":null,"error":{"code":-32001,"message":"Unauthorized"}}</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="seguranca">
+<h2>Seguranca</h2>
+
+<ul>
+  <li><strong>Permissoes granulares</strong> &mdash; Tools so aparecem se a entidade tem a permissao correspondente</li>
+  <li><strong>Validacao</strong> &mdash; Insert e Update passam por <code>TSimpleValidator</code> antes da execucao</li>
+  <li><strong>Queries parametrizadas</strong> &mdash; Toda operacao via DAO usa parametros (sem SQL injection via valores)</li>
+  <li><strong>raw_query read-only</strong> &mdash; Apenas SELECT, com bloqueio de keywords perigosos e semicolons</li>
+  <li><strong>Soft delete respeitado</strong> &mdash; Delete via MCP respeita o atributo <code>[SoftDelete]</code></li>
+  <li><strong>Erros seguros</strong> &mdash; Erros do banco nunca expoem stack traces ao AI assistant</li>
+  <li><strong>Bearer token</strong> &mdash; Transporte HTTP requer autenticacao</li>
+</ul>
+
+<div class="danger">
+  <p><strong>Importante:</strong> O MCP Server e projetado para ser usado por AI assistants em ambiente controlado. NAO exponha o endpoint HTTP na internet publica sem camadas adicionais de seguranca (firewall, VPN, rate limiting).</p>
+</div>
+</section>
+
+<!-- ============================================ -->
+<section id="protocolo">
+<h2>Protocolo JSON-RPC</h2>
+
+<p>O MCP Server implementa o protocolo MCP sobre JSON-RPC 2.0. Os metodos suportados sao:</p>
+
+<table>
+  <tr><th>Metodo</th><th>Tipo</th><th>Descricao</th></tr>
+  <tr><td><code>initialize</code></td><td>Request</td><td>Handshake inicial &mdash; retorna versao do protocolo e capabilities</td></tr>
+  <tr><td><code>notifications/initialized</code></td><td>Notification</td><td>Confirma inicializacao (sem resposta)</td></tr>
+  <tr><td><code>tools/list</code></td><td>Request</td><td>Lista todas as tools disponiveis com schemas</td></tr>
+  <tr><td><code>tools/call</code></td><td>Request</td><td>Executa uma tool pelo nome</td></tr>
+  <tr><td><code>ping</code></td><td>Request</td><td>Health check &mdash; retorna objeto vazio</td></tr>
+</table>
+
+<h3>Fluxo de inicializacao</h3>
+<pre><code>// 1. Client envia initialize
+&rarr; {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"claude","version":"1.0"}}}
+
+// 2. Server responde com capabilities
+&larr; {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-03-26","capabilities":{"tools":{}},"serverInfo":{"name":"SimpleORM MCP Server","version":"1.0.0"}}}
+
+// 3. Client envia notification
+&rarr; {"jsonrpc":"2.0","method":"notifications/initialized"}
+
+// 4. Client lista tools
+&rarr; {"jsonrpc":"2.0","id":2,"method":"tools/list"}
+
+// 5. Client chama tool
+&rarr; {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"usuarios_query","arguments":{"take":5}}}</code></pre>
+
+<h3>Codigos de erro JSON-RPC</h3>
+<table>
+  <tr><th>Codigo</th><th>Constante</th><th>Significado</th></tr>
+  <tr><td>-32700</td><td><code>MCP_PARSE_ERROR</code></td><td>JSON invalido</td></tr>
+  <tr><td>-32600</td><td><code>MCP_INVALID_REQUEST</code></td><td>Request invalido</td></tr>
+  <tr><td>-32601</td><td><code>MCP_METHOD_NOT_FOUND</code></td><td>Metodo nao encontrado</td></tr>
+  <tr><td>-32602</td><td><code>MCP_INVALID_PARAMS</code></td><td>Parametros invalidos</td></tr>
+  <tr><td>-32603</td><td><code>MCP_INTERNAL_ERROR</code></td><td>Erro interno</td></tr>
+  <tr><td>-32001</td><td><code>MCP_UNAUTHORIZED</code></td><td>Token invalido (HTTP)</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="config-claude">
+<h2>Configuracao no Claude Code</h2>
+
+<h3>Stdio (recomendado para uso local)</h3>
+<p>Adicione ao seu <code>claude_desktop_config.json</code> ou <code>.claude.json</code>:</p>
+<pre><code>{
+  "mcpServers": {
+    "minha-aplicacao": {
+      "command": "C:\\caminho\\para\\MeuMCPServer.exe",
+      "args": []
+    }
+  }
+}</code></pre>
+
+<h3>HTTP (acesso remoto)</h3>
+<pre><code>{
+  "mcpServers": {
+    "minha-aplicacao": {
+      "url": "http://servidor:9000/mcp",
+      "headers": {
+        "Authorization": "Bearer meu-token-secreto"
+      }
+    }
+  }
+}</code></pre>
+
+<p>Apos configurar, o Claude Code detecta automaticamente as tools disponiveis e pode interagir com seu banco de dados:</p>
+
+<pre><code>// O Claude pode perguntar:
+"Quantos usuarios ativos existem no sistema?"
+// E usar a tool usuarios_count com where: "ATIVO = 1"
+
+"Me mostre os ultimos 5 pedidos"
+// E usar a tool pedidos_query com orderBy: "ID DESC", take: 5
+
+"Descreva a estrutura da tabela de produtos"
+// E usar a tool produtos_describe</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="api">
+<h2>API Completa</h2>
+
+<h3>TSimpleMCPServer</h3>
+<table>
+  <tr><th>Metodo</th><th>Retorno</th><th>Descricao</th></tr>
+  <tr><td><code>New</code></td><td><code>TSimpleMCPServer</code></td><td>Cria instancia (caller deve dar Free)</td></tr>
+  <tr><td><code>RegisterEntity&lt;T&gt;(aQuery, aPermissions)</code></td><td><code>TSimpleMCPServer</code></td><td>Registra entidade e gera tools conforme permissoes</td></tr>
+  <tr><td><code>EnableRawQuery(aQuery)</code></td><td><code>TSimpleMCPServer</code></td><td>Habilita tool <code>raw_query</code> (SELECT only)</td></tr>
+  <tr><td><code>Token(aValue)</code></td><td><code>TSimpleMCPServer</code></td><td>Define token de autenticacao</td></tr>
+  <tr><td><code>ValidateToken(aToken)</code></td><td><code>Boolean</code></td><td>Valida token (True se vazio ou match)</td></tr>
+  <tr><td><code>ProcessMessage(aJSON)</code></td><td><code>String</code></td><td>Processa JSON-RPC e retorna response</td></tr>
+  <tr><td><code>StartStdio</code></td><td>&mdash;</td><td>Inicia loop stdio (bloqueia)</td></tr>
+  <tr><td><code>StartHttp(aPort)</code></td><td>&mdash;</td><td>Inicia servidor HTTP via Horse (bloqueia)</td></tr>
+</table>
+
+<h3>TMCPPermission</h3>
+<pre><code>type
+  TMCPPermission = (mcpRead, mcpInsert, mcpUpdate, mcpDelete, mcpCount, mcpDDL);
+  TMCPPermissions = set of TMCPPermission;</code></pre>
+
+<h3>Fluent Interface</h3>
+<p>Todos os metodos de configuracao retornam <code>Self</code>, permitindo encadeamento:</p>
+<pre><code>TSimpleMCPServer.New
+  .RegisterEntity&lt;TUsuario&gt;(Query, [mcpRead, mcpInsert, mcpUpdate])
+  .RegisterEntity&lt;TProduto&gt;(Query, [mcpRead, mcpCount, mcpDDL])
+  .EnableRawQuery(Query)
+  .Token('secret')
+  .StartStdio;</code></pre>
+</section>
+
+<footer>
+  <p>SimpleORM MCP Server &mdash; <a href="https://github.com/academiadocodigo/SimpleORM">github.com/academiadocodigo/SimpleORM</a></p>
+  <p><a href="index.html">&larr; Voltar para documentacao principal</a></p>
+  <p>Documentacao gerada em 2026-03-08.</p>
+</footer>
+
+</div>
+</body>
+</html>

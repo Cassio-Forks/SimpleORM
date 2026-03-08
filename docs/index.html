@@ -78,6 +78,7 @@
     <li><a href="#interfaces">API de Interfaces</a></li>
     <li><a href="#tipos-banco">Tipos de Banco</a></li>
     <li><a href="#testes">Testes Unitarios (DUnit)</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#mcp-server">MCP Server (AI)</a> <span class="badge badge-new">NEW</span></li>
   </ul>
 </nav>
 
@@ -864,6 +865,33 @@ end.</code></pre>
 <div class="note">
 <strong>Regra:</strong> Toda nova feature implementada no SimpleORM DEVE incluir testes unitarios DUnit. Adicione a unit de teste no <code>uses</code> do <code>SimpleORMTests.dpr</code>.
 </div>
+</section>
+
+<!-- ============================================ -->
+<section id="mcp-server">
+<h2>MCP Server (AI Integration) <span class="badge badge-new">NEW</span></h2>
+
+<p>O SimpleORM inclui um servidor MCP (Model Context Protocol) embutido que permite AI assistants como Claude e Cursor interagirem diretamente com o banco de dados da sua aplicacao, com permissoes granulares e seguranca.</p>
+
+<pre><code>uses SimpleMCPServer, SimpleMCPTypes;
+
+Server := TSimpleMCPServer.New;
+Server
+  .RegisterEntity&lt;TUsuario&gt;(Query, [mcpRead, mcpInsert, mcpUpdate])
+  .RegisterEntity&lt;TProduto&gt;(Query, [mcpRead, mcpCount])
+  .EnableRawQuery(Query)
+  .StartStdio;  // ou .Token('secret').StartHttp(9000)</code></pre>
+
+<h3>Recursos</h3>
+<ul>
+  <li>Gera tools MCP automaticamente a partir das entidades registradas (query, get, insert, update, delete, count, describe, ddl)</li>
+  <li>Permissoes granulares: <code>mcpRead</code>, <code>mcpInsert</code>, <code>mcpUpdate</code>, <code>mcpDelete</code>, <code>mcpCount</code>, <code>mcpDDL</code></li>
+  <li>Dois transportes: stdio (local) e HTTP via Horse (remoto com Bearer token)</li>
+  <li>SQL raw read-only com protecao contra injection</li>
+  <li>Validacao via SimpleValidator em insert/update</li>
+</ul>
+
+<p><strong><a href="mcp-server.html">Documentacao completa do MCP Server &rarr;</a></strong></p>
 </section>
 
 <footer>

@@ -10,6 +10,10 @@ Homologado para os drivers de Conexão Firedac, RestDataware, UniDAC, Zeos e Hor
 
 Acesse a documentação completa com exemplos de código, referência de API, todos os atributos, e guias de integração Horse.
 
+### 🤖 [MCP Server - Integração com AI](https://academiadocodigo.github.io/SimpleORM/mcp-server.html)
+
+O SimpleORM inclui um servidor MCP (Model Context Protocol) embutido que permite AI assistants como Claude e Cursor interagirem diretamente com o banco de dados via ORM, com permissões granulares e segurança. [Ver documentação completa](https://academiadocodigo.github.io/SimpleORM/mcp-server.html).
+
 #### Link do Grupo no Telegram
 [Grupo SimpleORM](https://t.me/joinchat/Tv8fVFe_hdz0rJwq)
 
