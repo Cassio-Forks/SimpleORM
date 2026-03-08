@@ -1,0 +1,49 @@
+# Delphi compiled/generated binaries
+*.exe
+*.dll
+*.bpl
+*.bpi
+*.dcp
+*.so
+*.apk
+*.drc
+*.map
+*.dres
+*.rsm
+*.tds
+*.dcu
+*.lib
+*.a
+*.o
+*.ocx
+*.res
+*.cfg
+*.hpp
+*.stat
+*.bin
+
+# Delphi local/user-specific files
+*.local
+*.identcache
+*.projdata
+*.tvsconfig
+*.dsk
+__history/
+__recovery/
+*.~*
+
+# Delphi project config (large XML, not useful for code understanding)
+*.dproj
+*.groupproj
+*.skincfg
+*.deployproj
+
+# Binary assets
+assets/
+public/
+
+# Sample database files
+samples/Database/
+
+# Git
+.git/
