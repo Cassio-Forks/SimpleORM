@@ -85,8 +85,11 @@ begin
         LObj.AddPair('permissions', LPermsArray);
         LArray.AddElement(LObj);
       end;
-      Result := BuildToolResult(LArray.ToString);
-      LArray.Free;
+      try
+        Result := BuildToolResult(LArray.ToString);
+      finally
+        LArray.Free;
+      end;
     end;
   RegisterTool(LTool);
 end;
@@ -435,8 +438,11 @@ begin
           finally
             LDescCtx.Free;
           end;
-          Result := BuildToolResult(LFieldsArray.ToString);
-          LFieldsArray.Free;
+          try
+            Result := BuildToolResult(LFieldsArray.ToString);
+          finally
+            LFieldsArray.Free;
+          end;
         end;
       RegisterTool(LTool);
 
@@ -540,6 +546,11 @@ begin
 
           LDAO := TSimpleDAO<T>.New(aQuery);
           LEntity := LDAO.Find(LId);
+          if TObject(LEntity) = nil then
+          begin
+            Result := BuildToolResult('Record not found with id ' + IntToStr(LId), True);
+            Exit;
+          end;
           try
             LJsonObj := TSimpleSerializer.EntityToJSON<T>(LEntity);
             try
@@ -793,14 +804,26 @@ begin
         Exit;
       end;
 
+      // Block semicolons (prevents multi-statement injection)
+      if Pos(';', LUpperSQL) > 0 then
+      begin
+        Result := BuildToolResult('Semicolons are not allowed in queries', True);
+        Exit;
+      end;
+
       // Block dangerous keywords
-      if (Pos('INSERT', LUpperSQL) > 0) or
-         (Pos('UPDATE', LUpperSQL) > 0) or
-         (Pos('DELETE', LUpperSQL) > 0) or
-         (Pos('DROP', LUpperSQL) > 0) or
-         (Pos('ALTER', LUpperSQL) > 0) or
-         (Pos('CREATE', LUpperSQL) > 0) or
-         (Pos('TRUNCATE', LUpperSQL) > 0) then
+      if (Pos('INSERT ', LUpperSQL) > 0) or
+         (Pos('UPDATE ', LUpperSQL) > 0) or
+         (Pos('DELETE ', LUpperSQL) > 0) or
+         (Pos('DROP ', LUpperSQL) > 0) or
+         (Pos('ALTER ', LUpperSQL) > 0) or
+         (Pos('CREATE ', LUpperSQL) > 0) or
+         (Pos('TRUNCATE ', LUpperSQL) > 0) or
+         (Pos('EXEC ', LUpperSQL) > 0) or
+         (Pos('EXECUTE ', LUpperSQL) > 0) or
+         (Pos('GRANT ', LUpperSQL) > 0) or
+         (Pos('REVOKE ', LUpperSQL) > 0) or
+         (Pos(' INTO ', LUpperSQL) > 0) then
       begin
         Result := BuildToolResult('SQL contains blocked keywords', True);
         Exit;

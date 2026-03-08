@@ -29,20 +29,23 @@ var
 begin
   try
     Server := TSimpleMCPServer.New;
+    try
+      // Register entities
+      // Server.RegisterEntity<TProduto>(Query, [mcpRead, mcpInsert, mcpUpdate, mcpDelete, mcpCount, mcpDDL]);
+      // Server.RegisterEntity<TCliente>(Query, [mcpRead, mcpCount]);
+      // Server.EnableRawQuery(Query);
 
-    // Register entities
-    // Server.RegisterEntity<TProduto>(Query, [mcpRead, mcpInsert, mcpUpdate, mcpDelete, mcpCount, mcpDDL]);
-    // Server.RegisterEntity<TCliente>(Query, [mcpRead, mcpCount]);
-    // Server.EnableRawQuery(Query);
+      // Set authentication token for HTTP
+      Server.Token('my-secret-token');
 
-    // Set authentication token for HTTP
-    Server.Token('my-secret-token');
+      WriteLn('SimpleORM MCP Server starting on port 9000...');
+      WriteLn('Endpoint: POST http://localhost:9000/mcp');
 
-    WriteLn('SimpleORM MCP Server starting on port 9000...');
-    WriteLn('Endpoint: POST http://localhost:9000/mcp');
-
-    // Start HTTP transport (blocks — runs Horse listener)
-    Server.StartHttp(9000);
+      // Start HTTP transport (blocks — runs Horse listener)
+      Server.StartHttp(9000);
+    finally
+      Server.Free;
+    end;
   except
     on E: Exception do
     begin

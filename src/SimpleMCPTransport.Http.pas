@@ -33,7 +33,7 @@ begin
       if not aServer.ValidateToken(LToken) then
       begin
         Res.Send('{"jsonrpc":"2.0","id":null,"error":{"code":-32001,"message":"Unauthorized"}}')
-          .Status(401);
+          .ContentType('application/json').Status(401);
         Exit;
       end;
 
@@ -41,7 +41,7 @@ begin
       if LBody = '' then
       begin
         Res.Send('{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Empty body"}}')
-          .Status(400);
+          .ContentType('application/json').Status(400);
         Exit;
       end;
 
