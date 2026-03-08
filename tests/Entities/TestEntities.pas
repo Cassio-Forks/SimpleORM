@@ -145,6 +145,32 @@ type
     property EMAIL: String read FEMAIL write FEMAIL;
   end;
 
+  { Entidade com Timestamps }
+  [Tabela('ENTITY_TIMESTAMPS')]
+  TTestTimestampEntity = class
+  private
+    FId: Integer;
+    FNome: String;
+    FCreatedAt: TDateTime;
+    FUpdatedAt: TDateTime;
+  published
+    [Campo('ID')]
+    [PK]
+    [AutoInc]
+    property Id: Integer read FId write FId;
+
+    [Campo('NOME')]
+    property Nome: String read FNome write FNome;
+
+    [Campo('DT_CRIACAO')]
+    [CreatedAt]
+    property DataCriacao: TDateTime read FCreatedAt write FCreatedAt;
+
+    [Campo('DT_ATUALIZACAO')]
+    [UpdatedAt]
+    property DataAtualizacao: TDateTime read FUpdatedAt write FUpdatedAt;
+  end;
+
 implementation
 
 end.

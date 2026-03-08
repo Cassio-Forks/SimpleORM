@@ -157,6 +157,12 @@ type
   JSONBase64 = class(TCustomAttribute)
   end;
 
+  CreatedAt = class(TCustomAttribute)
+  end;
+
+  UpdatedAt = class(TCustomAttribute)
+  end;
+
 implementation
 
 

@@ -50,6 +50,12 @@ type
     { Relationship }
     procedure TestIsHasOne;
     procedure TestIsBelongsTo;
+
+    { Timestamps }
+    procedure TestIsCreatedAt_WithAttribute_ShouldReturnTrue;
+    procedure TestIsCreatedAt_WithoutAttribute_ShouldReturnFalse;
+    procedure TestIsUpdatedAt_WithAttribute_ShouldReturnTrue;
+    procedure TestIsUpdatedAt_WithoutAttribute_ShouldReturnFalse;
   end;
 
   TTestRttiTypeHelper = class(TTestCase)
@@ -275,6 +281,46 @@ var
 begin
   LProp := FType.GetProperty('CLIENTE');
   CheckFalse(LProp.IsBelongsTo, 'CLIENTE nao deve ser BelongsTo');
+end;
+
+procedure TTestRttiPropertyHelper.TestIsCreatedAt_WithAttribute_ShouldReturnTrue;
+var
+  LType: TRttiType;
+  LProp: TRttiProperty;
+begin
+  LType := FContext.GetType(TTestTimestampEntity);
+  LProp := LType.GetProperty('DataCriacao');
+  CheckTrue(LProp.IsCreatedAt, 'DataCriacao deve ter atributo CreatedAt');
+end;
+
+procedure TTestRttiPropertyHelper.TestIsCreatedAt_WithoutAttribute_ShouldReturnFalse;
+var
+  LType: TRttiType;
+  LProp: TRttiProperty;
+begin
+  LType := FContext.GetType(TTestTimestampEntity);
+  LProp := LType.GetProperty('Nome');
+  CheckFalse(LProp.IsCreatedAt, 'Nome nao deve ter atributo CreatedAt');
+end;
+
+procedure TTestRttiPropertyHelper.TestIsUpdatedAt_WithAttribute_ShouldReturnTrue;
+var
+  LType: TRttiType;
+  LProp: TRttiProperty;
+begin
+  LType := FContext.GetType(TTestTimestampEntity);
+  LProp := LType.GetProperty('DataAtualizacao');
+  CheckTrue(LProp.IsUpdatedAt, 'DataAtualizacao deve ter atributo UpdatedAt');
+end;
+
+procedure TTestRttiPropertyHelper.TestIsUpdatedAt_WithoutAttribute_ShouldReturnFalse;
+var
+  LType: TRttiType;
+  LProp: TRttiProperty;
+begin
+  LType := FContext.GetType(TTestTimestampEntity);
+  LProp := LType.GetProperty('Nome');
+  CheckFalse(LProp.IsUpdatedAt, 'Nome nao deve ter atributo UpdatedAt');
 end;
 
 { TTestRttiTypeHelper }

@@ -588,6 +588,23 @@ begin
       if prpRtti.IsIgnore then
         Continue;
 
+      // Auto-fill CreatedAt only if value is zero (i.e., on Insert)
+      if prpRtti.IsCreatedAt then
+      begin
+        if prpRtti.GetValue(Pointer(FInstance)).AsExtended = 0 then
+        begin
+          aDictionary.Add(prpRtti.FieldName, Now);
+          Continue;
+        end;
+      end;
+
+      // Auto-fill UpdatedAt always (Insert and Update)
+      if prpRtti.IsUpdatedAt then
+      begin
+        aDictionary.Add(prpRtti.FieldName, Now);
+        Continue;
+      end;
+
       case prpRtti.PropertyType.TypeKind of
         tkInteger:
           begin
@@ -913,6 +930,9 @@ begin
         Continue;
 
       if prpRtti.IsIgnoreUpdate then
+        Continue;
+
+      if prpRtti.IsCreatedAt then
         Continue;
 
       if prpRtti.IsAutoInc then

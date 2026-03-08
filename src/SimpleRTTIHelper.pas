@@ -39,6 +39,8 @@ type
     function IsIgnoreUpdate: Boolean;
     function IsIgnoreJSON: Boolean;
     function IsJSONBase64: Boolean;
+    function IsCreatedAt: Boolean;
+    function IsUpdatedAt: Boolean;
   end;
 
   TRttiTypeHelper = class helper for TRttiType
@@ -223,6 +225,16 @@ end;
 function TRttiPropertyHelper.IsJSONBase64: Boolean;
 begin
   Result := Tem<JSONBase64>
+end;
+
+function TRttiPropertyHelper.IsCreatedAt: Boolean;
+begin
+  Result := Tem<CreatedAt>
+end;
+
+function TRttiPropertyHelper.IsUpdatedAt: Boolean;
+begin
+  Result := Tem<UpdatedAt>
 end;
 
 function TRttiPropertyHelper.Tem<T>: Boolean;
