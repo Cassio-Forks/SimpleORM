@@ -3,8 +3,8 @@ unit SimpleHorseRouter;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.JSON, System.Generics.Collections,
-  Horse, SimpleInterface, SimpleDAO, SimpleRTTI, SimpleSerializer;
+  System.SysUtils, System.Rtti, System.JSON, System.Generics.Collections,
+  Horse, SimpleInterface, SimpleAttributes, SimpleDAO, SimpleRTTI, SimpleSerializer;
 
 type
   TEntityCallback = reference to procedure(aEntity: TObject; var aContinue: Boolean);
@@ -143,7 +143,7 @@ begin
       LJSON: TJSONObject;
     begin
       try
-        LId := StrToInt(Req.Params['id']);
+        LId := StrToIntDef(Req.Params['id'], 0);
         LDAO := TSimpleDAO<T>.New(aQuery);
         LEntity := LDAO.Find(LId);
         try
@@ -181,6 +181,8 @@ begin
     begin
       try
         LJSONBody := TJSONObject.ParseJSONValue(Req.Body) as TJSONObject;
+        if LJSONBody = nil then
+          raise Exception.Create('Invalid JSON body');
         try
           LEntity := TSimpleSerializer.JSONToEntity<T>(LJSONBody);
         finally
@@ -230,9 +232,16 @@ begin
       LJSONBody: TJSONObject;
       LJSONResult: TJSONObject;
       LContinue: Boolean;
+      LPK: string;
+      LContext: TRttiContext;
+      LType: TRttiType;
+      LProp: TRttiProperty;
+      LAttr: TCustomAttribute;
     begin
       try
         LJSONBody := TJSONObject.ParseJSONValue(Req.Body) as TJSONObject;
+        if LJSONBody = nil then
+          raise Exception.Create('Invalid JSON body');
         try
           LEntity := TSimpleSerializer.JSONToEntity<T>(LJSONBody);
         finally
@@ -240,6 +249,29 @@ begin
         end;
 
         try
+          // Set PK from URL :id param on the entity
+          TSimpleRTTI<T>.New(nil).PrimaryKey(LPK);
+          LContext := TRttiContext.Create;
+          LType := LContext.GetType(TObject(LEntity).ClassType);
+          for LProp in LType.GetProperties do
+          begin
+            for LAttr in LProp.GetAttributes do
+            begin
+              if (LAttr is Campo) and (Campo(LAttr).Name = LPK) then
+              begin
+                case LProp.PropertyType.TypeKind of
+                  tkInteger:
+                    LProp.SetValue(TObject(LEntity), StrToIntDef(Req.Params['id'], 0));
+                  tkInt64:
+                    LProp.SetValue(TObject(LEntity), StrToInt64Def(Req.Params['id'], 0));
+                  tkUString, tkString, tkLString, tkWString:
+                    LProp.SetValue(TObject(LEntity), Req.Params['id']);
+                end;
+                Break;
+              end;
+            end;
+          end;
+
           if Assigned(LConfig.FOnBeforeUpdate) then
           begin
             LContinue := True;
