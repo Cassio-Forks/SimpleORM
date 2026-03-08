@@ -9,10 +9,18 @@ SimpleORM is a Delphi ORM library that simplifies CRUD operations. It supports m
 ## Build & Installation
 
 - **Package manager**: [Boss](https://github.com/HashLoad/boss) (`boss install academiadocodigo/SimpleORM`)
-- **Manual install**: Add the SimpleORM root directory to the Delphi Library Path
+- **Manual install**: Add the `src/` directory to the Delphi Library Path
 - **Package file**: `SimpleORM.dpk` (design-time package, no component installation required)
 - **Project group**: `SimpleORM_Group.groupproj` contains the library and sample projects
 - No test suite exists in this repository
+
+## Repository Structure
+
+- `src/` - All library source files (`.pas`)
+- `samples/` - Example projects (FireDAC, FMX, Horse, UniDAC, RestDW, Validation, ActiveRecord)
+- `docs/plans/` - Design and implementation plan documents
+- `assets/`, `public/` - Logo images
+- Root: project files (`.dpk`, `.dpr`, `.dproj`, `.groupproj`), `boss.json`, `README.md`
 
 ## Architecture
 

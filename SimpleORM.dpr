@@ -2,13 +2,13 @@ program SimpleORM;
 
 uses
   Vcl.Forms,
-  SimpleDAO in 'SimpleDAO.pas',
-  SimpleInterface in 'SimpleInterface.pas',
-  SimpleAttributes in 'SimpleAttributes.pas',
-  SimpleRTTI in 'SimpleRTTI.pas',
-  SimpleSQL in 'SimpleSQL.pas',
-  SimpleQueryFiredac in 'SimpleQueryFiredac.pas',
-  SimpleQueryRestDW in 'SimpleQueryRestDW.pas';
+  SimpleDAO in 'src\SimpleDAO.pas',
+  SimpleInterface in 'src\SimpleInterface.pas',
+  SimpleAttributes in 'src\SimpleAttributes.pas',
+  SimpleRTTI in 'src\SimpleRTTI.pas',
+  SimpleSQL in 'src\SimpleSQL.pas',
+  SimpleQueryFiredac in 'src\SimpleQueryFiredac.pas',
+  SimpleQueryRestDW in 'src\SimpleQueryRestDW.pas';
 
 {$R *.res}
 

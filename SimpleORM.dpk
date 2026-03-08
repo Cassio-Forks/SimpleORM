@@ -48,24 +48,24 @@ requires
   unidac260;
 
 contains
-  SimpleAttributes in 'SimpleAttributes.pas',
-  SimpleDAO in 'SimpleDAO.pas',
-  SimpleInterface in 'SimpleInterface.pas',
-  SimpleQueryFiredac in 'SimpleQueryFiredac.pas',
-  SimpleQueryRestDW in 'SimpleQueryRestDW.pas',
-  SimpleRTTI in 'SimpleRTTI.pas',
-  SimpleSQL in 'SimpleSQL.pas',
-  SimpleDAOSQLAttribute in 'SimpleDAOSQLAttribute.pas',
-  SimpleRTTIHelper in 'SimpleRTTIHelper.pas',
-  SimpleValidator in 'SimpleValidator.pas',
-  SimpleUtil in 'SimpleUtil.pas',
-  SimpleEntity in 'SimpleEntity.pas',
-  SimpleJSONUtil in 'SimpleJSONUtil.pas',
-  SimpleJSON in 'SimpleJSON.pas',
-  SimpleQueryUnidac in 'SimpleQueryUnidac.pas',
-  SimpleQueryZeos in 'SimpleQueryZeos.pas',
-  SimpleTypes in 'SimpleTypes.pas',
-  SimpleProxy in 'SimpleProxy.pas',
-  SimpleLogger in 'SimpleLogger.pas';
+  SimpleAttributes in 'src\SimpleAttributes.pas',
+  SimpleDAO in 'src\SimpleDAO.pas',
+  SimpleInterface in 'src\SimpleInterface.pas',
+  SimpleQueryFiredac in 'src\SimpleQueryFiredac.pas',
+  SimpleQueryRestDW in 'src\SimpleQueryRestDW.pas',
+  SimpleRTTI in 'src\SimpleRTTI.pas',
+  SimpleSQL in 'src\SimpleSQL.pas',
+  SimpleDAOSQLAttribute in 'src\SimpleDAOSQLAttribute.pas',
+  SimpleRTTIHelper in 'src\SimpleRTTIHelper.pas',
+  SimpleValidator in 'src\SimpleValidator.pas',
+  SimpleUtil in 'src\SimpleUtil.pas',
+  SimpleEntity in 'src\SimpleEntity.pas',
+  SimpleJSONUtil in 'src\SimpleJSONUtil.pas',
+  SimpleJSON in 'src\SimpleJSON.pas',
+  SimpleQueryUnidac in 'src\SimpleQueryUnidac.pas',
+  SimpleQueryZeos in 'src\SimpleQueryZeos.pas',
+  SimpleTypes in 'src\SimpleTypes.pas',
+  SimpleProxy in 'src\SimpleProxy.pas',
+  SimpleLogger in 'src\SimpleLogger.pas';
 
 end.

@@ -6,16 +6,16 @@
         <Projects Include="SimpleORM.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Sample\Firedac\SimpleORMFiredac.dproj">
+        <Projects Include="samples\Firedac\SimpleORMFiredac.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Sample\horse\SimpleORMHorse.dproj">
+        <Projects Include="samples\horse\SimpleORMHorse.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Sample\Validation\SimpleORMValidation.dproj">
+        <Projects Include="samples\Validation\SimpleORMValidation.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Sample\Unidac\SimpleORMUnidac.dproj">
+        <Projects Include="samples\Unidac\SimpleORMUnidac.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -36,40 +36,40 @@
         <MSBuild Projects="SimpleORM.dproj" Targets="Make"/>
     </Target>
     <Target Name="SimpleORMFiredac">
-        <MSBuild Projects="Sample\Firedac\SimpleORMFiredac.dproj"/>
+        <MSBuild Projects="samples\Firedac\SimpleORMFiredac.dproj"/>
     </Target>
     <Target Name="SimpleORMFiredac:Clean">
-        <MSBuild Projects="Sample\Firedac\SimpleORMFiredac.dproj" Targets="Clean"/>
+        <MSBuild Projects="samples\Firedac\SimpleORMFiredac.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SimpleORMFiredac:Make">
-        <MSBuild Projects="Sample\Firedac\SimpleORMFiredac.dproj" Targets="Make"/>
+        <MSBuild Projects="samples\Firedac\SimpleORMFiredac.dproj" Targets="Make"/>
     </Target>
     <Target Name="SimpleORMHorse">
-        <MSBuild Projects="Sample\horse\SimpleORMHorse.dproj"/>
+        <MSBuild Projects="samples\horse\SimpleORMHorse.dproj"/>
     </Target>
     <Target Name="SimpleORMHorse:Clean">
-        <MSBuild Projects="Sample\horse\SimpleORMHorse.dproj" Targets="Clean"/>
+        <MSBuild Projects="samples\horse\SimpleORMHorse.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SimpleORMHorse:Make">
-        <MSBuild Projects="Sample\horse\SimpleORMHorse.dproj" Targets="Make"/>
+        <MSBuild Projects="samples\horse\SimpleORMHorse.dproj" Targets="Make"/>
     </Target>
     <Target Name="SimpleORMValidation">
-        <MSBuild Projects="Sample\Validation\SimpleORMValidation.dproj"/>
+        <MSBuild Projects="samples\Validation\SimpleORMValidation.dproj"/>
     </Target>
     <Target Name="SimpleORMValidation:Clean">
-        <MSBuild Projects="Sample\Validation\SimpleORMValidation.dproj" Targets="Clean"/>
+        <MSBuild Projects="samples\Validation\SimpleORMValidation.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SimpleORMValidation:Make">
-        <MSBuild Projects="Sample\Validation\SimpleORMValidation.dproj" Targets="Make"/>
+        <MSBuild Projects="samples\Validation\SimpleORMValidation.dproj" Targets="Make"/>
     </Target>
     <Target Name="SimpleORMUnidac">
-        <MSBuild Projects="Sample\Unidac\SimpleORMUnidac.dproj"/>
+        <MSBuild Projects="samples\Unidac\SimpleORMUnidac.dproj"/>
     </Target>
     <Target Name="SimpleORMUnidac:Clean">
-        <MSBuild Projects="Sample\Unidac\SimpleORMUnidac.dproj" Targets="Clean"/>
+        <MSBuild Projects="samples\Unidac\SimpleORMUnidac.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SimpleORMUnidac:Make">
-        <MSBuild Projects="Sample\Unidac\SimpleORMUnidac.dproj" Targets="Make"/>
+        <MSBuild Projects="samples\Unidac\SimpleORMUnidac.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="SimpleORM;SimpleORMFiredac;SimpleORMHorse;SimpleORMValidation;SimpleORMUnidac"/>
