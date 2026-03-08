@@ -33,6 +33,7 @@ type
     function Rollback : iSimpleQuery;
     function InTransaction : Boolean;
     function SQLType : TSQLType;
+    function RowsAffected : Integer;
   end;
 
 implementation
@@ -159,6 +160,11 @@ end;
 function TSimpleQueryUniDac.SQLType: TSQLType;
 begin
   Result := FSQLType;
+end;
+
+function TSimpleQueryUniDac.RowsAffected: Integer;
+begin
+  Result := FQuery.RowsAffected;
 end;
 
 end.

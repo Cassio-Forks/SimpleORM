@@ -45,6 +45,7 @@ type
     function &EndTransaction: iSimpleQuery;
     function InTransaction: Boolean;
     function SQLType: TSQLType;
+    function RowsAffected: Integer;
 
     { Additional public methods }
     function Token(aValue: string): iSimpleQuery;
@@ -177,6 +178,11 @@ end;
 function TSimpleQueryHorse.SQLType: TSQLType;
 begin
   Result := TSQLType.MySQL;
+end;
+
+function TSimpleQueryHorse.RowsAffected: Integer;
+begin
+  Result := -1;
 end;
 
 function TSimpleQueryHorse.Token(aValue: string): iSimpleQuery;

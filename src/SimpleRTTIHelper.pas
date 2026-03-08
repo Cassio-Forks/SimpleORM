@@ -36,6 +36,9 @@ type
     function HasMaxValue: Boolean;
     function HasRegex: Boolean;
     function HasFormat: Boolean;
+    function IsIgnoreUpdate: Boolean;
+    function IsIgnoreJSON: Boolean;
+    function IsJSONBase64: Boolean;
   end;
 
   TRttiTypeHelper = class helper for TRttiType
@@ -205,6 +208,21 @@ end;
 function TRttiPropertyHelper.HasFormat: Boolean;
 begin
   Result := Tem<SimpleAttributes.Format>
+end;
+
+function TRttiPropertyHelper.IsIgnoreUpdate: Boolean;
+begin
+  Result := Tem<IgnoreUpdate>
+end;
+
+function TRttiPropertyHelper.IsIgnoreJSON: Boolean;
+begin
+  Result := Tem<IgnoreJSON>
+end;
+
+function TRttiPropertyHelper.IsJSONBase64: Boolean;
+begin
+  Result := Tem<JSONBase64>
 end;
 
 function TRttiPropertyHelper.Tem<T>: Boolean;

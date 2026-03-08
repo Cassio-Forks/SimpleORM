@@ -38,6 +38,8 @@ type
       TObjectList<T>; overload;
 
     class procedure JSONToDataset(const poDataset: TDataSet; const poJSON: string);
+
+    class function JSONArrayStringToList<T: class, constructor>(const aJSONString: string): TObjectList<T>;
   end;
 
 implementation
@@ -245,6 +247,21 @@ begin
     Result := oJson.Stringify;
   finally
     FreeAndNil(oJson);
+  end;
+end;
+
+class function TSimpleJsonUtil.JSONArrayStringToList<T>(const aJSONString: string): TObjectList<T>;
+var
+  JSONArray: TJSONArray;
+begin
+  JSONArray := TJSONObject.ParseJSONValue(aJSONString) as TJSONArray;
+  try
+    if Assigned(JSONArray) then
+      Result := JSONArrayToList<T>(JSONArray)
+    else
+      Result := TObjectList<T>.Create;
+  finally
+    JSONArray.Free;
   end;
 end;
 

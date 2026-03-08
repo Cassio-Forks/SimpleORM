@@ -144,7 +144,23 @@ uses
   SimpleAttributes,
   Variants,
   SimpleRTTIHelper,
+  System.TypInfo,
   System.UITypes;
+
+function TryStrToEnumOrdinal(ATypeInfo: PTypeInfo; const AValue: string; out AOrdinal: Integer): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  for i := GetTypeData(ATypeInfo)^.MinValue to GetTypeData(ATypeInfo)^.MaxValue do
+  begin
+    if SameText(GetEnumName(ATypeInfo, i), AValue) then
+    begin
+      AOrdinal := i;
+      Exit(True);
+    end;
+  end;
+end;
 
 { TSimpleRTTI }
 
@@ -436,7 +452,21 @@ begin
                 tkInteger, tkInt64:
                   Value := Field.AsInteger;
                 tkChar: ;
-                tkEnumeration: ;
+                tkEnumeration:
+                begin
+                  if Field.IsNull then
+                    Continue;
+                  if prpRtti.PropertyType.Handle = TypeInfo(Boolean) then
+                    Value := TValue.FromOrdinal(prpRtti.PropertyType.Handle, Field.AsInteger)
+                  else
+                  begin
+                    var LOrdinal: Integer;
+                    if TryStrToEnumOrdinal(prpRtti.PropertyType.Handle, Field.AsString, LOrdinal) then
+                      Value := TValue.FromOrdinal(prpRtti.PropertyType.Handle, LOrdinal)
+                    else
+                      Continue;
+                  end;
+                end;
                 tkFloat: Value := Field.AsFloat;
                 tkSet: ;
                 tkClass: ;
@@ -494,7 +524,21 @@ begin
               tkInteger, tkInt64:
                 Value := Field.AsInteger;
               tkChar: ;
-              tkEnumeration: ;
+              tkEnumeration:
+              begin
+                if Field.IsNull then
+                  Continue;
+                if prpRtti.PropertyType.Handle = TypeInfo(Boolean) then
+                  Value := TValue.FromOrdinal(prpRtti.PropertyType.Handle, Field.AsInteger)
+                else
+                begin
+                  var LOrdinal: Integer;
+                  if TryStrToEnumOrdinal(prpRtti.PropertyType.Handle, Field.AsString, LOrdinal) then
+                    Value := TValue.FromOrdinal(prpRtti.PropertyType.Handle, LOrdinal)
+                  else
+                    Continue;
+                end;
+              end;
               tkFloat:
                 Value := Field.AsFloat;
               tkSet: ;
@@ -545,7 +589,7 @@ begin
         Continue;
 
       case prpRtti.PropertyType.TypeKind of
-        tkInteger, tkInt64:
+        tkInteger:
           begin
             if prpRtti.EhChaveEstrangeira then
             begin
@@ -556,6 +600,18 @@ begin
             end
             else
               aDictionary.Add(prpRtti.FieldName, prpRtti.GetValue(Pointer(FInstance)).AsInteger);
+          end;
+        tkInt64:
+          begin
+            if prpRtti.EhChaveEstrangeira then
+            begin
+              if prpRtti.GetValue(Pointer(FInstance)).AsInt64 = 0 then
+                aDictionary.Add(prpRtti.FieldName, Null)
+              else
+                aDictionary.Add(prpRtti.FieldName, prpRtti.GetValue(Pointer(FInstance)).AsInt64);
+            end
+            else
+              aDictionary.Add(prpRtti.FieldName, prpRtti.GetValue(Pointer(FInstance)).AsInt64);
           end;
         tkFloat       :
         begin
@@ -581,6 +637,13 @@ begin
         tkUString,
         tkString      : aDictionary.Add(prpRtti.FieldName, prpRtti.GetValue(Pointer(FInstance)).AsString);
         tkVariant     : aDictionary.Add(prpRtti.FieldName, prpRtti.GetValue(Pointer(FInstance)).AsVariant);
+        tkEnumeration:
+        begin
+          if prpRtti.PropertyType.Handle = TypeInfo(Boolean) then
+            aDictionary.Add(prpRtti.FieldName, prpRtti.GetValue(Pointer(FInstance)).AsOrdinal)
+          else
+            aDictionary.Add(prpRtti.FieldName, GetEnumName(prpRtti.PropertyType.Handle, prpRtti.GetValue(Pointer(FInstance)).AsOrdinal));
+        end;
       else
           aDictionary.Add(prpRtti.FieldName, prpRtti.GetValue(Pointer(FInstance)).AsString);
       end;
@@ -621,6 +684,13 @@ begin
           else
           if prpRtti.GetValue(Pointer(FInstance)).TypeInfo = TypeInfo(TTime) then
             aDictionary.Add(prpRtti.FieldName, TFieldType.ftTime)
+        end;
+        tkEnumeration:
+        begin
+          if prpRtti.PropertyType.Handle = TypeInfo(Boolean) then
+            aDictionary.Add(prpRtti.FieldName, TFieldType.ftBoolean)
+          else
+            aDictionary.Add(prpRtti.FieldName, TFieldType.ftString);
         end;
         tkWChar,
         tkLString,
@@ -675,6 +745,18 @@ begin
 
       if prpRtti.IsIgnore then
         Continue;
+
+      if (prpRtti.IsEnum) then
+      begin
+        case prpRtti.PropertyType.TypeKind of
+          tkInteger, tkInt64, tkFloat:
+            if prpRtti.GetValue(Pointer(FInstance)).AsInteger = 0 then
+              Continue;
+          tkWChar, tkLString, tkWString, tkUString, tkString:
+            if prpRtti.GetValue(Pointer(FInstance)).AsString = EmptyStr then
+              Continue;
+        end;
+      end;
 
       aFields := aFields + prpRtti.FieldName + ', ';
     end;
@@ -828,6 +910,9 @@ begin
     for prpRtti in typRtti.GetProperties do
     begin
       if prpRtti.IsIgnore then
+        Continue;
+
+      if prpRtti.IsIgnoreUpdate then
         Continue;
 
       if prpRtti.IsAutoInc then

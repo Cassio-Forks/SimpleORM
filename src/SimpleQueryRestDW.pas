@@ -27,6 +27,7 @@ Type
       function Rollback : iSimpleQuery;
       function InTransaction : Boolean;
       function SQLType : TSQLType;
+      function RowsAffected : Integer;
   end;
 
 implementation
@@ -136,6 +137,11 @@ end;
 function TSimpleQueryRestDW<T>.SQLType: TSQLType;
 begin
   Result := FSQLType;
+end;
+
+function TSimpleQueryRestDW<T>.RowsAffected: Integer;
+begin
+  Result := -1;
 end;
 
 end.

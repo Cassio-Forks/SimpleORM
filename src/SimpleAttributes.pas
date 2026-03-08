@@ -148,6 +148,15 @@ type
     property Message: string read FMessage;
   end;
 
+  IgnoreUpdate = class(TCustomAttribute)
+  end;
+
+  IgnoreJSON = class(TCustomAttribute)
+  end;
+
+  JSONBase64 = class(TCustomAttribute)
+  end;
+
 implementation
 
 

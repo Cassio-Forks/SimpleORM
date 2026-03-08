@@ -29,6 +29,7 @@ Type
       function Rollback : iSimpleQuery;
       function InTransaction : Boolean;
       function SQLType : TSQLType;
+      function RowsAffected : Integer;
   end;
 
 implementation
@@ -156,6 +157,11 @@ end;
 function TSimpleQueryZeos.SQLType: TSQLType;
 begin
   Result := FSQLType;
+end;
+
+function TSimpleQueryZeos.RowsAffected: Integer;
+begin
+  Result := FQuery.RowsAffected;
 end;
 
 end.

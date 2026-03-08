@@ -112,9 +112,20 @@ begin
   TSimpleRTTI<T>.New(FInstance)
     .TableName(aClassName)
     .PrimaryKey(aPK);
-  aSQL := aSQL + 'select first(1) ' + aPK;
+
+  if FSQLType = TSQLType.Firebird then
+    aSQL := aSQL + 'select first(1) ' + aPK
+  else
+    aSQL := aSQL + 'select ' + aPK;
+
   aSQL := aSQL + ' from '+ aClassName;
   aSQL := aSQL + ' order by ' + aPK + ' desc';
+
+  if FSQLType in [TSQLType.MySQL, TSQLType.SQLite] then
+    aSQL := aSQL + ' limit 1';
+
+  if FSQLType = TSQLType.Oracle then
+    aSQL := aSQL + ' FETCH FIRST 1 ROWS ONLY';
 end;
 
 function TSimpleSQL<T>.LastRecord(var aSQL: String): iSimpleSQL<T>;
@@ -126,9 +137,20 @@ begin
     .TableName(aClassName)
     .Fields(aFields)
     .PrimaryKey(aPK);
-  aSQL := aSQL + 'select first(1) '+aFields;
+
+  if FSQLType = TSQLType.Firebird then
+    aSQL := aSQL + 'select first(1) ' + aFields
+  else
+    aSQL := aSQL + 'select ' + aFields;
+
   aSQL := aSQL + ' from '+ aClassName;
   aSQL := aSQL + ' order by ' + aPK + ' desc';
+
+  if FSQLType in [TSQLType.MySQL, TSQLType.SQLite] then
+    aSQL := aSQL + ' limit 1';
+
+  if FSQLType = TSQLType.Oracle then
+    aSQL := aSQL + ' FETCH FIRST 1 ROWS ONLY';
 end;
 
 class function TSimpleSQL<T>.New(aInstance : T): iSimpleSQL<T>;

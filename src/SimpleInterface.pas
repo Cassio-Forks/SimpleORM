@@ -124,6 +124,7 @@ type
     function &EndTransaction: iSimpleQuery;
     function InTransaction: Boolean;
     function SQLType: TSQLType;
+    function RowsAffected: Integer;
   end;
 
 
