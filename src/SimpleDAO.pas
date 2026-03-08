@@ -432,12 +432,33 @@ end;
 function TSimpleDAO<T>.Find(aKey: String; aValue: Variant): iSimpleDAO<T>;
 var
     aSQL: String;
+    LParamCast: String;
+    LContext: TRttiContext;
+    LType: TRttiType;
+    LProp: TRttiProperty;
 begin
     Result := Self;
-    TSimpleSQL<T>.New(nil).Where(aKey + ' = :' + aKey).Select(aSQL);
+    LParamCast := '';
+    LContext := TRttiContext.Create;
+    try
+      LType := LContext.GetType(TypeInfo(T));
+      for LProp in LType.GetProperties do
+      begin
+        if (LowerCase(LProp.FieldName) = LowerCase(aKey)) or
+           (LowerCase(LProp.Name) = LowerCase(aKey)) then
+        begin
+          if LProp.IsUuid then
+            LParamCast := '::uuid';
+          Break;
+        end;
+      end;
+    finally
+      LContext.Free;
+    end;
+    TSimpleSQL<T>.New(nil).Where(aKey + ' = :pValue' + LParamCast).Select(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
-    FQuery.Params.ParamByName(aKey).Value := aValue;
+    FQuery.Params.ParamByName('pValue').Value := aValue;
     FQuery.Open;
 end;
 

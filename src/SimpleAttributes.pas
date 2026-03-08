@@ -119,6 +119,9 @@ type
   Email = class(TCustomAttribute)
   end;
 
+  Uuid = class(TCustomAttribute)
+  end;
+
   MinValue = class(TCustomAttribute)
   private
     FValue: Double;

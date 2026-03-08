@@ -31,6 +31,7 @@ type
     function FieldName: string;
     function EnumName: string;
     function IsEmail: Boolean;
+    function IsUuid: Boolean;
     function HasMinValue: Boolean;
     function HasMaxValue: Boolean;
     function HasRegex: Boolean;
@@ -179,6 +180,11 @@ end;
 function TRttiPropertyHelper.IsEmail: Boolean;
 begin
   Result := Tem<Email>
+end;
+
+function TRttiPropertyHelper.IsUuid: Boolean;
+begin
+  Result := Tem<Uuid>
 end;
 
 function TRttiPropertyHelper.HasMinValue: Boolean;

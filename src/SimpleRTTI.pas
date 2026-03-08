@@ -734,6 +734,12 @@ begin
         Continue;
       end;
 
+      if prpRtti.IsUuid then
+      begin
+        aParam := aParam + ':' + prpRtti.FieldName + '::uuid, ';
+        Continue;
+      end;
+
       aParam  := aParam + ':' + prpRtti.FieldName + ', ';
     end;
   finally
@@ -853,6 +859,8 @@ begin
       if prpRtti.EhChavePrimaria then
         if (prpRtti.IsEnum) then
           aWhere := aWhere + prpRtti.FieldName + ' = :' + prpRtti.FieldName + '::' + prpRtti.EnumName + ' AND '
+        else if (prpRtti.IsUuid) then
+          aWhere := aWhere + prpRtti.FieldName + ' = :' + prpRtti.FieldName + '::uuid AND '
         else
           aWhere := aWhere + prpRtti.FieldName + ' = :' + prpRtti.FieldName + ' AND ';
     end;
