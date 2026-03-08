@@ -301,9 +301,9 @@ begin
     else if (S[1] = '"') and (S[Len] = '"') then Result := jvString
     else if SameText(S, 'null') then Result := jvNull
     else if SameText(S, 'true') or SameText(S, 'false') then Result := jvBoolean
-    else if TryStrToFloat(StringReplace(S, '.', ',', [rfReplaceAll]), Number) then Result := jvNumber;
+    else if TryStrToFloat(S, Number, TFormatSettings.Invariant) then Result := jvNumber;
   end
-  else if TryStrToFloat(S, Number) then Result := jvNumber;
+  else if TryStrToFloat(S, Number, TFormatSettings.Invariant) then Result := jvNumber;
 end;
 
 constructor TSimpleJsonBase.Create(AOwner: TSimpleJsonBase);
@@ -437,7 +437,7 @@ function TSimpleJsonBase.IsJsonNumber(const S: String): Boolean;
 var
   Number: Extended;
 begin
-  Result := TryStrToFloat(S, Number);
+  Result := TryStrToFloat(S, Number, TFormatSettings.Invariant);
 end;
 
 function TSimpleJsonBase.IsJsonObject(const S: String): Boolean;
@@ -649,7 +649,7 @@ begin
   Result := 0;
   case FValueType of
     jvNone, jvNull: Result := 0;
-    jvString: Result := Trunc(StrToFloat(FStringValue));
+    jvString: Result := Trunc(StrToFloat(FStringValue, TFormatSettings.Invariant));
     jvNumber: Result := Trunc(FNumberValue);
     jvBoolean: Result := Ord(FBooleanValue);
     jvObject, jvArray: RaiseValueTypeError(jvNumber);
@@ -661,7 +661,7 @@ begin
   Result := 0;
   case FValueType of
     jvNone, jvNull: Result := 0;
-    jvString: Result := StrToFloat(FStringValue);
+    jvString: Result := StrToFloat(FStringValue, TFormatSettings.Invariant);
     jvNumber: Result := FNumberValue;
     jvBoolean: Result := Ord(FBooleanValue);
     jvObject, jvArray: RaiseValueTypeError(jvNumber);
@@ -687,7 +687,7 @@ begin
   case FValueType of
     jvNone, jvNull: Result := '';
     jvString: Result := FStringValue;
-    jvNumber: Result := FloatToStr(FNumberValue);
+    jvNumber: Result := FloatToStr(FNumberValue, TFormatSettings.Invariant);
     jvBoolean: Result := BooleanStr[FBooleanValue];
     jvObject, jvArray: RaiseValueTypeError(jvString);
   end;
@@ -711,7 +711,7 @@ begin
     jvNone: RaiseParseError(JsonString);
     jvNull: ;
     jvString: FStringValue := Decode(Copy(JsonString, 2, Length(JsonString) - 2));
-    jvNumber: FNumberValue := StrToFloat(JsonString);
+    jvNumber: FNumberValue := StrToFloat(JsonString, TFormatSettings.Invariant);
     jvBoolean: FBooleanValue := SameText(JsonString, 'true');
     jvObject:
       begin
@@ -823,7 +823,7 @@ begin
   case FValueType of
     jvNone, jvNull: Result := 'null';
     jvString: Result := '"' + Encode(FStringValue) + '"';
-    jvNumber: Result := StringReplace(FloatToStr(FNumberValue), ',', '.', [rfReplaceAll]);
+    jvNumber: Result := FloatToStr(FNumberValue, TFormatSettings.Invariant);
     jvBoolean: Result := StrBoolean[FBooleanValue];
     jvObject: Result := FObjectValue.Stringify;
     jvArray: Result := FArrayValue.Stringify;

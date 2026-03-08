@@ -159,7 +159,7 @@ begin
         tkInteger:
           Value := StrToInt(GetTextFromComponent(Component));
         tkFloat:
-          Value := StrToFloat(GetTextFromComponent(Component));
+          Value := StrToFloat(GetTextFromComponent(Component), FormatSettings);
       end;
 
       prpRtti.SetValue(aObject, Value);
@@ -181,7 +181,7 @@ begin
     Exit((aComponent as TComboBox).Text);
 
   if aComponent is TDateTimePicker then
-    Exit(FloatToStr((aComponent as TDateTimePicker).Date));
+    Exit(FloatToStr((aComponent as TDateTimePicker).Date, FormatSettings));
 end;
 
 class procedure TSimpleUtil.SetFormFromObject(const aForm: TForm;

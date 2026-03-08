@@ -207,9 +207,9 @@ begin
       if (aValue.TypeInfo = TypeInfo(TDate))
         or (aValue.TypeInfo = TypeInfo(TTime))
         or (aValue.TypeInfo = TypeInfo(TDateTime)) then
-        aProperty.SetValue(Pointer(aEntity), StrToDateTime(aValue.ToString))
+        aProperty.SetValue(Pointer(aEntity), StrToDateTime(aValue.ToString, FormatSettings))
       else
-        aProperty.SetValue(Pointer(aEntity), StrToFloat(aValue.ToString));
+        aProperty.SetValue(Pointer(aEntity), StrToFloat(aValue.ToString, FormatSettings));
     end;
     tkSet: ;
     tkClass: ;
@@ -248,7 +248,7 @@ begin
   while Pos('.', aValue) > 0 do
     delete(aValue,Pos('.', aValue),1);
 
-  Result := StrToCurr(aValue);
+  Result := StrToCurr(aValue, FormatSettings);
 end;
 
 {$IFNDEF CONSOLE}
@@ -559,14 +559,14 @@ begin
             if prpRtti.GetValue(Pointer(FInstance)).AsExtended = 0 then
               aDictionary.Add(prpRtti.FieldName, Null)
             else
-              aDictionary.Add(prpRtti.FieldName, StrToDateTime(prpRtti.GetValue(Pointer(FInstance)).ToString ));
+              aDictionary.Add(prpRtti.FieldName, StrToDateTime(prpRtti.GetValue(Pointer(FInstance)).ToString, FormatSettings));
           end
           else
           if prpRtti.GetValue(Pointer(FInstance)).TypeInfo = TypeInfo(TDate) then
-              aDictionary.Add(prpRtti.FieldName, StrToDate(prpRtti.GetValue(Pointer(FInstance)).ToString))
+              aDictionary.Add(prpRtti.FieldName, StrToDate(prpRtti.GetValue(Pointer(FInstance)).ToString, FormatSettings))
           else
           if prpRtti.GetValue(Pointer(FInstance)).TypeInfo = TypeInfo(TTime) then
-            aDictionary.Add(prpRtti.FieldName, StrToTime(prpRtti.GetValue(Pointer(FInstance)).ToString))
+            aDictionary.Add(prpRtti.FieldName, StrToTime(prpRtti.GetValue(Pointer(FInstance)).ToString, FormatSettings))
           else
             aDictionary.Add(prpRtti.FieldName, __FloatFormat(prpRtti.GetValue(Pointer(FInstance)).ToString));
         end;

@@ -280,13 +280,13 @@ begin
               oValue := oJson[oRttiProp.Name].AsNumber;
 
             if oValue.TypeInfo = TypeInfo(TDate) then
-              oValue := StrToDateDef(oJson[oRttiProp.Name].AsString, 0);
+              oValue := StrToDateDef(oJson[oRttiProp.Name].AsString, 0, FormatSettings);
 
             if oValue.TypeInfo = TypeInfo(TTime) then
-              oValue := StrToTimeDef(oJson[oRttiProp.Name].AsString, 0);
+              oValue := StrToTimeDef(oJson[oRttiProp.Name].AsString, 0, FormatSettings);
 
             if oValue.TypeInfo = TypeInfo(TDateTime) then
-              oValue := StrToDateTimeDef(oJson[oRttiProp.Name].AsString, 0);
+              oValue := StrToDateTimeDef(oJson[oRttiProp.Name].AsString, 0, FormatSettings);
           end;
         tkClass:
           begin
