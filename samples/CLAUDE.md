@@ -2,111 +2,151 @@
 
 Regras e padroes para projetos de exemplo do SimpleORM.
 
-## Estrutura de Samples
+## Estrutura de Projeto Delphi
 
-Cada sample fica em seu proprio diretorio com nome descritivo:
+Um projeto Delphi e composto por varios tipos de arquivo com propositos distintos. E FUNDAMENTAL entender a diferenca entre eles:
 
-```
-samples/
-  Firedac/          — Exemplo com driver FireDAC
-  Unidac/           — Exemplo com driver UniDAC
-  RestDW/           — Exemplo com driver RestDataware
-  horse/            — Exemplo antigo de integracao Horse (legado)
-  horse-integration/ — Exemplo novo: servidor + cliente Horse
-  Validation/       — Exemplo de validacao de entidades
-  FMX/              — Exemplo com FireMonkey
-  ActiveRecord_Builder/ — Exemplo com padrao ActiveRecord
-  Entidades/        — Entidades compartilhadas entre samples
-```
+### Arquivos de um Projeto Delphi
 
-## Entidades Compartilhadas
+| Arquivo | Proposito | Quem cria |
+|---------|-----------|-----------|
+| `.dpr` | **Program file** — ponto de entrada do executavel. Contem `program`, `uses`, `{$R *.res}`, `begin`/`end` | Desenvolvedor/Claude |
+| `.dproj` | **Project file** — configuracao MSBuild XML (compilador, plataformas, paths, packages). ~50KB | **IDE Delphi** (NUNCA criar manualmente) |
+| `.res` | **Resource file** — icones, versao, manifesto compilados. Binario | **IDE Delphi** (NUNCA criar manualmente) |
+| `.pas` | **Unit file** — codigo fonte. Contem `unit`, `interface`, `implementation` | Desenvolvedor/Claude |
+| `.dfm` | **Form file** — layout visual de formularios VCL/FMX | **IDE Delphi** (NUNCA criar manualmente) |
+| `.groupproj` | **Group file** — agrupa multiplos .dproj para abrir juntos | **IDE Delphi** |
 
-- Entidades reutilizaveis ficam em `samples/Entidades/`
-- Samples referenciam via path relativo: `..\..\Entidades\Entidade.Pedido.pas`
-- NUNCA duplicar definicoes de entidade entre samples
+### Regras Criticas
 
-## Padrao de Entidade
+- **NUNCA criar `.dproj` manualmente** — sao gerados pela IDE Delphi ao abrir o `.dpr`
+- **NUNCA criar `.res` manualmente** — sao binarios gerados pela IDE
+- **NUNCA criar `.dfm` manualmente** — sao gerados pelo designer visual da IDE
+- Claude DEVE criar: `.dpr`, `.pas`, `README.md`
+- O desenvolvedor abre o `.dpr` na IDE para gerar `.dproj` e `.res`
 
+## Estrutura do .dpr (Program File)
+
+O `.dpr` e o arquivo principal de um projeto Delphi. Sua estrutura e FIXA:
+
+### Console Application
 ```pascal
-unit Entidade.NomeDaEntidade;
+program NomeProjeto;
 
-interface
+{$APPTYPE CONSOLE}
+
+{$R *.res}
 
 uses
-  SimpleAttributes;
+  System.SysUtils,
+  System.Generics.Collections,
+  SimpleDAO,
+  SimpleInterface,
+  SimpleQueryFiredac,
+  FireDAC.Comp.Client,
+  Entidade.Pedido in '..\Entidades\Entidade.Pedido.pas';
 
-type
-  [Tabela('NOME_TABELA')]
-  TNomeEntidade = class
-  private
-    FField: Type;
-    procedure SetField(const Value: Type);
-  public
-    constructor Create;
-    destructor Destroy; override;
-  published
-    [Campo('NOME_COLUNA'), PK, AutoInc]
-    property Field: Type read FField write SetField;
-  end;
-```
-
-Regras:
-- Classe: `T` + nome da entidade (PascalCase ou UPPERCASE como padrao legado)
-- `[Tabela]` na classe, `[Campo]` nas propriedades `published`
-- Sempre ter `constructor Create` e `destructor Destroy; override` (mesmo se vazios)
-- Propriedades com getter/setter explicitos (nao usar campo direto)
-
-## Padrao de Projeto Sample
-
-### Console Application (preferido para novos samples):
-```pascal
-program NomeSample;
-{$APPTYPE CONSOLE}
-uses ...;
+var
+  LConn: TFDConnection;
+  LDAO: iSimpleDAO<TPEDIDO>;
 begin
-  // Setup
-  // Demonstracao
-  Writeln('Done!');
+  // Setup e demonstracao
   Readln;
 end.
 ```
 
-### VCL Application:
-- Um form principal com botoes demonstrando operacoes
-- DAO criado no `AfterConstruction` ou `FormCreate`
-- Operacoes em event handlers dos botoes
+### VCL Application
+```pascal
+program NomeProjeto;
 
-## Conexao com Banco
+uses
+  Vcl.Forms,
+  Principal in 'Principal.pas' {FormPrincipal},
+  Entidade.Pedido in '..\Entidades\Entidade.Pedido.pas';
 
-- Configurar conexao no proprio sample (nao depender de configs externas)
-- Usar parametros inline quando possivel:
-  ```pascal
-  LConn.Params.DriverID := 'FB';
-  LConn.Params.Database := 'C:\database\MEUBANCO.FDB';
-  ```
-- Comentar caminhos de banco para que o usuario ajuste
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFormPrincipal, FormPrincipal);
+  Application.Run;
+end.
+```
+
+### Elementos obrigatorios do .dpr
+
+1. `program NomeProjeto;` — DEVE ser a primeira linha (sem `unit`!)
+2. `{$APPTYPE CONSOLE}` — OBRIGATORIO para apps console (antes de `uses`)
+3. `{$R *.res}` — OBRIGATORIO em todo projeto (link de resources)
+4. `uses` — lista TODAS as units com `in 'caminho'` para units nao instaladas
+5. `begin`/`end.` — bloco principal (com ponto final!)
+
+### .dpr NAO e uma unit .pas
+
+| `.dpr` (program) | `.pas` (unit) |
+|-------------------|---------------|
+| Comeca com `program` | Comeca com `unit` |
+| Tem `begin`/`end.` executavel | Tem `interface`/`implementation` |
+| Um por projeto | Multiplos por projeto |
+| Lista units no `uses` com paths `in '...'` | Lista units no `uses` sem paths |
+| NAO tem `interface`/`implementation` | SEMPRE tem `interface`/`implementation` |
+| `{$R *.res}` obrigatorio | Sem `{$R *.res}` |
+
+## Estrutura de Samples
+
+```
+samples/
+  NomeSample/
+    NomeSample.dpr         — Program file (ponto de entrada)
+    [NomeSample.dproj]     — Project file (gerado pela IDE)
+    [NomeSample.res]       — Resources (gerado pela IDE)
+    [Principal.pas]        — Form unit (VCL apps)
+    [Principal.dfm]        — Form layout (gerado pela IDE)
+    [README.md]            — Como executar o sample
+  Entidades/               — Entidades compartilhadas
+    Entidade.Pedido.pas
+  Database/                — Bancos de teste
+    MEUBANCO.FDB
+```
+
+### Nomenclatura de Projeto
+
+- Prefixo `SimpleORM` + feature: `SimpleORMFiredac`, `SimpleORMHorse`, `SimpleORMValidation`
+- O nome do `.dpr` DEVE ser igual ao nome do diretorio ou descrever claramente o sample
+- Para sub-projetos (server/client): usar subdiretorios com nomes descritivos
+
+### Referencia a Entidades Compartilhadas
+
+```pascal
+// No .dpr — path relativo com in
+Entidade.Pedido in '..\Entidades\Entidade.Pedido.pas'
+```
+
+- SEMPRE reutilizar entidades de `samples/Entidades/`
+- NUNCA duplicar entidades entre samples
+- Se precisa de entidade especifica, criar em `Entidades/` e compartilhar
 
 ## Demonstracao de Features
 
-Cada sample deve demonstrar no minimo:
+Cada sample DEVE demonstrar no minimo:
 1. **Setup** — Criacao de conexao e DAO
 2. **Insert** — Inserir uma entidade
 3. **Find** — Buscar lista e por ID
-4. **Update** — Atualizar entidade (se aplicavel)
-5. **Delete** — Deletar entidade (se aplicavel)
+4. **Update** — Atualizar entidade (se aplicavel ao recurso)
+5. **Delete** — Deletar entidade (se aplicavel ao recurso)
 
-### Horse Integration Sample
+Para console apps: usar `Writeln` para mostrar resultados.
+Para VCL apps: botoes com event handlers demonstrando operacoes.
 
-Diretorio `horse-integration/` com subdiretorios:
-- `Server/` — Projeto console com `THorse.Listen`
-- `Client/` — Projeto console ou VCL usando `TSimpleQueryHorse`
-- `README.md` — Explicacao de como rodar
+## Conexao com Banco
 
-O servidor mostra `RegisterEntity` com minimo de codigo.
-O cliente mostra que trocar de `TSimpleQueryFiredac` para `TSimpleQueryHorse` e a unica mudanca.
+- Configurar conexao inline no sample (nao depender de configs externas)
+- Comentar caminhos de banco para indicar que o usuario deve ajustar:
+  ```pascal
+  LConn.Params.Database := 'C:\database\MEUBANCO.FDB'; // Ajustar caminho
+  ```
 
-## Dependencias
+## Regra: Todo Novo Recurso DEVE Ter Sample
 
-- Samples podem usar `boss.json` para gerenciar dependencias (Horse, etc)
-- Reference ao SimpleORM via path relativo ao `src/`
-- NUNCA commitar binarios compilados (`.exe`, `.dcu`, etc)
+Toda implementacao de novo recurso no SimpleORM OBRIGATORIAMENTE deve incluir um projeto sample demonstrando o recurso. O sample faz parte da entrega — sem sample, o recurso nao esta completo.

@@ -2,6 +2,8 @@ program HorseServer;
 
 {$APPTYPE CONSOLE}
 
+{$R *.res}
+
 uses
   System.SysUtils,
   Horse,

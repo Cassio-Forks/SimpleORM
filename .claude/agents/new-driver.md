@@ -49,8 +49,9 @@ type
 
 1. Register in `SimpleORM.dpk` (contains section)
 2. Register in `SimpleORM.dpr` (uses section)
-3. Update `CHANGELOG.md` with the new driver
-4. Commit with message: `feat: add SimpleQueryXxx driver for [database/protocol]`
+3. **Create a sample project** in `samples/` demonstrating the driver (MANDATORY — see `.claude/rules/sample-creation.md`)
+4. Update `CHANGELOG.md` with the new driver
+5. Commit with message: `feat: add SimpleQueryXxx driver for [database/protocol]`
 
 ## Self-Review Checklist
 
@@ -63,5 +64,6 @@ type
 - [ ] No exceptions swallowed silently
 - [ ] No SQL injection (all params via `:fieldname`)
 - [ ] Registered in .dpk and .dpr
+- [ ] **Sample project created** (`.dpr` + `README.md`, NOT `.dproj`/`.res`)
 - [ ] CHANGELOG updated
 - [ ] ALL `.claude/rules/` followed

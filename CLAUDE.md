@@ -115,3 +115,5 @@ Class helpers on `TRttiProperty`, `TRttiType`, and `TRttiField` that provide att
 - Pagination uses fluent `.SQL.Skip(n).Take(n).&End.Find` pattern
 - Batch operations (`InsertBatch`/`UpdateBatch`/`DeleteBatch`) auto-wrap in transactions
 - `SimpleJSON.pas` is deprecated - use `SimpleJSONUtil.pas` for all JSON operations
+- **Every new feature MUST include a sample project** in `samples/` demonstrating the feature — without a sample, the feature is NOT complete
+- **Never create `.dproj`, `.res`, or `.dfm` files** — these are generated exclusively by the Delphi IDE. Only create `.dpr` (program files) and `.pas` (unit files)
