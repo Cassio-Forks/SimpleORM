@@ -10,6 +10,12 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 
 ## [Unreleased]
 
+### Added
+- **SimpleSerializer** - Serializador Entity <-> JSON via RTTI usando atributos `[Campo]`, sem dependencias externas (`SimpleSerializer.pas`)
+- **SimpleHorseRouter** - Auto-geracao de rotas CRUD no Horse a partir de entidades SimpleORM com callbacks opcionais OnBeforeInsert/OnAfterInsert/OnBeforeUpdate/OnBeforeDelete (`SimpleHorseRouter.pas`)
+- **SimpleQueryHorse** - Driver REST cliente que implementa `iSimpleQuery` via HTTP, com suporte a Bearer token e hook `OnBeforeRequest` (`SimpleQueryHorse.pas`)
+- **Sample horse-integration** - Exemplos de servidor (HorseServer.dpr) e cliente (HorseClient.dpr) usando a integracao Horse
+
 ## [2.0.0] - 2026-03-08
 
 ### Added

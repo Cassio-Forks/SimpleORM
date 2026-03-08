@@ -55,7 +55,27 @@ Custom attributes for mapping Delphi classes to database tables:
 2. **`TSimpleRTTI<T>`** (`SimpleRTTI.pas`) reads attributes via RTTI to extract table name, fields, PK, and values
 3. **`TSimpleSQL<T>`** (`SimpleSQL.pas`) generates SQL statements (INSERT/UPDATE/DELETE/SELECT) using RTTI data
 4. **`TSimpleDAO<T>`** (`SimpleDAO.pas`) orchestrates: generates SQL via `TSimpleSQL`, fills parameters via `TSimpleRTTI`, executes via `iSimpleQuery`
-5. **Query drivers** (`SimpleQueryFiredac.pas`, `SimpleQueryRestDW.pas`, `SimpleQueryUnidac.pas`, `SimpleQueryZeos.pas`) implement `iSimpleQuery` for their respective connection libraries
+5. **Query drivers** (`SimpleQueryFiredac.pas`, `SimpleQueryRestDW.pas`, `SimpleQueryUnidac.pas`, `SimpleQueryZeos.pas`, `SimpleQueryHorse.pas`) implement `iSimpleQuery` for their respective connection libraries
+
+### Horse Integration
+
+Three units enable full-stack integration with Horse (ExpxHorse) web framework:
+
+- **`SimpleSerializer.pas`** - Entity <-> JSON conversion via RTTI using `[Campo]` attribute names as JSON keys. Methods: `EntityToJSON<T>`, `JSONToEntity<T>`, `EntityListToJSONArray<T>`, `JSONArrayToEntityList<T>`
+- **`SimpleHorseRouter.pas`** - Auto-generates CRUD routes on a Horse app: `TSimpleHorseRouter.RegisterEntity<T>(THorse, Query)` creates GET/POST/PUT/DELETE endpoints. Supports custom path, callbacks (OnBeforeInsert/OnAfterInsert/OnBeforeUpdate/OnBeforeDelete)
+- **`SimpleQueryHorse.pas`** - REST client driver implementing `iSimpleQuery` via HTTP. Usage: `TSimpleQueryHorse.New('http://server:9000', 'token')`. Translates SQL operations to REST calls. Supports Bearer token auth and custom headers via `OnBeforeRequest`
+
+**Server setup (3 lines per entity):**
+```pascal
+TSimpleHorseRouter.RegisterEntity<TProduto>(THorse, LQuery);
+THorse.Listen(9000);
+```
+
+**Client setup (swap one line):**
+```pascal
+// Instead of: TSimpleQueryFiredac.New(Connection)
+LDAO := TSimpleDAO<T>.New(TSimpleQueryHorse.New('http://localhost:9000'));
+```
 
 ### RTTI Helpers (`SimpleRTTIHelper.pas`)
 
