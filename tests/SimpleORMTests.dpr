@@ -21,7 +21,9 @@ uses
   TestSimpleRTTIHelper in 'TestSimpleRTTIHelper.pas',
   TestSimpleSQL in 'TestSimpleSQL.pas',
   TestSimpleValidator in 'TestSimpleValidator.pas',
-  TestSimpleSerializer in 'TestSimpleSerializer.pas';
+  TestSimpleSerializer in 'TestSimpleSerializer.pas',
+  SimpleMigration in '..\src\SimpleMigration.pas',
+  TestSimpleMigration in 'TestSimpleMigration.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
