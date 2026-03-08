@@ -62,6 +62,10 @@ type
     function OnAfterUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnBeforeDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnAfterDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
+    function RawSQL(const aSQL: String): iSimpleDAO<T>;
+    function RawSQLWithParams(const aSQL: String; const aParamNames: array of String; const aParamValues: array of Variant): iSimpleDAO<T>;
+    function FindRaw: TObjectList<T>;
+    function ExecRawSQL(const aSQL: String): iSimpleDAO<T>;
     {$IFNDEF CONSOLE}
     function BindForm(aForm : TForm)  : iSimpleDAO<T>;
     {$ENDIF}

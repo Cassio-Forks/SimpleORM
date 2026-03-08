@@ -38,6 +38,8 @@ Type
         FOnAfterDelete: TSimpleCallback;
         FScopes: TDictionary<String, String>;
         FActiveScopes: TList<String>;
+        FRawSQL: String;
+        FRawParams: TDictionary<String, Variant>;
         function FillParameter(aInstance: T): iSimpleDAO<T>; overload;
         function FillParameter(aInstance: T; aId: Variant)
           : iSimpleDAO<T>; overload;
@@ -87,6 +89,10 @@ Type
         function OnAfterUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
         function OnBeforeDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
         function OnAfterDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
+        function RawSQL(const aSQL: String): iSimpleDAO<T>;
+        function RawSQLWithParams(const aSQL: String; const aParamNames: array of String; const aParamValues: array of Variant): iSimpleDAO<T>;
+        function FindRaw: TObjectList<T>;
+        function ExecRawSQL(const aSQL: String): iSimpleDAO<T>;
 {$IFNDEF CONSOLE}
         function BindForm(aForm: TForm): iSimpleDAO<T>;
 {$ENDIF}
@@ -123,6 +129,7 @@ begin
     FList := TObjectList<T>.Create;
     FScopes := TDictionary<String, String>.Create;
     FActiveScopes := TList<String>.Create;
+    FRawParams := TDictionary<String, Variant>.Create;
 end;
 
 function TSimpleDAO<T>.DataSource(aDataSource: TDataSource): iSimpleDAO<T>;
@@ -222,6 +229,7 @@ begin
     FreeAndNil(FList);
     FreeAndNil(FScopes);
     FreeAndNil(FActiveScopes);
+    FreeAndNil(FRawParams);
     inherited;
 end;
 
@@ -883,6 +891,51 @@ function TSimpleDAO<T>.OnAfterDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
 begin
   Result := Self;
   FOnAfterDelete := aCallback;
+end;
+
+function TSimpleDAO<T>.RawSQL(const aSQL: String): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FRawSQL := aSQL;
+  FRawParams.Clear;
+end;
+
+function TSimpleDAO<T>.RawSQLWithParams(const aSQL: String;
+  const aParamNames: array of String;
+  const aParamValues: array of Variant): iSimpleDAO<T>;
+var
+  I: Integer;
+begin
+  Result := Self;
+  FRawSQL := aSQL;
+  FRawParams.Clear;
+  for I := 0 to High(aParamNames) do
+    FRawParams.Add(aParamNames[I], aParamValues[I]);
+end;
+
+function TSimpleDAO<T>.FindRaw: TObjectList<T>;
+var
+  LKey: String;
+begin
+  Result := TObjectList<T>.Create;
+  FQuery.SQL.Clear;
+  FQuery.SQL.Add(FRawSQL);
+
+  for LKey in FRawParams.Keys do
+    FQuery.Params.ParamByName(LKey).Value := FRawParams[LKey];
+
+  FQuery.Open;
+  TSimpleRTTI<T>.New(nil).DataSetToEntityList(FQuery.DataSet, Result);
+  FRawSQL := '';
+  FRawParams.Clear;
+end;
+
+function TSimpleDAO<T>.ExecRawSQL(const aSQL: String): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FQuery.SQL.Clear;
+  FQuery.SQL.Add(aSQL);
+  FQuery.ExecSQL;
 end;
 
 end.
