@@ -102,7 +102,9 @@ begin
         Value := StrToInt64Def(Campo.AsString, 0);
       tkFloat:
         begin
-          if Value.TypeInfo = TypeInfo(TDate) then
+          if (Value.TypeInfo = TypeInfo(TDate))
+            or (Value.TypeInfo = TypeInfo(TTime))
+            or (Value.TypeInfo = TypeInfo(TDateTime)) then
             Value := Campo.AsDateTime
           else
             Value := Campo.AsExtended;

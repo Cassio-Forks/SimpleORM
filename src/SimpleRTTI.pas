@@ -204,9 +204,14 @@ begin
     tkEnumeration: ;
     tkFloat:
     begin
-      if (aValue.TypeInfo = TypeInfo(TDate))
-        or (aValue.TypeInfo = TypeInfo(TTime))
-        or (aValue.TypeInfo = TypeInfo(TDateTime)) then
+      if Trim(aValue.ToString) = '' then
+        Exit;
+
+      if (aProperty.GetValue(Pointer(aEntity)).TypeInfo = TypeInfo(TDate)) then
+        aProperty.SetValue(Pointer(aEntity), StrToDate(aValue.ToString, FormatSettings))
+      else if (aProperty.GetValue(Pointer(aEntity)).TypeInfo = TypeInfo(TTime)) then
+        aProperty.SetValue(Pointer(aEntity), StrToTime(aValue.ToString, FormatSettings))
+      else if (aProperty.GetValue(Pointer(aEntity)).TypeInfo = TypeInfo(TDateTime)) then
         aProperty.SetValue(Pointer(aEntity), StrToDateTime(aValue.ToString, FormatSettings))
       else
         aProperty.SetValue(Pointer(aEntity), StrToFloat(aValue.ToString, FormatSettings));
