@@ -18,6 +18,8 @@ uses
   SimpleTypes,
   SimpleLogger;
 type
+  TSimpleCallback = reference to procedure(aEntity: TObject);
+
   iSimpleDAOSQLAttribute<T : class> = interface;
 
   iSimpleDAO<T : class> = interface
@@ -44,6 +46,12 @@ type
     function DeleteBatch(aList: TObjectList<T>): iSimpleDAO<T>;
     function SQL : iSimpleDAOSQLAttribute<T>;
     function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
+    function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
+    function OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
+    function OnBeforeUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
+    function OnAfterUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
+    function OnBeforeDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
+    function OnAfterDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
     {$IFNDEF CONSOLE}
     function BindForm(aForm : TForm)  : iSimpleDAO<T>;
     {$ENDIF}

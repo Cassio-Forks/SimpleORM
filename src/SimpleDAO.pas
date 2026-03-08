@@ -30,6 +30,12 @@ Type
 {$ENDIF}
         FList: TObjectList<T>;
         FLogger: iSimpleQueryLogger;
+        FOnBeforeInsert: TSimpleCallback;
+        FOnAfterInsert: TSimpleCallback;
+        FOnBeforeUpdate: TSimpleCallback;
+        FOnAfterUpdate: TSimpleCallback;
+        FOnBeforeDelete: TSimpleCallback;
+        FOnAfterDelete: TSimpleCallback;
         function FillParameter(aInstance: T): iSimpleDAO<T>; overload;
         function FillParameter(aInstance: T; aId: Variant)
           : iSimpleDAO<T>; overload;
@@ -62,6 +68,12 @@ Type
         function DeleteBatch(aList: TObjectList<T>): iSimpleDAO<T>;
         function SQL: iSimpleDAOSQLAttribute<T>;
         function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
+        function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
+        function OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
+        function OnBeforeUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
+        function OnAfterUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
+        function OnBeforeDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
+        function OnAfterDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
 {$IFNDEF CONSOLE}
         function BindForm(aForm: TForm): iSimpleDAO<T>;
 {$ENDIF}
@@ -112,6 +124,8 @@ var
     SW: TStopwatch;
 begin
     Result := Self;
+    if Assigned(FOnBeforeDelete) then
+      FOnBeforeDelete(aValue);
     TSimpleSQL<T>.New(aValue).Delete(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
@@ -121,6 +135,8 @@ begin
     SW.Stop;
     if Assigned(FLogger) then
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+    if Assigned(FOnAfterDelete) then
+      FOnAfterDelete(aValue);
 end;
 {$IFNDEF CONSOLE}
 
@@ -150,6 +166,8 @@ var
     SW: TStopwatch;
 begin
     Result := Self;
+    if Assigned(FOnBeforeDelete) then
+      FOnBeforeDelete(aValue);
     TSimpleRTTI<T>.New(aValue)
       .TableName(aClassName)
       .Where(aWhere);
@@ -162,6 +180,8 @@ begin
     SW.Stop;
     if Assigned(FLogger) then
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+    if Assigned(FOnAfterDelete) then
+      FOnAfterDelete(aValue);
 end;
 
 function TSimpleDAO<T>.Delete(aField, aValue: String): iSimpleDAO<T>;
@@ -303,6 +323,8 @@ var
     SW: TStopwatch;
 begin
     Result := Self;
+    if Assigned(FOnBeforeInsert) then
+      FOnBeforeInsert(aValue);
     TSimpleSQL<T>.New(aValue).Insert(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
@@ -312,6 +334,8 @@ begin
     SW.Stop;
     if Assigned(FLogger) then
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+    if Assigned(FOnAfterInsert) then
+      FOnAfterInsert(aValue);
 end;
 
 class function TSimpleDAO<T>.New(aQuery: iSimpleQuery): iSimpleDAO<T>;
@@ -369,6 +393,8 @@ var
     SW: TStopwatch;
 begin
     Result := Self;
+    if Assigned(FOnBeforeUpdate) then
+      FOnBeforeUpdate(aValue);
     TSimpleSQL<T>.New(aValue).Update(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
@@ -378,6 +404,8 @@ begin
     SW.Stop;
     if Assigned(FLogger) then
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+    if Assigned(FOnAfterUpdate) then
+      FOnAfterUpdate(aValue);
 end;
 
 function TSimpleDAO<T>.FillParameter(aInstance: T): iSimpleDAO<T>;
@@ -624,6 +652,42 @@ begin
       raise;
     end;
   end;
+end;
+
+function TSimpleDAO<T>.OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FOnBeforeInsert := aCallback;
+end;
+
+function TSimpleDAO<T>.OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FOnAfterInsert := aCallback;
+end;
+
+function TSimpleDAO<T>.OnBeforeUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FOnBeforeUpdate := aCallback;
+end;
+
+function TSimpleDAO<T>.OnAfterUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FOnAfterUpdate := aCallback;
+end;
+
+function TSimpleDAO<T>.OnBeforeDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FOnBeforeDelete := aCallback;
+end;
+
+function TSimpleDAO<T>.OnAfterDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FOnAfterDelete := aCallback;
 end;
 
 end.
