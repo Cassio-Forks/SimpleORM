@@ -66,6 +66,9 @@ contains
   SimpleQueryZeos in 'src\SimpleQueryZeos.pas',
   SimpleTypes in 'src\SimpleTypes.pas',
   SimpleProxy in 'src\SimpleProxy.pas',
-  SimpleLogger in 'src\SimpleLogger.pas';
+  SimpleLogger in 'src\SimpleLogger.pas',
+  SimpleSerializer in 'src\SimpleSerializer.pas',
+  SimpleQueryHorse in 'src\SimpleQueryHorse.pas',
+  SimpleHorseRouter in 'src\SimpleHorseRouter.pas';
 
 end.

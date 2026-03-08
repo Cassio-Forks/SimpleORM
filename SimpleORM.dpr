@@ -8,7 +8,10 @@ uses
   SimpleRTTI in 'src\SimpleRTTI.pas',
   SimpleSQL in 'src\SimpleSQL.pas',
   SimpleQueryFiredac in 'src\SimpleQueryFiredac.pas',
-  SimpleQueryRestDW in 'src\SimpleQueryRestDW.pas';
+  SimpleQueryRestDW in 'src\SimpleQueryRestDW.pas',
+  SimpleSerializer in 'src\SimpleSerializer.pas',
+  SimpleQueryHorse in 'src\SimpleQueryHorse.pas',
+  SimpleHorseRouter in 'src\SimpleHorseRouter.pas';
 
 {$R *.res}
 
