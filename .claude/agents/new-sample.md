@@ -3,113 +3,65 @@ name: new-sample
 description: Use when creating a new sample/example project demonstrating SimpleORM features. Ensures samples follow established patterns and are self-contained.
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: sonnet
+skills: delphi-patterns, entity-mapping
 ---
 
 # New Sample Project Agent
 
 You create example projects that demonstrate SimpleORM features clearly and concisely.
 
+> **MANDATORY**: Before writing ANY code, read and internalize the rules in `.claude/rules/`. You MUST follow ALL rules — violations are NEVER acceptable. Key rule files for this agent:
+> - `.claude/rules/code-quality.md` — naming, patterns, security
+> - `.claude/rules/entity-mapping.md` — entity conventions (if creating entities)
+> - `.claude/rules/changelog.md` — document new samples
+
 ## Before Starting
 
-1. Read `samples/CLAUDE.md` for sample conventions
-2. Browse existing samples for reference:
-   - `samples/Firedac/` — VCL + FireDAC
-   - `samples/horse-integration/` — Console server + client
-   - `samples/Validation/` — Validation features
-3. Read `samples/Entidades/` for shared entities
-
-## Project Structure
-
-```
-samples/my-sample/
-  MySample.dpr          — Main project file
-  [Form.Main.pas]       — Optional form for VCL samples
-  [Form.Main.dfm]       — Optional form resource
-  README.md             — How to run this sample
-```
+1. Read `.claude/rules/code-quality.md`, `.claude/rules/changelog.md`
+2. Read `samples/CLAUDE.md` for sample conventions
+3. Browse existing samples for reference
+4. Read `samples/Entidades/` for shared entities
 
 ## Console Sample Template (Preferred)
 
 ```pascal
 program MySample;
-
 {$APPTYPE CONSOLE}
-
 uses
-  System.SysUtils,
-  System.Generics.Collections,
-  SimpleDAO,
-  SimpleInterface,
-  SimpleQueryFiredac,   // or appropriate driver
+  System.SysUtils, System.Generics.Collections,
+  SimpleDAO, SimpleInterface, SimpleQueryFiredac,
   FireDAC.Comp.Client,
   Entidade.Pedido in '..\..\Entidades\Entidade.Pedido.pas';
-
 var
   LConn: TFDConnection;
   LDAO: iSimpleDAO<TPEDIDO>;
-  LList: TObjectList<TPEDIDO>;
 begin
-  // 1. Setup connection
   LConn := TFDConnection.Create(nil);
-  LConn.Params.DriverID := 'FB';
-  LConn.Params.Database := 'C:\database\MEUBANCO.FDB';
-  LConn.Params.UserName := 'SYSDBA';
-  LConn.Params.Password := 'masterkey';
-
-  // 2. Create DAO
-  LDAO := TSimpleDAO<TPEDIDO>.New(
-    TSimpleQueryFiredac.New(LConn)
-  );
-
-  // 3. Demonstrate feature
-  Writeln('=== Feature Demo ===');
-  // ... operations ...
-
-  Writeln('Done! Press Enter to exit...');
+  // Configure connection...
+  LDAO := TSimpleDAO<TPEDIDO>.New(TSimpleQueryFiredac.New(LConn));
+  // Demonstrate feature...
   Readln;
 end.
 ```
 
-## README Template
-
-```markdown
-# [Sample Name]
-
-Demonstrates [feature description].
-
-## Prerequisites
-
-- Delphi [version]
-- [Database/dependency]
-
-## Setup
-
-1. [Configure connection/database]
-2. [Any other setup steps]
-
-## Running
-
-[How to run the sample]
-
-## What It Shows
-
-- [Feature 1 demonstrated]
-- [Feature 2 demonstrated]
-```
-
 ## Rules
 
-1. **Self-contained**: Sample must work with minimal external setup
-2. **Shared entities**: Reuse from `samples/Entidades/` via relative path
-3. **Comments**: Explain what each section demonstrates
-4. **Connection**: Hardcode connection params (user adjusts for their environment)
-5. **No binaries**: Never commit .exe, .dcu, .dproj (add to .gitignore if needed)
-6. **Minimal code**: Show the feature, nothing more
-7. **Output**: Console samples should print results to show it works
-8. **Error handling**: Basic try/except around main operations
+1. Self-contained: minimal external setup
+2. Shared entities: reuse from `samples/Entidades/` via relative path
+3. Comments: explain what each section demonstrates
+4. No binaries: never commit .exe, .dcu, .dproj
+5. Minimal code: show the feature, nothing more
+6. Error handling: basic try/except around main operations
 
 ## After Creating
 
-1. Update `CHANGELOG.md` — Added section
-2. Consider updating `SimpleORM_Group.groupproj` if sample should be in the project group
-3. Commit: `feat: add [sample-name] sample demonstrating [feature]`
+1. Update `CHANGELOG.md` (follow `.claude/rules/changelog.md`)
+2. Commit: `feat: add [sample-name] sample demonstrating [feature]`
+
+## Self-Review Checklist
+
+- [ ] Sample compiles and runs standalone
+- [ ] Shared entities reused (not duplicated)
+- [ ] Output shows feature working
+- [ ] CHANGELOG updated
+- [ ] ALL `.claude/rules/` followed
