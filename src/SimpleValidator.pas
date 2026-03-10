@@ -26,6 +26,10 @@ type
       TObject; const aProperty: TRttiProperty); static;
     class procedure ValidateRegex(const aErrors: TStrings; const aObject:
       TObject; const aProperty: TRttiProperty); static;
+    class procedure ValidateCPF(const aErrors: TStrings; const aObject:
+      TObject; const aProperty: TRttiProperty); static;
+    class procedure ValidateCNPJ(const aErrors: TStrings; const aObject:
+      TObject; const aProperty: TRttiProperty); static;
   public
     class procedure Validate(const aObject: TObject); overload; static;
     class procedure Validate(const aObject: TObject; const aErrors:
@@ -46,6 +50,8 @@ const
   sMSG_MIN_VALUE = 'O campo %s deve ser maior ou igual a %s!';
   sMSG_MAX_VALUE = 'O campo %s deve ser menor ou igual a %s!';
   sMSG_REGEX = 'O campo %s n' + #227 + 'o est' + #225 + ' no formato esperado!';
+  sMSG_CPF = 'O campo %s n' + #227 + 'o cont' + #233 + 'm um CPF v' + #225 + 'lido!';
+  sMSG_CNPJ = 'O campo %s n' + #227 + 'o cont' + #233 + 'm um CNPJ v' + #225 + 'lido!';
 
 class procedure TSimpleValidator.Validate(const aObject: TObject; const
   aErrors: TStrings);
@@ -83,6 +89,10 @@ begin
       ValidateMaxValue(aErrors, aObject, prpRtti);
     if prpRtti.HasRegex then
       ValidateRegex(aErrors, aObject, prpRtti);
+    if prpRtti.IsCPF then
+      ValidateCPF(aErrors, aObject, prpRtti);
+    if prpRtti.IsCNPJ then
+      ValidateCNPJ(aErrors, aObject, prpRtti);
   end;
 end;
 
@@ -264,6 +274,127 @@ begin
       end;
     end;
   end;
+end;
+
+function StripMask(const aValue: String): String;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 1 to Length(aValue) do
+    if CharInSet(aValue[I], ['0'..'9']) then
+      Result := Result + aValue[I];
+end;
+
+function AllSameDigits(const aValue: String): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+  for I := 2 to Length(aValue) do
+    if aValue[I] <> aValue[1] then
+      Exit(False);
+end;
+
+class procedure TSimpleValidator.ValidateCPF(const aErrors: TStrings; const aObject:
+  TObject; const aProperty: TRttiProperty);
+var
+  Value: TValue;
+  LCPF: String;
+  LSum, LRest, I: Integer;
+begin
+  Value := aProperty.GetValue(aObject);
+  if not (Value.Kind in [tkUString, tkString, tkLString, tkWString]) then
+    Exit;
+
+  LCPF := Value.AsString;
+  if LCPF = '' then
+    Exit;
+
+  LCPF := StripMask(LCPF);
+
+  if (Length(LCPF) <> 11) or AllSameDigits(LCPF) then
+  begin
+    aErrors.Add(SysUtils.Format(sMSG_CPF, [aProperty.DisplayName]));
+    Exit;
+  end;
+
+  // First check digit
+  LSum := 0;
+  for I := 1 to 9 do
+    LSum := LSum + StrToInt(LCPF[I]) * (11 - I);
+  LRest := (LSum * 10) mod 11;
+  if LRest = 10 then
+    LRest := 0;
+  if LRest <> StrToInt(LCPF[10]) then
+  begin
+    aErrors.Add(SysUtils.Format(sMSG_CPF, [aProperty.DisplayName]));
+    Exit;
+  end;
+
+  // Second check digit
+  LSum := 0;
+  for I := 1 to 10 do
+    LSum := LSum + StrToInt(LCPF[I]) * (12 - I);
+  LRest := (LSum * 10) mod 11;
+  if LRest = 10 then
+    LRest := 0;
+  if LRest <> StrToInt(LCPF[11]) then
+    aErrors.Add(SysUtils.Format(sMSG_CPF, [aProperty.DisplayName]));
+end;
+
+class procedure TSimpleValidator.ValidateCNPJ(const aErrors: TStrings; const aObject:
+  TObject; const aProperty: TRttiProperty);
+var
+  Value: TValue;
+  LCNPJ: String;
+  LSum, LRest, I: Integer;
+const
+  WEIGHTS1: array[1..12] of Integer = (5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2);
+  WEIGHTS2: array[1..13] of Integer = (6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2);
+begin
+  Value := aProperty.GetValue(aObject);
+  if not (Value.Kind in [tkUString, tkString, tkLString, tkWString]) then
+    Exit;
+
+  LCNPJ := Value.AsString;
+  if LCNPJ = '' then
+    Exit;
+
+  LCNPJ := StripMask(LCNPJ);
+
+  if (Length(LCNPJ) <> 14) or AllSameDigits(LCNPJ) then
+  begin
+    aErrors.Add(SysUtils.Format(sMSG_CNPJ, [aProperty.DisplayName]));
+    Exit;
+  end;
+
+  // First check digit
+  LSum := 0;
+  for I := 1 to 12 do
+    LSum := LSum + StrToInt(LCNPJ[I]) * WEIGHTS1[I];
+  LRest := LSum mod 11;
+  if LRest < 2 then
+    LRest := 0
+  else
+    LRest := 11 - LRest;
+  if LRest <> StrToInt(LCNPJ[13]) then
+  begin
+    aErrors.Add(SysUtils.Format(sMSG_CNPJ, [aProperty.DisplayName]));
+    Exit;
+  end;
+
+  // Second check digit
+  LSum := 0;
+  for I := 1 to 13 do
+    LSum := LSum + StrToInt(LCNPJ[I]) * WEIGHTS2[I];
+  LRest := LSum mod 11;
+  if LRest < 2 then
+    LRest := 0
+  else
+    LRest := 11 - LRest;
+  if LRest <> StrToInt(LCNPJ[14]) then
+    aErrors.Add(SysUtils.Format(sMSG_CNPJ, [aProperty.DisplayName]));
 end;
 
 end.

@@ -67,6 +67,24 @@ type
     procedure TestIgnoredField_NotValidated;
   end;
 
+  TTestValidatorCPF = class(TTestCase)
+  published
+    procedure TestValidateCPF_Valid;
+    procedure TestValidateCPF_Invalid;
+    procedure TestValidateCPF_Empty_NoError;
+    procedure TestValidateCPF_WithMask_Valid;
+    procedure TestValidateCPF_AllSameDigits_Invalid;
+  end;
+
+  TTestValidatorCNPJ = class(TTestCase)
+  published
+    procedure TestValidateCNPJ_Valid;
+    procedure TestValidateCNPJ_Invalid;
+    procedure TestValidateCNPJ_Empty_NoError;
+    procedure TestValidateCNPJ_WithMask_Valid;
+    procedure TestValidateCNPJ_AllSameDigits_Invalid;
+  end;
+
 implementation
 
 uses
@@ -630,6 +648,190 @@ begin
   end;
 end;
 
+{ TTestValidatorCPF }
+
+procedure TTestValidatorCPF.TestValidateCPF_Valid;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CPF := '52998224725';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckEquals(0, LErrors.Count, 'Valid CPF should pass: ' + LErrors.Text);
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
+procedure TTestValidatorCPF.TestValidateCPF_Invalid;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CPF := '12345678901';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckTrue(LErrors.Count > 0, 'Invalid CPF should fail');
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
+procedure TTestValidatorCPF.TestValidateCPF_Empty_NoError;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CPF := '';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckEquals(0, LErrors.Count, 'Empty CPF should not validate');
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
+procedure TTestValidatorCPF.TestValidateCPF_WithMask_Valid;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CPF := '529.982.247-25';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckEquals(0, LErrors.Count, 'Masked valid CPF should pass: ' + LErrors.Text);
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
+procedure TTestValidatorCPF.TestValidateCPF_AllSameDigits_Invalid;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CPF := '11111111111';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckTrue(LErrors.Count > 0, 'All same digits CPF should fail');
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
+{ TTestValidatorCNPJ }
+
+procedure TTestValidatorCNPJ.TestValidateCNPJ_Valid;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CNPJ := '11222333000181';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckEquals(0, LErrors.Count, 'Valid CNPJ should pass: ' + LErrors.Text);
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
+procedure TTestValidatorCNPJ.TestValidateCNPJ_Invalid;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CNPJ := '12345678000199';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckTrue(LErrors.Count > 0, 'Invalid CNPJ should fail');
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
+procedure TTestValidatorCNPJ.TestValidateCNPJ_Empty_NoError;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CNPJ := '';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckEquals(0, LErrors.Count, 'Empty CNPJ should not validate');
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
+procedure TTestValidatorCNPJ.TestValidateCNPJ_WithMask_Valid;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CNPJ := '11.222.333/0001-81';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckEquals(0, LErrors.Count, 'Masked valid CNPJ should pass: ' + LErrors.Text);
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
+procedure TTestValidatorCNPJ.TestValidateCNPJ_AllSameDigits_Invalid;
+var
+  LPessoa: TPessoaTest;
+  LErrors: TStringList;
+begin
+  LPessoa := TPessoaTest.Create;
+  LErrors := TStringList.Create;
+  try
+    LPessoa.NOME := 'Teste';
+    LPessoa.CNPJ := '11111111111111';
+    TSimpleValidator.Validate(LPessoa, LErrors);
+    CheckTrue(LErrors.Count > 0, 'All same digits CNPJ should fail');
+  finally
+    LErrors.Free;
+    LPessoa.Free;
+  end;
+end;
+
 initialization
   RegisterTest('Validator.NotNull', TTestValidatorNotNull.Suite);
   RegisterTest('Validator.NotZero', TTestValidatorNotZero.Suite);
@@ -639,5 +841,7 @@ initialization
   RegisterTest('Validator.Regex', TTestValidatorRegex.Suite);
   RegisterTest('Validator.Raise', TTestValidatorRaise.Suite);
   RegisterTest('Validator.Ignore', TTestValidatorIgnore.Suite);
+  RegisterTest('Validator.CPF', TTestValidatorCPF.Suite);
+  RegisterTest('Validator.CNPJ', TTestValidatorCNPJ.Suite);
 
 end.
