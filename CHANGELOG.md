@@ -77,6 +77,7 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 - **Supabase Auth** - Suporte a API Key (service_role) e JWT token para Row Level Security
 - **Supabase Paginacao** - Traducao automatica de Skip/Take para query params `limit`/`offset`
 - **Supabase Sample** - Projeto exemplo demonstrando CRUD com Supabase (`samples/Supabase/`)
+- **Entidade.Produto** - Entidade compartilhada TProduto para uso em samples (`samples/Entidades/Entidade.Produto.pas`)
 
 ## [2.0.0] - 2026-03-08
 
