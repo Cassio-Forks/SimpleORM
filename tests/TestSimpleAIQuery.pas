@@ -366,7 +366,7 @@ begin
   try
     LType := LContext.GetType(TypeInfo(TUsuarioSchemaTest));
     LResult := LAIQuery.TestBuildSchemaForEntity(LType);
-    CheckTrue(Pos('Tabela: USUARIOS', LResult) > 0,
+    CheckTrue(Pos('TABLE: USUARIOS', LResult) > 0,
       'Schema should contain table name USUARIOS');
   finally
     LContext.Free;
@@ -446,7 +446,7 @@ begin
   try
     LType := LContext.GetType(TypeInfo(TUsuarioSchemaTest));
     LResult := LAIQuery.TestBuildSchemaForEntity(LType);
-    CheckTrue(Pos('NotNull', LResult) > 0, 'Schema should contain NotNull annotation');
+    CheckTrue(Pos('NOT NULL', LResult) > 0, 'Schema should contain NOT NULL annotation');
   finally
     LContext.Free;
     FreeAndNil(LAIQuery);

@@ -17,8 +17,6 @@ uses
 {$ENDIF}
 {$ENDIF}
     SimpleDAOSQLAttribute,
-    SimpleAIProcessor,
-    SimpleAIAttributes,
     System.Threading;
 
 Type
@@ -120,6 +118,8 @@ uses
     SimpleRTTIHelper,
     SimpleSQL,
     SimpleProxy,
+    SimpleAIProcessor,
+    SimpleAIAttributes,
     Variants;
 { TGenericDAO }
 {$IFNDEF CONSOLE}

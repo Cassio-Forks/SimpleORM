@@ -267,30 +267,35 @@ var
 begin
   LArray := TJSONArray.Create;
   try
-    LCount := 0;
-    aDataSet.First;
-    while (not aDataSet.Eof) and (LCount < FMaxRows) do
-    begin
-      LObj := TJSONObject.Create;
-      for LField in aDataSet.Fields do
+    aDataSet.DisableControls;
+    try
+      LCount := 0;
+      aDataSet.First;
+      while (not aDataSet.Eof) and (LCount < FMaxRows) do
       begin
-        if LField.IsNull then
-          LObj.AddPair(LField.FieldName, TJSONNull.Create)
-        else
-          case LField.DataType of
-            ftInteger, ftSmallint, ftWord, ftLargeint, ftAutoInc:
-              LObj.AddPair(LField.FieldName, TJSONNumber.Create(LField.AsLargeInt));
-            ftFloat, ftCurrency, ftBCD, ftFMTBcd:
-              LObj.AddPair(LField.FieldName, TJSONNumber.Create(LField.AsFloat));
-            ftBoolean:
-              LObj.AddPair(LField.FieldName, TJSONBool.Create(LField.AsBoolean));
+        LObj := TJSONObject.Create;
+        for LField in aDataSet.Fields do
+        begin
+          if LField.IsNull then
+            LObj.AddPair(LField.FieldName, TJSONNull.Create)
           else
-            LObj.AddPair(LField.FieldName, LField.AsString);
-          end;
+            case LField.DataType of
+              ftInteger, ftSmallint, ftWord, ftLargeint, ftAutoInc:
+                LObj.AddPair(LField.FieldName, TJSONNumber.Create(LField.AsLargeInt));
+              ftFloat, ftCurrency, ftBCD, ftFMTBcd:
+                LObj.AddPair(LField.FieldName, TJSONNumber.Create(LField.AsFloat));
+              ftBoolean:
+                LObj.AddPair(LField.FieldName, TJSONBool.Create(LField.AsBoolean));
+            else
+              LObj.AddPair(LField.FieldName, LField.AsString);
+            end;
+        end;
+        LArray.AddElement(LObj);
+        Inc(LCount);
+        aDataSet.Next;
       end;
-      LArray.AddElement(LObj);
-      Inc(LCount);
-      aDataSet.Next;
+    finally
+      aDataSet.EnableControls;
     end;
     Result := LArray.ToJSON;
   finally
