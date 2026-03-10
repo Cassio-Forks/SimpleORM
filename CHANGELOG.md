@@ -8,6 +8,18 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **TSkillRunMode** - Enum para modo de execucao de Skills: Normal e OnError (SimpleTypes.pas)
+- **TSimpleErrorCallback** - Tipo callback para tratamento de erros no DAO (SimpleTypes.pas)
+- **RunMode** - Metodo em iSimpleSkill para controlar modo de execucao Normal/OnError (SimpleInterface.pas)
+- **ErrorMessage** - Metodo em iSimpleSkillContext para acessar mensagem de erro (SimpleInterface.pas)
+- **RunOnError** - Metodo no TSimpleSkillRunner para executar skills em modo OnError (SimpleSkill.pas)
+- **OnError** - Callback generico no TSimpleDAO para tratamento de erros em Insert/Update/Delete (SimpleDAO.pas)
+- **TSkillGitHubIssue** - Skill para criacao automatica de Issues no GitHub via REST API (SimpleSkill.pas)
+- **Sample GitHubIssue** - Projeto demonstrando uso do TSkillGitHubIssue (samples/GitHubIssue/)
+
 ## [3.04.00] - 2026-03-10
 
 ### Added

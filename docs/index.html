@@ -194,6 +194,7 @@
       <li><a href="#skills">Skills</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#agents">Agents</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#supabase">Supabase</a> <span class="badge badge-new">NEW</span></li>
+      <li><a href="#github-issue">GitHub Issue</a> <span class="badge badge-new">NEW</span></li>
     </ul>
   </nav>
 </aside>
@@ -1303,6 +1304,63 @@ var LQueryAuth := TSimpleQuerySupabase.New(URL, AnonKey, LAuth);</code></pre>
 
   <p style="margin-top: 1.5em; font-size: 1.1em;"><strong><a href="supabase.html">Documentacao completa do Supabase &rarr;</a></strong><br>
   Referencia completa da API, exemplos detalhados de CRUD, Auth, Realtime, Row Level Security, troubleshooting e mais.</p>
+</section>
+
+<section id="github-issue">
+  <h2>GitHub Issue Skill <span class="badge badge-new">NEW</span></h2>
+  <p>O SimpleORM pode criar <strong>Issues no GitHub</strong> automaticamente quando operacoes CRUD falham ou como auditoria de operacoes bem-sucedidas.</p>
+
+  <table>
+    <thead>
+      <tr><th>Componente</th><th>Descricao</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>TSkillGitHubIssue</strong></td><td>Skill que cria Issues via GitHub REST API — fire-and-forget</td></tr>
+      <tr><td><strong>TSkillRunMode</strong></td><td>Enum <code>srmNormal</code> (auditoria) ou <code>srmOnError</code> (falhas)</td></tr>
+      <tr><td><strong>OnError</strong></td><td>Callback generico no DAO para tratamento de erros</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Exemplo rapido</h3>
+  <pre><code>uses SimpleSkill, SimpleTypes;
+
+// Modo OnError — cria Issue quando Insert falha
+LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
+  .Skill(TSkillGitHubIssue.New(
+    'meuuser/meurepo',
+    'ghp_token123',
+    srAfterInsert,
+    srmOnError
+  ))
+  .OnError(procedure(aEntity: TObject; E: Exception)
+    begin
+      Writeln('Erro: ', E.Message);
+    end);
+
+// Modo Normal com template — auditoria de Deletes
+LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
+  .Skill(TSkillGitHubIssue.New(
+    'meuuser/meurepo',
+    'ghp_token123',
+    srAfterDelete,
+    srmNormal
+  ).Labels(['audit', 'delete'])
+   .TitleTemplate('[Audit] {entity} deletado'));</code></pre>
+
+  <h3>Placeholders para templates</h3>
+  <table>
+    <thead>
+      <tr><th>Placeholder</th><th>Descricao</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>{entity}</code></td><td>Nome da tabela da entidade</td></tr>
+      <tr><td><code>{operation}</code></td><td>INSERT, UPDATE ou DELETE</td></tr>
+      <tr><td><code>{error}</code></td><td>Mensagem de erro (vazio em modo Normal)</td></tr>
+      <tr><td><code>{timestamp}</code></td><td>Data/hora em formato ISO8601</td></tr>
+    </tbody>
+  </table>
+
+  <p class="note"><strong>Nota:</strong> Fire-and-forget — erros HTTP sao logados mas nunca interrompem o fluxo CRUD. Requer Personal Access Token do GitHub com permissao <code>repo</code>.</p>
 </section>
 
 <footer>
