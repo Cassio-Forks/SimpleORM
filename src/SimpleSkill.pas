@@ -26,17 +26,21 @@ type
     FLogger: iSimpleQueryLogger;
     FEntityName: String;
     FOperation: String;
+    FErrorMessage: String;
   public
     constructor Create(aQuery: iSimpleQuery; aAIClient: iSimpleAIClient;
-      aLogger: iSimpleQueryLogger; const aEntityName, aOperation: String);
+      aLogger: iSimpleQueryLogger; const aEntityName, aOperation: String;
+      const aErrorMessage: String = '');
     destructor Destroy; override;
     class function New(aQuery: iSimpleQuery; aAIClient: iSimpleAIClient;
-      aLogger: iSimpleQueryLogger; const aEntityName, aOperation: String): iSimpleSkillContext;
+      aLogger: iSimpleQueryLogger; const aEntityName, aOperation: String;
+      const aErrorMessage: String = ''): iSimpleSkillContext;
     function Query: iSimpleQuery;
     function AIClient: iSimpleAIClient;
     function Logger: iSimpleQueryLogger;
     function EntityName: String;
     function Operation: String;
+    function ErrorMessage: String;
   end;
 
   TSimpleSkillRunner = class
@@ -245,13 +249,15 @@ uses
 { TSimpleSkillContext }
 
 constructor TSimpleSkillContext.Create(aQuery: iSimpleQuery; aAIClient: iSimpleAIClient;
-  aLogger: iSimpleQueryLogger; const aEntityName, aOperation: String);
+  aLogger: iSimpleQueryLogger; const aEntityName, aOperation: String;
+  const aErrorMessage: String);
 begin
   FQuery := aQuery;
   FAIClient := aAIClient;
   FLogger := aLogger;
   FEntityName := aEntityName;
   FOperation := aOperation;
+  FErrorMessage := aErrorMessage;
 end;
 
 destructor TSimpleSkillContext.Destroy;
@@ -260,9 +266,10 @@ begin
 end;
 
 class function TSimpleSkillContext.New(aQuery: iSimpleQuery; aAIClient: iSimpleAIClient;
-  aLogger: iSimpleQueryLogger; const aEntityName, aOperation: String): iSimpleSkillContext;
+  aLogger: iSimpleQueryLogger; const aEntityName, aOperation: String;
+  const aErrorMessage: String): iSimpleSkillContext;
 begin
-  Result := Self.Create(aQuery, aAIClient, aLogger, aEntityName, aOperation);
+  Result := Self.Create(aQuery, aAIClient, aLogger, aEntityName, aOperation, aErrorMessage);
 end;
 
 function TSimpleSkillContext.Query: iSimpleQuery;
@@ -288,6 +295,11 @@ end;
 function TSimpleSkillContext.Operation: String;
 begin
   Result := FOperation;
+end;
+
+function TSimpleSkillContext.ErrorMessage: String;
+begin
+  Result := FErrorMessage;
 end;
 
 { TSimpleSkillRunner }
