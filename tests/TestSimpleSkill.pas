@@ -52,6 +52,14 @@ type
     procedure TestGuardDelete_NilQuery_NoError;
   end;
 
+  TTestSkillHistory = class(TTestCase)
+  published
+    procedure TestHistory_Name;
+    procedure TestHistory_RunAt;
+    procedure TestHistory_NilEntity_NoError;
+    procedure TestHistory_NilQuery_NoError;
+  end;
+
 implementation
 
 uses
@@ -316,6 +324,52 @@ begin
   end;
 end;
 
+{ TTestSkillHistory }
+
+procedure TTestSkillHistory.TestHistory_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillHistory.New;
+  CheckEquals('history', LSkill.Name, 'Should return history');
+end;
+
+procedure TTestSkillHistory.TestHistory_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillHistory.New('ENTITY_HISTORY', srBeforeDelete);
+  CheckTrue(LSkill.RunAt = srBeforeDelete, 'Should return configured RunAt');
+end;
+
+procedure TTestSkillHistory.TestHistory_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillHistory.New;
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'UPDATE');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Should not raise error for nil entity');
+end;
+
+procedure TTestSkillHistory.TestHistory_NilQuery_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LSkill := TSkillHistory.New;
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'UPDATE');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Should not raise error when query is nil');
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
@@ -323,5 +377,6 @@ initialization
   RegisterTest('Skills', TTestSkillContext.Suite);
   RegisterTest('Skills', TTestSkillTimestamp.Suite);
   RegisterTest('Skills', TTestSkillGuardDelete.Suite);
+  RegisterTest('Skills', TTestSkillHistory.Suite);
 
 end.

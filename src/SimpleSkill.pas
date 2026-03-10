@@ -104,6 +104,20 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { Built-in: TSkillHistory }
+  TSkillHistory = class(TInterfacedObject, iSimpleSkill)
+  private
+    FHistoryTable: String;
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(const aHistoryTable: String = 'ENTITY_HISTORY'; aRunAt: TSkillRunAt = srBeforeUpdate);
+    destructor Destroy; override;
+    class function New(const aHistoryTable: String = 'ENTITY_HISTORY'; aRunAt: TSkillRunAt = srBeforeUpdate): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
   { Built-in: TSkillGuardDelete }
   TSkillGuardDelete = class(TInterfacedObject, iSimpleSkill)
   private
@@ -460,6 +474,94 @@ end;
 function TSkillGuardDelete.RunAt: TSkillRunAt;
 begin
   Result := srBeforeDelete;
+end;
+
+{ TSkillHistory }
+
+constructor TSkillHistory.Create(const aHistoryTable: String; aRunAt: TSkillRunAt);
+begin
+  FHistoryTable := aHistoryTable;
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillHistory.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillHistory.New(const aHistoryTable: String; aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aHistoryTable, aRunAt);
+end;
+
+function TSkillHistory.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LRttiContext: TRttiContext;
+  LType: TRttiType;
+  LProp: TRttiProperty;
+  LPKProp: TRttiProperty;
+  LPKValue: String;
+  LValue: TValue;
+  LValueStr: String;
+  LSQL: String;
+begin
+  Result := Self;
+  if (aEntity = nil) or (aContext.Query = nil) then
+    Exit;
+
+  LRttiContext := TRttiContext.Create;
+  LType := LRttiContext.GetType(aEntity.ClassType);
+
+  LPKProp := LType.GetPKField;
+  if LPKProp = nil then
+    Exit;
+
+  LPKValue := LPKProp.GetValue(aEntity).AsVariant;
+
+  LSQL := 'INSERT INTO ' + FHistoryTable +
+    ' (ENTITY_NAME, RECORD_ID, FIELD_NAME, OLD_VALUE, OPERATION, CREATED_AT)' +
+    ' VALUES (:pEntity, :pRecordId, :pField, :pOldValue, :pOperation, :pCreatedAt)';
+
+  for LProp in LType.GetProperties do
+  begin
+    if LProp.IsIgnore then
+      Continue;
+    if not LProp.EhCampo then
+      Continue;
+
+    LValue := LProp.GetValue(aEntity);
+    if LValue.Kind = tkFloat then
+    begin
+      if (LValue.TypeInfo = TypeInfo(TDateTime)) or
+         (LValue.TypeInfo = TypeInfo(TDate)) or
+         (LValue.TypeInfo = TypeInfo(TTime)) then
+        LValueStr := DateTimeToStr(LValue.AsExtended)
+      else
+        LValueStr := FloatToStr(LValue.AsExtended);
+    end
+    else
+      LValueStr := LValue.AsVariant;
+
+    aContext.Query.SQL.Clear;
+    aContext.Query.SQL.Add(LSQL);
+    aContext.Query.Params.ParamByName('pEntity').Value := aContext.EntityName;
+    aContext.Query.Params.ParamByName('pRecordId').Value := LPKValue;
+    aContext.Query.Params.ParamByName('pField').Value := LProp.FieldName;
+    aContext.Query.Params.ParamByName('pOldValue').Value := LValueStr;
+    aContext.Query.Params.ParamByName('pOperation').Value := aContext.Operation;
+    aContext.Query.Params.ParamByName('pCreatedAt').Value := Now;
+    aContext.Query.ExecSQL;
+  end;
+end;
+
+function TSkillHistory.Name: String;
+begin
+  Result := 'history';
+end;
+
+function TSkillHistory.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
 end;
 
 end.
