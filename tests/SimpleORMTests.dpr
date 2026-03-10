@@ -45,7 +45,9 @@ uses
   SimpleQuerySupabase in '..\src\SimpleQuerySupabase.pas',
   TestSimpleQuerySupabase in 'TestSimpleQuerySupabase.pas',
   SimpleSupabaseAuth in '..\src\SimpleSupabaseAuth.pas',
-  TestSimpleSupabaseAuth in 'TestSimpleSupabaseAuth.pas';
+  TestSimpleSupabaseAuth in 'TestSimpleSupabaseAuth.pas',
+  SimpleSupabaseRealtime in '..\src\SimpleSupabaseRealtime.pas',
+  TestSimpleSupabaseRealtime in 'TestSimpleSupabaseRealtime.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
