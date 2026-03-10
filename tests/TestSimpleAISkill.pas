@@ -41,6 +41,16 @@ type
     procedure TestSummarize_NilAIClient_NoError;
   end;
 
+  TTestSkillAITags = class(TTestCase)
+  published
+    procedure TestTags_Name;
+    procedure TestTags_RunAt;
+    procedure TestTags_GeneratesTags;
+    procedure TestTags_IncludesMaxTagsInPrompt;
+    procedure TestTags_EmptySource_NoAction;
+    procedure TestTags_NilAIClient_NoError;
+  end;
+
 implementation
 
 uses
@@ -318,9 +328,107 @@ begin
   end;
 end;
 
+{ TTestSkillAITags }
+
+procedure TTestSkillAITags.TestTags_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAITags.New('TEXTO', 'TAGS');
+  CheckEquals('ai-tags', LSkill.Name, 'Should return ai-tags');
+end;
+
+procedure TTestSkillAITags.TestTags_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAITags.New('TEXTO', 'TAGS', 5, srBeforeUpdate);
+  CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
+end;
+
+procedure TTestSkillAITags.TestTags_GeneratesTags;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Artigo sobre Delphi ORM e banco de dados';
+    LSkill := TSkillAITags.New('TEXTO', 'TAGS', 3);
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('delphi,orm,database'), nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals('delphi,orm,database', LEntity.TAGS, 'Should set tags from AI');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAITags.TestTags_IncludesMaxTagsInPrompt;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+  LMock: TSimpleAIMockClient;
+  LAIClient: iSimpleAIClient;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Texto de teste';
+    LMock := TSimpleAIMockClient.Create('tag1,tag2');
+    LAIClient := LMock;
+    LSkill := TSkillAITags.New('TEXTO', 'TAGS', 7);
+    LContext := TSimpleSkillContext.New(nil, LAIClient, nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(Pos('7', LMock.LastPrompt) > 0,
+      'Prompt should contain max tags count: ' + LMock.LastPrompt);
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAITags.TestTags_EmptySource_NoAction;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := '';
+    LSkill := TSkillAITags.New('TEXTO', 'TAGS');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('should not appear'), nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals('', LEntity.TAGS, 'Should not generate tags for empty source');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAITags.TestTags_NilAIClient_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Texto';
+    LSkill := TSkillAITags.New('TEXTO', 'TAGS');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals('', LEntity.TAGS, 'Should ignore when AIClient is nil');
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('AISkills', TTestSkillAIEnrich.Suite);
   RegisterTest('AISkills', TTestSkillAITranslate.Suite);
   RegisterTest('AISkills', TTestSkillAISummarize.Suite);
+  RegisterTest('AISkills', TTestSkillAITags.Suite);
 
 end.

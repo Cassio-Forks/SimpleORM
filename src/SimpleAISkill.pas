@@ -67,6 +67,24 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { AI Skill: TSkillAITags }
+  TSkillAITags = class(TInterfacedObject, iSimpleSkill)
+  private
+    FSourceField: String;
+    FTargetField: String;
+    FMaxTags: Integer;
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(const aSourceField, aTargetField: String;
+      aMaxTags: Integer = 5; aRunAt: TSkillRunAt = srBeforeInsert);
+    destructor Destroy; override;
+    class function New(const aSourceField, aTargetField: String;
+      aMaxTags: Integer = 5; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
 implementation
 
 { TSkillAIEnrich }
@@ -272,6 +290,71 @@ begin
 end;
 
 function TSkillAISummarize.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+{ TSkillAITags }
+
+constructor TSkillAITags.Create(const aSourceField, aTargetField: String;
+  aMaxTags: Integer; aRunAt: TSkillRunAt);
+begin
+  FSourceField := aSourceField;
+  FTargetField := aTargetField;
+  FMaxTags := aMaxTags;
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillAITags.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillAITags.New(const aSourceField, aTargetField: String;
+  aMaxTags: Integer; aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aSourceField, aTargetField, aMaxTags, aRunAt);
+end;
+
+function TSkillAITags.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LContext: TRttiContext;
+  LType: TRttiType;
+  LSourceProp, LTargetProp: TRttiProperty;
+  LSourceText: String;
+  LPrompt: String;
+  LResponse: String;
+begin
+  Result := Self;
+  if (aEntity = nil) or (aContext.AIClient = nil) then
+    Exit;
+
+  LContext := TRttiContext.Create;
+  LType := LContext.GetType(aEntity.ClassType);
+
+  LSourceProp := LType.GetProperty(FSourceField);
+  LTargetProp := LType.GetProperty(FTargetField);
+  if (LSourceProp = nil) or (LTargetProp = nil) then
+    Exit;
+
+  LSourceText := LSourceProp.GetValue(aEntity).AsString;
+  if LSourceText = '' then
+    Exit;
+
+  LPrompt := 'Extract at most ' + IntToStr(FMaxTags) +
+    ' keywords from the following text. Return only the keywords separated by commas, nothing else.' +
+    sLineBreak + sLineBreak + 'Text: ' + LSourceText;
+
+  LResponse := aContext.AIClient.Complete(LPrompt);
+  LTargetProp.SetValue(aEntity, TValue.From<String>(LResponse));
+end;
+
+function TSkillAITags.Name: String;
+begin
+  Result := 'ai-tags';
+end;
+
+function TSkillAITags.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
 end;
