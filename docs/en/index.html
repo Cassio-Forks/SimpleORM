@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SimpleORM - Complete Delphi ORM documentation. Entity mapping, CRUD, validation, pagination, Horse integration, database drivers.">
+  <meta name="keywords" content="SimpleORM, Delphi, ORM, FireDAC, Horse, CRUD, RTTI, Entity Mapping">
+  <meta name="author" content="Academia do Codigo - Thulio Bittencourt">
+  <meta name="robots" content="index, follow">
+  <meta name="ai-content-type" content="technical-documentation">
+  <meta name="ai-project" content="SimpleORM">
+  <meta name="ai-language" content="Delphi/Object Pascal">
+  <title>SimpleORM - Complete Documentation</title>
+  <style>
+    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950; --orange: #d29922; --red: #f85149; --code-bg: #0d1117; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+    h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--accent); }
+    h2 { font-size: 1.6rem; margin-top: 3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
+    h3 { font-size: 1.2rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text); }
+    p { margin-bottom: 1rem; color: var(--text2); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; background: var(--surface); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; color: var(--green); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1.5rem; }
+    pre code { background: none; padding: 0; color: var(--text); }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { text-align: left; padding: 0.6rem 0.8rem; border: 1px solid var(--border); }
+    th { background: var(--surface); color: var(--text); font-weight: 600; }
+    td { color: var(--text2); }
+    td code { color: var(--green); }
+    nav { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem; }
+    nav ul { list-style: none; columns: 2; }
+    nav li { margin-bottom: 0.3rem; }
+    .badge { display: inline-block; padding: 0.15em 0.5em; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
+    .badge-new { background: #1f3a1f; color: var(--green); }
+    .badge-driver { background: #1a2a3a; color: var(--accent); }
+    .subtitle { color: var(--text2); font-size: 1.1rem; margin-bottom: 2rem; }
+    .version { color: var(--text2); font-size: 0.9rem; }
+    section { margin-bottom: 2rem; }
+    .note { background: #1a2332; border-left: 3px solid var(--accent); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    .warning { background: #2a1f0a; border-left: 3px solid var(--orange); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    .lang-switcher { float: right; font-size: 0.9rem; }
+    footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text2); font-size: 0.9rem; }
+    @media (max-width: 600px) { nav ul { columns: 1; } }
+  </style>
+</head>
+<body>
+<div class="container">
+
+<div class="lang-switcher"><a href="../index.html">Portugues</a> | <strong>English</strong></div>
+
+<header>
+  <h1>SimpleORM</h1>
+  <p class="subtitle">Complete ORM for Delphi &mdash; Entity mapping, CRUD, validation, pagination, Horse integration</p>
+  <p class="version">Repository: <a href="https://github.com/academiadocodigo/SimpleORM">github.com/academiadocodigo/SimpleORM</a></p>
+</header>
+
+<nav aria-label="Table of Contents">
+  <strong>Table of Contents</strong>
+  <ul>
+    <li><a href="#installation">Installation</a></li>
+    <li><a href="#entity-mapping">Entity Mapping</a></li>
+    <li><a href="#attributes">All Attributes</a></li>
+    <li><a href="#initialization">Initialization</a></li>
+    <li><a href="#crud">CRUD Operations</a></li>
+    <li><a href="#fluent-sql">Fluent SQL Builder</a></li>
+    <li><a href="#pagination">Pagination</a></li>
+    <li><a href="#validation">Validation</a></li>
+    <li><a href="#relationships">Relationships</a></li>
+    <li><a href="#soft-delete">Soft Delete</a></li>
+    <li><a href="#batch">Batch Operations</a></li>
+    <li><a href="#transactions">Transactions</a></li>
+    <li><a href="#logging">Query Logging</a></li>
+    <li><a href="#drivers">Database Drivers</a></li>
+    <li><a href="#horse-server">Horse Server</a></li>
+    <li><a href="#horse-client">Horse Client REST</a></li>
+    <li><a href="#serializer">SimpleSerializer</a></li>
+    <li><a href="#bind-form">Form Binding</a></li>
+    <li><a href="#interfaces">Interface API</a></li>
+    <li><a href="#database-types">Database Types</a></li>
+    <li><a href="#tests">Unit Tests (DUnit)</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#ai-enrichment">AI Enrichment</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#ai-query">AI Query</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#mcp-server">MCP Server (AI)</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#rules">Rules</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#skills">Skills</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#agents">Agents</a> <span class="badge badge-new">NEW</span></li>
+  </ul>
+</nav>
+
+<!-- ============================================ -->
+<section id="installation">
+<h2>Installation</h2>
+
+<h3>Via Boss (recommended)</h3>
+<pre><code>boss install academiadocodigo/SimpleORM</code></pre>
+
+<h3>Manual</h3>
+<p>Add the <code>src/</code> directory to the Delphi Library Path. No component installation is required.</p>
+
+<h3>Required uses</h3>
+<pre><code>uses
+  SimpleInterface,    // Interfaces (iSimpleDAO, iSimpleQuery, etc)
+  SimpleDAO,          // TSimpleDAO&lt;T&gt;
+  SimpleAttributes,   // Attributes (Tabela, Campo, PK, etc)
+  SimpleQueryFiredac; // Connection driver (or another driver)</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="entity-mapping">
+<h2>Entity Mapping</h2>
+
+<p>Entities are Delphi classes mapped to database tables via RTTI attributes. Properties must be declared in the <code>published</code> section.</p>
+
+<pre><code>uses SimpleAttributes;
+
+type
+  [Tabela('PEDIDO')]
+  TPEDIDO = class
+  private
+    FID: Integer;
+    FCLIENTE: String;
+    FDATAPEDIDO: TDatetime;
+    FVALORTOTAL: Currency;
+    procedure SetID(const Value: Integer);
+    procedure SetCLIENTE(const Value: String);
+    procedure SetDATAPEDIDO(const Value: TDatetime);
+    procedure SetVALORTOTAL(const Value: Currency);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    [Campo('ID'), Pk, AutoInc]
+    property ID: Integer read FID write SetID;
+    [Campo('NOME')]
+    property CLIENTE: String read FCLIENTE write SetCLIENTE;
+    [Campo('DATA')]
+    property DATAPEDIDO: TDatetime read FDATAPEDIDO write SetDATAPEDIDO;
+    [Campo('VALOR')]
+    property VALORTOTAL: Currency read FVALORTOTAL write SetVALORTOTAL;
+  end;</code></pre>
+
+<div class="note">
+  <p>When the <code>property</code> name matches the database column name, the <code>[Campo]</code> attribute is optional. Example: <code>property ID</code> automatically maps to column <code>ID</code>.</p>
+</div>
+
+<h3>Entity Rules</h3>
+<ul>
+  <li><code>[Tabela('NAME')]</code> on the class &mdash; required</li>
+  <li><code>[Campo('COLUMN')]</code> on properties &mdash; required for SQL mapping</li>
+  <li>Exactly one <code>[PK]</code> per entity</li>
+  <li>Properties in the <code>published</code> section &mdash; RTTI does not see <code>public</code></li>
+  <li>Explicit getter/setter for each property</li>
+  <li><code>constructor Create</code> and <code>destructor Destroy; override</code> always present</li>
+</ul>
+</section>
+
+<!-- ============================================ -->
+<section id="attributes">
+<h2>All Attributes</h2>
+
+<p>All attributes are declared in <code>SimpleAttributes.pas</code>.</p>
+
+<h3>Mapping</h3>
+<table>
+  <tr><th>Attribute</th><th>Target</th><th>Description</th></tr>
+  <tr><td><code>Tabela('NAME')</code></td><td>Class</td><td>Maps class to database table</td></tr>
+  <tr><td><code>Campo('NAME')</code></td><td>Property</td><td>Maps property to database column</td></tr>
+</table>
+
+<h3>Keys and Auto-Increment</h3>
+<table>
+  <tr><th>Attribute</th><th>Description</th></tr>
+  <tr><td><code>PK</code></td><td>Primary key (exactly one per entity)</td></tr>
+  <tr><td><code>FK</code></td><td>Foreign key</td></tr>
+  <tr><td><code>AutoInc</code></td><td>Auto-increment (automatically excluded from INSERT)</td></tr>
+</table>
+
+<h3>Constraints</h3>
+<table>
+  <tr><th>Attribute</th><th>Description</th></tr>
+  <tr><td><code>NotNull</code></td><td>Required field (non-empty string, non-zero date)</td></tr>
+  <tr><td><code>NotZero</code></td><td>Numeric value cannot be zero</td></tr>
+  <tr><td><code>Ignore</code></td><td>Ignores property in all SQL operations and serialization</td></tr>
+  <tr><td><code>NumberOnly</code></td><td>Accepts only numbers</td></tr>
+</table>
+
+<h3>Validation</h3>
+<table>
+  <tr><th>Attribute</th><th>Description</th></tr>
+  <tr><td><code>Email</code></td><td>Validates email format</td></tr>
+  <tr><td><code>MinValue(n)</code></td><td>Minimum numeric value</td></tr>
+  <tr><td><code>MaxValue(n)</code></td><td>Maximum numeric value</td></tr>
+  <tr><td><code>Regex('pattern', 'msg')</code></td><td>Validation via regular expression</td></tr>
+  <tr><td><code>Format(maxSize, precision)</code></td><td>Maximum size, minimum size, precision or mask</td></tr>
+</table>
+
+<h3>Display and Binding</h3>
+<table>
+  <tr><th>Attribute</th><th>Description</th></tr>
+  <tr><td><code>Display('Label')</code></td><td>Display name for grids/forms</td></tr>
+  <tr><td><code>Bind('FIELD')</code></td><td>Binds visual component to entity property</td></tr>
+</table>
+
+<h3>Relationships</h3>
+<table>
+  <tr><th>Attribute</th><th>Cardinality</th><th>Loading</th></tr>
+  <tr><td><code>HasOne('Entity', 'FK')</code></td><td>1:1</td><td>Eager (automatic on Find)</td></tr>
+  <tr><td><code>BelongsTo('Entity', 'FK')</code></td><td>N:1</td><td>Eager (automatic on Find)</td></tr>
+  <tr><td><code>HasMany('Entity', 'FK')</code></td><td>1:N</td><td>Lazy (TSimpleLazyLoader)</td></tr>
+  <tr><td><code>BelongsToMany('Entity', 'FK')</code></td><td>M:N</td><td>Manual</td></tr>
+</table>
+
+<h3>Special</h3>
+<table>
+  <tr><th>Attribute</th><th>Description</th></tr>
+  <tr><td><code>SoftDelete('FIELD')</code></td><td>On the class &mdash; enables logical deletion (0=active, 1=deleted)</td></tr>
+  <tr><td><code>Enumerator('TYPE')</code></td><td>PostgreSQL enum type cast</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="initialization">
+<h2>Initialization</h2>
+
+<pre><code>var
+  Conn: iSimpleQuery;
+  DAOPedido: iSimpleDAO&lt;TPEDIDO&gt;;
+begin
+  // 1. Create connection via driver
+  Conn := TSimpleQueryFiredac.New(FDConnection1);
+
+  // 2. Create typed DAO
+  DAOPedido := TSimpleDAO&lt;TPEDIDO&gt;.New(Conn);
+
+  // 3. (Optional) Bind DataSource and Form
+  DAOPedido
+    .DataSource(DataSource1)  // data in DataSet for grids
+    .BindForm(Self);          // automatic component binding
+end;</code></pre>
+
+<p><code>iSimpleQuery</code> abstracts the database driver. <code>iSimpleDAO&lt;T&gt;</code> is the generic DAO that performs CRUD on any mapped entity.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="crud">
+<h2>CRUD Operations</h2>
+
+<h3>Insert</h3>
+<pre><code>// With object
+var LPedido: TPEDIDO;
+begin
+  LPedido := TPEDIDO.Create;
+  try
+    LPedido.CLIENTE := 'John Doe';
+    LPedido.DATAPEDIDO := Now;
+    LPedido.VALORTOTAL := 150.50;
+    DAOPedido.Insert(LPedido);
+  finally
+    LPedido.Free;
+  end;
+end;
+
+// With Bind (VCL/FMX — picks values from form automatically)
+DAOPedido.Insert;</code></pre>
+
+<h3>Update</h3>
+<pre><code>// With object (PK identifies the record)
+var LPedido: TPEDIDO;
+begin
+  LPedido := TPEDIDO.Create;
+  try
+    LPedido.ID := 1;
+    LPedido.CLIENTE := 'Updated Name';
+    LPedido.DATAPEDIDO := Now;
+    LPedido.VALORTOTAL := 200.00;
+    DAOPedido.Update(LPedido);
+  finally
+    LPedido.Free;
+  end;
+end;
+
+// With Bind
+DAOPedido.Update;</code></pre>
+
+<h3>Delete</h3>
+<pre><code>// With object (uses PK)
+DAOPedido.Delete(LPedido);
+
+// With Bind (uses PK from form)
+DAOPedido.Delete;
+
+// By field and value
+DAOPedido.Delete('ID', '1');
+
+// Force Delete (ignores SoftDelete)
+DAOPedido.ForceDelete(LPedido);</code></pre>
+
+<h3>Find (Select)</h3>
+<pre><code>// All records (populates DataSource if bound)
+DAOPedido.Find;
+
+// Returns object list
+var LList: TObjectList&lt;TPEDIDO&gt;;
+begin
+  LList := TObjectList&lt;TPEDIDO&gt;.Create;
+  try
+    DAOPedido.Find(LList);
+    for I := 0 to LList.Count - 1 do
+      Writeln(LList[I].CLIENTE);
+  finally
+    LList.Free;
+  end;
+end;
+
+// Find by ID (returns object — caller must Free)
+var LPedido: TPEDIDO;
+begin
+  LPedido := DAOPedido.Find(1);
+  try
+    if Assigned(LPedido) then
+      Writeln(LPedido.CLIENTE);
+  finally
+    LPedido.Free;
+  end;
+end;
+
+// Find by field/value
+DAOPedido.Find('CLIENTE', 'John');
+
+// Last ID and last record
+DAOPedido.LastID;
+DAOPedido.LastRecord;</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="fluent-sql">
+<h2>Fluent SQL Builder</h2>
+
+<p><code>iSimpleDAOSQLAttribute&lt;T&gt;</code> allows building custom queries via fluent interface:</p>
+
+<pre><code>DAOPedido
+  .SQL
+    .Fields('ID, NOME, VALOR')            // specific fields
+    .Where('VALOR &gt; 100')                 // WHERE clause
+    .OrderBy('NOME')                       // ordering
+    .GroupBy('CATEGORIA')                  // grouping
+    .Join('INNER JOIN CLIENTE ON CLIENTE.ID = PEDIDO.ID_CLIENTE')
+    .Skip(10)                              // skip N records
+    .Take(20)                              // limit to N records
+  .&amp;End                                    // return to DAO
+  .Find;                                   // execute</code></pre>
+
+<p>The <code>.&amp;End</code> method (with <code>&amp;</code> to escape the reserved word) returns to <code>iSimpleDAO&lt;T&gt;</code> to execute the built query.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="pagination">
+<h2>Pagination</h2>
+
+<p>Pagination is supported via <code>Skip(n)</code> and <code>Take(n)</code> with SQL generated automatically based on the database:</p>
+
+<pre><code>// Fetch records 11 to 30
+DAOPedido.SQL.Skip(10).Take(20).&amp;End.Find(LList);</code></pre>
+
+<table>
+  <tr><th>Database</th><th>Generated SQL</th><th>Position</th></tr>
+  <tr><td>Firebird</td><td><code>SELECT FIRST 20 SKIP 10 ...</code></td><td>After SELECT</td></tr>
+  <tr><td>MySQL</td><td><code>... LIMIT 20 OFFSET 10</code></td><td>End of query</td></tr>
+  <tr><td>SQLite</td><td><code>... LIMIT 20 OFFSET 10</code></td><td>End of query</td></tr>
+  <tr><td>Oracle</td><td><code>... OFFSET 10 ROWS FETCH NEXT 20 ROWS ONLY</code></td><td>End of query</td></tr>
+</table>
+
+<p>The database type is defined by the <code>TSQLType</code> of the query driver.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="validation">
+<h2>Validation</h2>
+
+<p><code>TSimpleValidator</code> validates entities via RTTI attributes. Raises <code>ESimpleValidator</code> with accumulated error messages.</p>
+
+<pre><code>uses SimpleValidator;
+
+var LCliente: TCliente;
+begin
+  LCliente := TCliente.Create;
+  try
+    LCliente.Parse(Self);              // fill via form Bind
+    TSimpleValidator.Validate(LCliente); // validate — raises exception if invalid
+    DAOCliente.Insert(LCliente);
+  finally
+    LCliente.Free;
+  end;
+end;</code></pre>
+
+<h3>Validation attributes</h3>
+<table>
+  <tr><th>Attribute</th><th>What it validates</th></tr>
+  <tr><td><code>NotNull</code></td><td>Non-empty string, non-zero date</td></tr>
+  <tr><td><code>NotZero</code></td><td>Numeric different from zero</td></tr>
+  <tr><td><code>Email</code></td><td>Valid email format</td></tr>
+  <tr><td><code>MinValue(n)</code></td><td>Numeric value &gt;= n</td></tr>
+  <tr><td><code>MaxValue(n)</code></td><td>Numeric value &lt;= n</td></tr>
+  <tr><td><code>Regex('pattern', 'msg')</code></td><td>Match against regular expression</td></tr>
+  <tr><td><code>Format(max, precision)</code></td><td>String length and numeric precision</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="relationships">
+<h2>Relationships</h2>
+
+<h3>HasOne / BelongsTo (Eager Loading)</h3>
+<p>Automatically loaded by the DAO on <code>Find</code>:</p>
+<pre><code>[Tabela('ITEM_PEDIDO')]
+TItemPedido = class
+published
+  [Campo('ID'), PK, AutoInc]
+  property ID: Integer ...;
+
+  [Campo('ID_PEDIDO'), FK]
+  property IdPedido: Integer ...;
+
+  [HasOne('PEDIDO', 'ID_PEDIDO')]
+  property Pedido: TPedido ...;
+end;</code></pre>
+
+<h3>HasMany (Lazy Loading)</h3>
+<p>Uses <code>TSimpleLazyLoader&lt;T&gt;</code> from <code>SimpleProxy.pas</code>. Data is loaded on first call to <code>Count</code> or <code>ToArray</code>:</p>
+<pre><code>uses SimpleProxy;
+
+// In constructor or on demand:
+FItens := TSimpleLazyLoader&lt;TItemPedido&gt;.Create(Query, 'ID_PEDIDO', Self.Id);</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="soft-delete">
+<h2>Soft Delete</h2>
+
+<p>Logical deletion &mdash; records are not removed from the database, only flagged.</p>
+
+<pre><code>[Tabela('PRODUTO'), SoftDelete('DELETADO')]
+TProduto = class
+published
+  [Campo('ID'), PK, AutoInc]
+  property ID: Integer ...;
+  [Campo('DELETADO')]
+  property Deletado: Integer ...;  // 0=active, 1=deleted
+end;</code></pre>
+
+<h3>Automatic behavior</h3>
+<table>
+  <tr><th>Operation</th><th>Generated SQL</th></tr>
+  <tr><td><code>Delete(entity)</code></td><td><code>UPDATE PRODUTO SET DELETADO = 1 WHERE ID = :ID</code></td></tr>
+  <tr><td><code>Find</code></td><td><code>SELECT ... WHERE DELETADO = 0</code> (automatic filter)</td></tr>
+  <tr><td><code>ForceDelete(entity)</code></td><td><code>DELETE FROM PRODUTO WHERE ID = :ID</code> (ignores soft delete)</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="batch">
+<h2>Batch Operations</h2>
+
+<p>Batch operations with automatic transaction (StartTransaction/Commit/Rollback):</p>
+
+<pre><code>var LList: TObjectList&lt;TPEDIDO&gt;;
+begin
+  LList := TObjectList&lt;TPEDIDO&gt;.Create;
+  try
+    // Fill list...
+    DAOPedido.InsertBatch(LList);   // inserts all in transaction
+    DAOPedido.UpdateBatch(LList);   // updates all in transaction
+    DAOPedido.DeleteBatch(LList);   // deletes all in transaction
+  finally
+    LList.Free;
+  end;
+end;</code></pre>
+
+<p>If any operation fails, the transaction automatically rolls back and the exception is re-raised.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="transactions">
+<h2>Transactions</h2>
+
+<p>Explicit transaction control via <code>iSimpleQuery</code>:</p>
+
+<pre><code>var LQuery: iSimpleQuery;
+begin
+  LQuery := TSimpleQueryFiredac.New(Connection);
+
+  LQuery.StartTransaction;
+  try
+    // Operations...
+    LQuery.Commit;
+  except
+    LQuery.Rollback;
+    raise;
+  end;
+end;</code></pre>
+
+<table>
+  <tr><th>Method</th><th>Description</th></tr>
+  <tr><td><code>StartTransaction</code></td><td>Starts transaction (checks if already active)</td></tr>
+  <tr><td><code>Commit</code></td><td>Commits active transaction</td></tr>
+  <tr><td><code>Rollback</code></td><td>Rolls back active transaction</td></tr>
+  <tr><td><code>InTransaction</code></td><td>Returns True if transaction is active</td></tr>
+  <tr><td><code>&amp;EndTransaction</code></td><td>Alias for Commit</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="logging">
+<h2>Query Logging</h2>
+
+<p>Logs SQL, parameters and execution time:</p>
+
+<pre><code>uses SimpleLogger;
+
+DAOPedido.Logger(TSimpleQueryLoggerConsole.New);
+
+// From this point, every DAO operation will be logged:
+// SQL: SELECT ID, NOME FROM PEDIDO WHERE ID = :ID
+// Params: ID=1
+// Duration: 3ms</code></pre>
+
+<p><code>TSimpleQueryLoggerConsole</code> sends to <code>OutputDebugString</code> (Windows) or <code>Writeln</code> (console). Implement <code>iSimpleQueryLogger</code> for custom loggers.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="drivers">
+<h2>Database Drivers</h2>
+
+<p>All drivers implement <code>iSimpleQuery</code> &mdash; swap the driver without changing any DAO code.</p>
+
+<table>
+  <tr><th>Driver</th><th>Class</th><th>Connection</th><th>Unit</th></tr>
+  <tr><td>FireDAC</td><td><code>TSimpleQueryFiredac</code></td><td><code>TFDConnection</code></td><td><code>SimpleQueryFiredac.pas</code></td></tr>
+  <tr><td>UniDAC</td><td><code>TSimpleQueryUnidac</code></td><td><code>TUniConnection</code></td><td><code>SimpleQueryUnidac.pas</code></td></tr>
+  <tr><td>Zeos</td><td><code>TSimpleQueryZeos</code></td><td><code>TZConnection</code></td><td><code>SimpleQueryZeos.pas</code></td></tr>
+  <tr><td>RestDW</td><td><code>TSimpleQueryRestDW</code></td><td><code>TRESTDWClientSQL</code></td><td><code>SimpleQueryRestDW.pas</code></td></tr>
+  <tr><td>Horse (REST)</td><td><code>TSimpleQueryHorse</code></td><td>URL string</td><td><code>SimpleQueryHorse.pas</code></td></tr>
+</table>
+
+<h3>Example: switching drivers</h3>
+<pre><code>// FireDAC (local database)
+LDAO := TSimpleDAO&lt;T&gt;.New(TSimpleQueryFiredac.New(FDConnection1));
+
+// UniDAC (local database)
+LDAO := TSimpleDAO&lt;T&gt;.New(TSimpleQueryUnidac.New(UniConnection1));
+
+// Horse REST (remote server)
+LDAO := TSimpleDAO&lt;T&gt;.New(TSimpleQueryHorse.New('http://server:9000'));
+
+// DAO code is IDENTICAL for all drivers</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="horse-server">
+<h2>Horse Server <span class="badge badge-new">NEW</span></h2>
+
+<p>Auto-generates 5 CRUD routes on Horse (ExpxHorse) per entity with a single line:</p>
+
+<pre><code>uses Horse, SimpleInterface, SimpleQueryFiredac, SimpleHorseRouter;
+
+// One line = 5 REST routes
+TSimpleHorseRouter.RegisterEntity&lt;TPEDIDO&gt;(THorse, LQuery);
+
+THorse.Listen(9000);</code></pre>
+
+<h3>Generated routes</h3>
+<table>
+  <tr><th>Method</th><th>Route</th><th>Status</th><th>Response</th></tr>
+  <tr><td>GET</td><td><code>/pedido?skip=N&amp;take=N</code></td><td>200</td><td><code>{"data": [...], "count": N}</code></td></tr>
+  <tr><td>GET</td><td><code>/pedido/:id</code></td><td>200/404</td><td>Entity JSON or <code>{"error": "Not found"}</code></td></tr>
+  <tr><td>POST</td><td><code>/pedido</code></td><td>201</td><td>Created entity JSON</td></tr>
+  <tr><td>PUT</td><td><code>/pedido/:id</code></td><td>200</td><td>Updated entity JSON</td></tr>
+  <tr><td>DELETE</td><td><code>/pedido/:id</code></td><td>204</td><td>No body</td></tr>
+</table>
+
+<p>The path is derived from the <code>[Tabela]</code> attribute lowercased, or customized via 3rd parameter.</p>
+
+<h3>Callbacks</h3>
+<pre><code>TSimpleHorseRouter.RegisterEntity&lt;TPEDIDO&gt;(THorse, LQuery)
+  .OnBeforeInsert(
+    procedure(aEntity: TObject; var aContinue: Boolean)
+    begin
+      TSimpleValidator.Validate(aEntity);
+      aContinue := True;  // False returns 400
+    end
+  )
+  .OnAfterInsert(
+    procedure(aEntity: TObject)
+    begin
+      Writeln('Inserted: ', TPEDIDO(aEntity).CLIENTE);
+    end
+  )
+  .OnBeforeUpdate(
+    procedure(aEntity: TObject; var aContinue: Boolean)
+    begin
+      aContinue := True;
+    end
+  )
+  .OnBeforeDelete(
+    procedure(aId: string; var aContinue: Boolean)
+    begin
+      aContinue := True;
+    end
+  );</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="horse-client">
+<h2>Horse Client REST <span class="badge badge-new">NEW</span></h2>
+
+<p><code>TSimpleQueryHorse</code> implements <code>iSimpleQuery</code> via HTTP. The only difference from direct database access is the query creation line:</p>
+
+<pre><code>// BEFORE: direct database access
+LDAO := TSimpleDAO&lt;TPEDIDO&gt;.New(TSimpleQueryFiredac.New(Connection));
+
+// AFTER: via Horse server (same interface!)
+LDAO := TSimpleDAO&lt;TPEDIDO&gt;.New(TSimpleQueryHorse.New('http://server:9000'));
+
+// The rest of the code is IDENTICAL
+LDAO.Insert(LPedido);
+LDAO.Find(LList);
+LDAO.SQL.Skip(0).Take(10).&amp;End.Find(LList);</code></pre>
+
+<h3>Authentication</h3>
+<pre><code>// Bearer token
+TSimpleQueryHorse.New('http://server:9000', 'my-token');
+
+// Custom headers
+var LQuery: iSimpleQuery;
+begin
+  LQuery := TSimpleQueryHorse.New('http://server:9000');
+  TSimpleQueryHorse(LQuery).OnBeforeRequest(
+    procedure(aHeaders: TStrings)
+    begin
+      aHeaders.Values['X-Custom-Header'] := 'value';
+    end
+  );
+  LDAO := TSimpleDAO&lt;TPEDIDO&gt;.New(LQuery);
+end;</code></pre>
+
+<div class="note">
+  <p>Transactions are no-ops on the REST driver (HTTP is stateless). <code>InTransaction</code> always returns <code>False</code>.</p>
+</div>
+</section>
+
+<!-- ============================================ -->
+<section id="serializer">
+<h2>SimpleSerializer <span class="badge badge-new">NEW</span></h2>
+
+<p>Converts entities to JSON and back via RTTI, using <code>[Campo]</code> names as JSON keys:</p>
+
+<pre><code>uses SimpleSerializer;
+
+// Entity -&gt; JSON
+var LJSON: TJSONObject;
+LJSON := TSimpleSerializer.EntityToJSON&lt;TPEDIDO&gt;(LPedido);
+// {"ID": 1, "NOME": "John", "DATA": "2026-03-08T10:00:00", "VALOR": 150.5}
+
+// JSON -&gt; Entity (caller must Free the result)
+var LPedido: TPEDIDO;
+LPedido := TSimpleSerializer.JSONToEntity&lt;TPEDIDO&gt;(LJSON);
+
+// Lists
+var LArray: TJSONArray;
+LArray := TSimpleSerializer.EntityListToJSONArray&lt;TPEDIDO&gt;(LList);
+
+var LList: TObjectList&lt;TPEDIDO&gt;;
+LList := TSimpleSerializer.JSONArrayToEntityList&lt;TPEDIDO&gt;(LArray);</code></pre>
+
+<h3>Supported types</h3>
+<table>
+  <tr><th>Delphi</th><th>JSON</th></tr>
+  <tr><td><code>String</code></td><td>string</td></tr>
+  <tr><td><code>Integer</code></td><td>number</td></tr>
+  <tr><td><code>Int64</code></td><td>number</td></tr>
+  <tr><td><code>Double/Currency</code></td><td>number</td></tr>
+  <tr><td><code>TDateTime</code></td><td>ISO8601 string</td></tr>
+  <tr><td><code>Boolean</code></td><td>true/false</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="bind-form">
+<h2>Form Binding</h2>
+
+<p>SimpleORM automatically binds visual components to entity properties:</p>
+
+<pre><code>type
+  TForm1 = class(TForm)
+    [Bind('CLIENTE')]
+    Edit1: TEdit;
+    [Bind('ID')]
+    Edit2: TEdit;
+    [Bind('VALORTOTAL')]
+    Edit3: TEdit;
+    [Bind('DATAPEDIDO')]
+    DateTimePicker1: TDateTimePicker;
+  end;</code></pre>
+
+<p>The <code>[Bind]</code> attribute on the component indicates which entity property (or column) it represents. With binding configured:</p>
+
+<pre><code>// Insert picks values from components automatically
+DAOPedido.Insert;
+
+// Update as well
+DAOPedido.Update;
+
+// Find populates components with database data
+DAOPedido.Find;</code></pre>
+
+<div class="note">
+  <p>Binding works with VCL (<code>TEdit</code>, <code>TComboBox</code>, <code>TCheckBox</code>, <code>TDateTimePicker</code>, etc) and FMX. Requires compilation WITHOUT <code>{$DEFINE CONSOLE}</code>.</p>
+</div>
+</section>
+
+<!-- ============================================ -->
+<section id="interfaces">
+<h2>Interface API</h2>
+
+<p>All interfaces are declared in <code>SimpleInterface.pas</code>.</p>
+
+<h3>iSimpleDAO&lt;T&gt;</h3>
+<table>
+  <tr><th>Method</th><th>Return</th><th>Description</th></tr>
+  <tr><td><code>Insert(aValue: T)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Inserts entity</td></tr>
+  <tr><td><code>Update(aValue: T)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Updates by PK</td></tr>
+  <tr><td><code>Delete(aValue: T)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Deletes by PK (or soft delete)</td></tr>
+  <tr><td><code>Delete(aField, aValue)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Deletes by field/value</td></tr>
+  <tr><td><code>ForceDelete(aValue: T)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Physically deletes (ignores soft delete)</td></tr>
+  <tr><td><code>Find</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Finds all (populates DataSource)</td></tr>
+  <tr><td><code>Find(var aList)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Finds all into object list</td></tr>
+  <tr><td><code>Find(aId: Integer)</code></td><td><code>T</code></td><td>Finds by ID (returns object)</td></tr>
+  <tr><td><code>Find(aKey, aValue)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Finds by field/value</td></tr>
+  <tr><td><code>InsertBatch(aList)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Batch insert with transaction</td></tr>
+  <tr><td><code>UpdateBatch(aList)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Batch update with transaction</td></tr>
+  <tr><td><code>DeleteBatch(aList)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Batch delete with transaction</td></tr>
+  <tr><td><code>LastID</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Gets last inserted ID</td></tr>
+  <tr><td><code>LastRecord</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Gets last record</td></tr>
+  <tr><td><code>SQL</code></td><td><code>iSimpleDAOSQLAttribute&lt;T&gt;</code></td><td>Accesses fluent SQL builder</td></tr>
+  <tr><td><code>Logger(aLogger)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Sets query logger</td></tr>
+  <tr><td><code>DataSource(aDS)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Binds DataSource</td></tr>
+  <tr><td><code>BindForm(aForm)</code></td><td><code>iSimpleDAO&lt;T&gt;</code></td><td>Binds form for binding</td></tr>
+</table>
+
+<h3>iSimpleDAOSQLAttribute&lt;T&gt;</h3>
+<table>
+  <tr><th>Method</th><th>Description</th></tr>
+  <tr><td><code>Fields(aSQL)</code></td><td>SELECT fields</td></tr>
+  <tr><td><code>Where(aSQL)</code></td><td>WHERE clause</td></tr>
+  <tr><td><code>OrderBy(aSQL)</code></td><td>Ordering</td></tr>
+  <tr><td><code>GroupBy(aSQL)</code></td><td>Grouping</td></tr>
+  <tr><td><code>Join(aSQL)</code></td><td>JOINs</td></tr>
+  <tr><td><code>Skip(n)</code></td><td>Skip N records (pagination)</td></tr>
+  <tr><td><code>Take(n)</code></td><td>Limit to N records (pagination)</td></tr>
+  <tr><td><code>Clear</code></td><td>Clears all filters</td></tr>
+  <tr><td><code>&amp;End</code></td><td>Returns to iSimpleDAO&lt;T&gt;</td></tr>
+</table>
+
+<h3>iSimpleQuery</h3>
+<table>
+  <tr><th>Method</th><th>Return</th><th>Description</th></tr>
+  <tr><td><code>SQL</code></td><td><code>TStrings</code></td><td>SQL text</td></tr>
+  <tr><td><code>Params</code></td><td><code>TParams</code></td><td>Query parameters</td></tr>
+  <tr><td><code>ExecSQL</code></td><td><code>iSimpleQuery</code></td><td>Executes INSERT/UPDATE/DELETE</td></tr>
+  <tr><td><code>DataSet</code></td><td><code>TDataSet</code></td><td>SELECT result</td></tr>
+  <tr><td><code>Open(aSQL)</code></td><td><code>iSimpleQuery</code></td><td>Sets SQL and opens</td></tr>
+  <tr><td><code>Open</code></td><td><code>iSimpleQuery</code></td><td>Opens with already set SQL</td></tr>
+  <tr><td><code>StartTransaction</code></td><td><code>iSimpleQuery</code></td><td>Starts transaction</td></tr>
+  <tr><td><code>Commit</code></td><td><code>iSimpleQuery</code></td><td>Commits transaction</td></tr>
+  <tr><td><code>Rollback</code></td><td><code>iSimpleQuery</code></td><td>Rolls back transaction</td></tr>
+  <tr><td><code>&amp;EndTransaction</code></td><td><code>iSimpleQuery</code></td><td>Alias for Commit</td></tr>
+  <tr><td><code>InTransaction</code></td><td><code>Boolean</code></td><td>True if transaction is active</td></tr>
+  <tr><td><code>SQLType</code></td><td><code>TSQLType</code></td><td>Database type</td></tr>
+</table>
+</section>
+
+<!-- ============================================ -->
+<section id="database-types">
+<h2>Database Types (TSQLType)</h2>
+
+<pre><code>TSQLType = (Firebird, MySQL, SQLite, Oracle);</code></pre>
+
+<p>Defined in <code>SimpleTypes.pas</code>. Affects SQL generation for pagination. The type is passed in the driver constructor:</p>
+
+<pre><code>// Firebird (default)
+TSimpleQueryFiredac.New(Conn);
+
+// MySQL
+TSimpleQueryFiredac.New(Conn, TSQLType.MySQL);
+
+// SQLite
+TSimpleQueryFiredac.New(Conn, TSQLType.SQLite);
+
+// Oracle
+TSimpleQueryFiredac.New(Conn, TSQLType.Oracle);</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="tests">
+<h2>Unit Tests (DUnit) <span class="badge badge-new">NEW</span></h2>
+
+<p>SimpleORM has a complete unit test suite using DUnit, covering attributes, RTTI helpers, SQL generation, validation and serialization.</p>
+
+<h3>Structure</h3>
+<pre><code>tests/
+  SimpleORMTests.dpr          -- Console test runner
+  Entities/
+    TestEntities.pas           -- Test entities decorated with attributes
+  TestSimpleAttributes.pas     -- Attribute tests (22 tests)
+  TestSimpleRTTIHelper.pas     -- RTTI helper tests (26 tests)
+  TestSimpleSQL.pas            -- SQL generation tests (20 tests)
+  TestSimpleValidator.pas      -- Validation tests (21 tests)
+  TestSimpleSerializer.pas     -- JSON serialization tests (10 tests)</code></pre>
+
+<h3>Running Tests</h3>
+<pre><code>// 1. Open tests/SimpleORMTests.dpr in Delphi IDE
+// 2. Compile (IDE generates .dproj and .res automatically)
+// 3. Run
+
+// With pause after execution:
+SimpleORMTests.exe -pause</code></pre>
+
+<h3>Test Coverage</h3>
+<table>
+<tr><th>Unit</th><th>Tests</th><th>Coverage</th></tr>
+<tr><td><code>SimpleAttributes</code></td><td>22</td><td>Constructors, properties, GetNumericMask, relationships</td></tr>
+<tr><td><code>SimpleRTTIHelper</code></td><td>26</td><td>IsNotNull, IsAutoInc, FieldName, DisplayName, EhChavePrimaria, SoftDelete, ValueHelper</td></tr>
+<tr><td><code>SimpleSQL</code></td><td>20</td><td>INSERT, UPDATE, DELETE, SELECT, pagination (Firebird/MySQL/SQLite/Oracle), SoftDelete</td></tr>
+<tr><td><code>SimpleValidator</code></td><td>21</td><td>NotNull, NotZero, Format, Email, MinValue, MaxValue, Regex, exception</td></tr>
+<tr><td><code>SimpleSerializer</code></td><td>10</td><td>EntityToJSON, JSONToEntity, lists, roundtrip, ignored fields</td></tr>
+</table>
+
+<h3>Adding New Tests</h3>
+<pre><code>unit TestSimpleNewFeature;
+
+interface
+
+uses
+  TestFramework;
+
+type
+  TTestNewFeature = class(TTestCase)
+  published
+    procedure TestScenario_ShouldPass;
+    procedure TestScenario_ShouldFail;
+  end;
+
+implementation
+
+procedure TTestNewFeature.TestScenario_ShouldPass;
+begin
+  CheckTrue(True, 'Test description');
+end;
+
+procedure TTestNewFeature.TestScenario_ShouldFail;
+begin
+  // test error scenario
+end;
+
+initialization
+  RegisterTest('NewFeature', TTestNewFeature.Suite);
+
+end.</code></pre>
+
+<div class="note">
+<strong>Rule:</strong> Every new feature implemented in SimpleORM MUST include DUnit unit tests. Add the test unit to the <code>uses</code> clause of <code>SimpleORMTests.dpr</code>.
+</div>
+</section>
+
+<!-- ============================================ -->
+<section id="ai-enrichment">
+<h2>AI Entity Enrichment <span class="badge badge-new">NEW</span></h2>
+<p>SimpleORM allows automatic entity enrichment with AI. Simply decorate properties with AI attributes and processing happens automatically during Insert/Update.</p>
+
+<h3>AI Attributes</h3>
+<table>
+  <thead>
+    <tr><th>Attribute</th><th>Parameters</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>AIGenerated</td><td>promptTemplate: String</td><td>Generates content via LLM. Template supports {PropertyName} for interpolation</td></tr>
+    <tr><td>AISummarize</td><td>sourceProperty: String, maxLength: Integer</td><td>Summarizes content from another property</td></tr>
+    <tr><td>AITranslate</td><td>sourceProperty: String, targetLanguage: String</td><td>Translates content from another property</td></tr>
+    <tr><td>AIClassify</td><td>sourceProperty: String, categories: String</td><td>Classifies content into comma-separated categories</td></tr>
+    <tr><td>AIValidate</td><td>rule: String, errorMessage: String</td><td>Validates content against a rule. Raises exception if invalid</td></tr>
+  </tbody>
+</table>
+
+<h3>Entity example with AI attributes</h3>
+<pre><code>[Tabela('PRODUTOS')]
+TProduto = class
+published
+  [Campo('NOME')]
+  property NOME: String read FNOME write SetNOME;
+
+  [Campo('DESCRICAO')]
+  property DESCRICAO: String read FDESCRICAO write SetDESCRICAO;
+
+  [Campo('RESUMO'), AISummarize('DESCRICAO', 100)]
+  property RESUMO: String read FRESUMO write SetRESUMO;
+
+  [Campo('CATEGORIA'), AIClassify('DESCRICAO', 'Electronics,Clothing,Food')]
+  property CATEGORIA: String read FCATEGORIA write SetCATEGORIA;
+
+  [Campo('DESCRICAO_EN'), AITranslate('DESCRICAO', 'English')]
+  property DESCRICAO_EN: String read FDESCRICAO_EN write SetDESCRICAO_EN;
+
+  [Campo('SLOGAN'), AIGenerated('Create a slogan for {NOME}')]
+  property SLOGAN: String read FSLOGAN write SetSLOGAN;
+end;</code></pre>
+
+<h3>Usage with TSimpleDAO (automatic)</h3>
+<pre><code>// Configure AI client on DAO
+DAOProduto := TSimpleDAO&lt;TProduto&gt;
+  .New(Conn)
+  .AIClient(TSimpleAIClient.New('claude', 'your-api-key'));
+
+// AI processes AUTOMATICALLY before Insert/Update
+DAOProduto.Insert(Produto);
+// Properties with AI attributes are filled by the LLM!</code></pre>
+
+<h3>Direct Processor usage</h3>
+<pre><code>LAIClient := TSimpleAIClient.New('claude', 'your-api-key');
+LProcessor := TSimpleAIProcessor.New(LAIClient);
+try
+  LProcessor.Process(Produto);
+  // AI properties have been filled
+finally
+  FreeAndNil(LProcessor);
+end;</code></pre>
+
+<h3>Supported providers</h3>
+<table>
+  <thead>
+    <tr><th>Provider</th><th>Default model</th><th>Usage</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>claude</td><td>claude-sonnet-4-20250514</td><td>TSimpleAIClient.New('claude', 'api-key')</td></tr>
+    <tr><td>openai</td><td>gpt-4o-mini</td><td>TSimpleAIClient.New('openai', 'api-key')</td></tr>
+  </tbody>
+</table>
+
+<p class="note">The AI client is optional. If not configured via <code>AIClient()</code>, the DAO works normally without AI processing.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="ai-query">
+<h2>AI Query <span class="badge badge-new">NEW</span></h2>
+<p>SimpleORM allows querying the database in natural language, automatically translating to SQL via LLM.</p>
+
+<h3>Methods</h3>
+<table>
+  <thead>
+    <tr><th>Method</th><th>Input</th><th>Output</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>NaturalLanguageQuery</td><td>question: String</td><td>TDataSet</td><td>Translates to SQL, executes, returns result</td></tr>
+    <tr><td>AskQuestion</td><td>question: String</td><td>String</td><td>Translates, executes, LLM responds in natural language</td></tr>
+    <tr><td>ExplainQuery</td><td>sql: String</td><td>String</td><td>Explains SQL in natural language</td></tr>
+    <tr><td>SuggestQuery</td><td>objective: String</td><td>String</td><td>Suggests SQL based on objective</td></tr>
+  </tbody>
+</table>
+
+<h3>Usage example</h3>
+<pre><code>AIQuery := TSimpleAIQuery.New(Query, AIClient);
+AIQuery
+  .RegisterEntity&lt;TCliente&gt;
+  .RegisterEntity&lt;TPedido&gt;
+  .RegisterEntity&lt;TProduto&gt;;
+
+// Natural language question - returns TDataSet
+LDataSet := AIQuery.NaturalLanguageQuery('Top 5 customers by purchase value in 2025');
+
+// Natural text response
+LResponse := AIQuery.AskQuestion('What is the average ticket?');
+
+// Explain existing SQL
+LExplanation := AIQuery.ExplainQuery('SELECT AVG(VALOR) FROM PEDIDOS');
+
+// Suggest SQL for an objective
+LSQL := AIQuery.SuggestQuery('Inactive customers for more than 90 days');</code></pre>
+
+<h3>Security</h3>
+<p class="warning">For security, only SELECT SQL is allowed. Keywords like INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, EXEC, GRANT and REVOKE are automatically blocked. Semicolons are also blocked to prevent multi-statement injection.</p>
+
+<h3>Result limiting</h3>
+<pre><code>// Limit to 50 results (default: 100)
+AIQuery.MaxRows(50);
+
+// Pagination is applied automatically based on database type:
+// Firebird: SELECT FIRST N ...
+// MySQL/SQLite: ... LIMIT N
+// Oracle: ... FETCH NEXT N ROWS ONLY</code></pre>
+</section>
+
+<!-- ============================================ -->
+<section id="mcp-server">
+<h2>MCP Server (AI Integration) <span class="badge badge-new">NEW</span></h2>
+
+<p>SimpleORM includes a built-in MCP (Model Context Protocol) server that allows AI assistants like Claude and Cursor to interact directly with your application's database, with granular permissions and security.</p>
+
+<pre><code>uses SimpleMCPServer, SimpleMCPTypes;
+
+Server := TSimpleMCPServer.New;
+Server
+  .RegisterEntity&lt;TUsuario&gt;(Query, [mcpRead, mcpInsert, mcpUpdate])
+  .RegisterEntity&lt;TProduto&gt;(Query, [mcpRead, mcpCount])
+  .EnableRawQuery(Query)
+  .StartStdio;  // or .Token('secret').StartHttp(9000)</code></pre>
+
+<h3>Features</h3>
+<ul>
+  <li>Automatically generates MCP tools from registered entities (query, get, insert, update, delete, count, describe, ddl)</li>
+  <li>Granular permissions: <code>mcpRead</code>, <code>mcpInsert</code>, <code>mcpUpdate</code>, <code>mcpDelete</code>, <code>mcpCount</code>, <code>mcpDDL</code></li>
+  <li>Two transports: stdio (local) and HTTP via Horse (remote with Bearer token)</li>
+  <li>Read-only raw SQL with injection protection</li>
+  <li>Validation via SimpleValidator on insert/update</li>
+</ul>
+
+<p><strong><a href="mcp-server.html">Complete MCP Server documentation &rarr;</a></strong></p>
+</section>
+
+<!-- ============================================ -->
+<section id="rules">
+  <h2>Rules <span class="badge badge-new">NEW</span></h2>
+  <p>Declarative rules on the entity that execute automatically during CRUD. Can be deterministic (Delphi expressions) or intelligent (via AI).</p>
+
+  <h3>Attributes</h3>
+  <table>
+    <thead>
+      <tr><th>Attribute</th><th>Parameters</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Rule</td><td>expression, action, message</td><td>Deterministic rule evaluated against entity properties</td></tr>
+      <tr><td>AIRule</td><td>description, action</td><td>Intelligent rule evaluated by the LLM</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Example</h3>
+  <pre><code>[Tabela('PEDIDOS')]
+[Rule('VALOR &gt; 0', raBeforeInsert, 'Value must be positive')]
+[Rule('STATUS &lt;&gt; ''CANCELADO''', raBeforeUpdate, 'Cancelled order cannot be modified')]
+[AIRule('Verify if the address is valid', raBeforeInsert)]
+TPedido = class
+published
+  [Campo('VALOR')]
+  property VALOR: Currency;
+  [Campo('STATUS')]
+  property STATUS: String;
+end;</code></pre>
+
+  <p class="note">Rules are automatically detected via RTTI. No configuration on the DAO is required.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="skills">
+  <h2>Skills <span class="badge badge-new">NEW</span></h2>
+  <p>Reusable plugins that connect to the DAO via fluent API. Execute before or after CRUD operations.</p>
+
+  <h3>Built-in Skills</h3>
+  <table>
+    <thead>
+      <tr><th>Skill</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TSkillLog</td><td>Logs operations with entity details</td></tr>
+      <tr><td>TSkillNotify</td><td>Fires callback after operation</td></tr>
+      <tr><td>TSkillAudit</td><td>Writes audit record to database table</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Usage</h3>
+  <pre><code>DAOPedido := TSimpleDAO&lt;TPedido&gt;
+  .New(Conn)
+  .Skill(TSkillLog.New('app', srAfterInsert))
+  .Skill(TSkillAudit.New('AUDIT_LOG', srAfterInsert))
+  .Skill(TSkillNotify.New(
+    procedure(aObj: TObject)
+    begin
+      Writeln('Order inserted!');
+    end, srAfterInsert));
+
+DAOPedido.Insert(Pedido);</code></pre>
+
+  <h3>Creating a custom skill</h3>
+  <pre><code>TSkillSendEmail = class(TInterfacedObject, iSimpleSkill)
+  function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+  function Name: String;
+  function RunAt: TSkillRunAt;
+end;</code></pre>
+
+  <p class="note">Skills are optional. If no skill is registered, the DAO works normally.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="agents">
+  <h2>Agents <span class="badge badge-new">NEW</span></h2>
+  <p>Orchestrators that combine Rules, Skills and CRUD operations. Reactive mode (responds to events) and proactive mode (natural language via AI).</p>
+
+  <h3>Reactive Mode</h3>
+  <pre><code>LAgent := TSimpleAgent.New;
+LAgent.When(TPedido, aoAfterInsert)
+  .Condition(function(aEntity: TObject): Boolean
+    begin
+      Result := TPedido(aEntity).VALOR &gt; 5000;
+    end)
+  .Execute(TSkillSendEmail.New('manager@company.com'))
+  .Execute(TSkillLog.New('high-value'));
+
+DAOPedido := TSimpleDAO&lt;TPedido&gt;.New(Conn).Agent(LAgent);
+DAOPedido.Insert(Pedido); // Agent reacts automatically</code></pre>
+
+  <h3>Proactive Mode</h3>
+  <pre><code>LAgent := TSimpleAgent.New(Conn, AIClient);
+LAgent.RegisterEntity&lt;TPedido&gt;.RegisterEntity&lt;TCliente&gt;;
+
+// Plan before executing (SafeMode)
+LPlan := LAgent.Plan('List pending orders from today');
+Writeln(LPlan.Description);
+Writeln(LPlan.Risk); // LOW, MEDIUM or HIGH
+LPlan.Execute;</code></pre>
+
+  <p class="warning">Proactive mode requires SafeMode (default: True). Use Plan() to inspect before Execute().</p>
+</section>
+
+<footer>
+  <p>SimpleORM &mdash; <a href="https://github.com/academiadocodigo/SimpleORM">github.com/academiadocodigo/SimpleORM</a></p>
+  <p>Documentation generated on 2026-03-10. Updated with every new feature.</p>
+  <p><a href="https://t.me/joinchat/Tv8fVFe_hdz0rJwq">Telegram Group</a></p>
+</footer>
+
+</div>
+</body>
+</html>
