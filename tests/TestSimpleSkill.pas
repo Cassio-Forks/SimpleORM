@@ -36,7 +36,18 @@ type
     procedure TestContext_ReturnsValues;
   end;
 
+  TTestSkillTimestamp = class(TTestCase)
+  published
+    procedure TestTimestamp_SetsPropertyValue;
+    procedure TestTimestamp_IgnoresMissingProperty;
+    procedure TestTimestamp_Name;
+    procedure TestTimestamp_RunAt;
+  end;
+
 implementation
+
+uses
+  TestEntities;
 
 { TTestSkillRunner }
 
@@ -197,10 +208,64 @@ begin
   CheckNull(LContext.AIClient, 'AIClient should be nil');
 end;
 
+{ TTestSkillTimestamp }
+
+procedure TTestSkillTimestamp.TestTimestamp_SetsPropertyValue;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TTestTimestampEntity;
+begin
+  LEntity := TTestTimestampEntity.Create;
+  try
+    LSkill := TSkillTimestamp.New('DataCriacao', srBeforeInsert);
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'ENTITY_TIMESTAMPS', 'INSERT');
+    CheckEquals(0, LEntity.DataCriacao, 'Should start at zero');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(LEntity.DataCriacao > 0, 'Should have set datetime value');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillTimestamp.TestTimestamp_IgnoresMissingProperty;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TTestTimestampEntity;
+begin
+  LEntity := TTestTimestampEntity.Create;
+  try
+    LSkill := TSkillTimestamp.New('CAMPO_INEXISTENTE', srBeforeInsert);
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Should not raise error for missing property');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillTimestamp.TestTimestamp_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillTimestamp.New('DataCriacao');
+  CheckEquals('timestamp', LSkill.Name, 'Should return timestamp');
+end;
+
+procedure TTestSkillTimestamp.TestTimestamp_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillTimestamp.New('DataAtualizacao', srBeforeUpdate);
+  CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
   RegisterTest('Skills', TTestSkillNotify.Suite);
   RegisterTest('Skills', TTestSkillContext.Suite);
+  RegisterTest('Skills', TTestSkillTimestamp.Suite);
 
 end.

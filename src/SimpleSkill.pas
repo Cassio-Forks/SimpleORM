@@ -88,6 +88,20 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { Built-in: TSkillTimestamp }
+  TSkillTimestamp = class(TInterfacedObject, iSimpleSkill)
+  private
+    FFieldName: String;
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(const aFieldName: String; aRunAt: TSkillRunAt = srBeforeInsert);
+    destructor Destroy; override;
+    class function New(const aFieldName: String; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
 implementation
 
 { TSimpleSkillContext }
@@ -319,6 +333,51 @@ begin
 end;
 
 function TSkillAudit.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+{ TSkillTimestamp }
+
+constructor TSkillTimestamp.Create(const aFieldName: String; aRunAt: TSkillRunAt);
+begin
+  FFieldName := aFieldName;
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillTimestamp.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillTimestamp.New(const aFieldName: String; aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aFieldName, aRunAt);
+end;
+
+function TSkillTimestamp.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LContext: TRttiContext;
+  LType: TRttiType;
+  LProp: TRttiProperty;
+begin
+  Result := Self;
+  if aEntity = nil then
+    Exit;
+
+  LContext := TRttiContext.Create;
+  LType := LContext.GetType(aEntity.ClassType);
+  LProp := LType.GetProperty(FFieldName);
+  if LProp <> nil then
+    LProp.SetValue(aEntity, TValue.From<TDateTime>(Now));
+end;
+
+function TSkillTimestamp.Name: String;
+begin
+  Result := 'timestamp';
+end;
+
+function TSkillTimestamp.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
 end;
