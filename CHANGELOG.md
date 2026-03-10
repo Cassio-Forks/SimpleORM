@@ -8,7 +8,7 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 
 ---
 
-## [Unreleased]
+## [3.04.00] - 2026-03-10
 
 ### Added
 - **Rule** - Atributo declarativo para regras de negocio deterministicas na entidade (SimpleRules.pas)
