@@ -85,6 +85,23 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { AI Skill: TSkillAIModerate }
+  TSkillAIModerate = class(TInterfacedObject, iSimpleSkill)
+  private
+    FField: String;
+    FPolicy: String;
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(const aField: String;
+      const aPolicy: String = ''; aRunAt: TSkillRunAt = srBeforeInsert);
+    destructor Destroy; override;
+    class function New(const aField: String;
+      const aPolicy: String = ''; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
 implementation
 
 { TSkillAIEnrich }
@@ -355,6 +372,85 @@ begin
 end;
 
 function TSkillAITags.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+{ TSkillAIModerate }
+
+constructor TSkillAIModerate.Create(const aField: String;
+  const aPolicy: String; aRunAt: TSkillRunAt);
+begin
+  FField := aField;
+  FPolicy := aPolicy;
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillAIModerate.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillAIModerate.New(const aField: String;
+  const aPolicy: String; aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aField, aPolicy, aRunAt);
+end;
+
+function TSkillAIModerate.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LContext: TRttiContext;
+  LType: TRttiType;
+  LProp: TRttiProperty;
+  LContent: String;
+  LPrompt: String;
+  LResponse: String;
+begin
+  Result := Self;
+  if aContext.AIClient = nil then
+    raise ESimpleAIModeration.Create('AIClient is required for content moderation');
+
+  if aEntity = nil then
+    Exit;
+
+  LContext := TRttiContext.Create;
+  LType := LContext.GetType(aEntity.ClassType);
+  LProp := LType.GetProperty(FField);
+  if LProp = nil then
+    Exit;
+
+  LContent := LProp.GetValue(aEntity).AsString;
+  if LContent = '' then
+    Exit;
+
+  if FPolicy <> '' then
+    LPrompt := 'Analyze the following content and determine if it violates this policy: ' +
+      FPolicy + sLineBreak + sLineBreak +
+      'Content: ' + LContent + sLineBreak + sLineBreak +
+      'Respond with exactly APPROVED if the content is acceptable, or REJECTED: reason if it violates the policy.'
+  else
+    LPrompt := 'Analyze the following content for offensive, inappropriate, or harmful material.' +
+      sLineBreak + sLineBreak +
+      'Content: ' + LContent + sLineBreak + sLineBreak +
+      'Respond with exactly APPROVED if the content is acceptable, or REJECTED: reason if it contains problematic content.';
+
+  LResponse := aContext.AIClient.Complete(LPrompt);
+
+  if LResponse.StartsWith('REJECTED') then
+  begin
+    if Pos(':', LResponse) > 0 then
+      raise ESimpleAIModeration.Create(Trim(Copy(LResponse, Pos(':', LResponse) + 1, MaxInt)))
+    else
+      raise ESimpleAIModeration.Create('Content rejected by moderation');
+  end;
+end;
+
+function TSkillAIModerate.Name: String;
+begin
+  Result := 'ai-moderate';
+end;
+
+function TSkillAIModerate.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
 end;

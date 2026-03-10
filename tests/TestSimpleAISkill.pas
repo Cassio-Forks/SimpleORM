@@ -51,6 +51,18 @@ type
     procedure TestTags_NilAIClient_NoError;
   end;
 
+  TTestSkillAIModerate = class(TTestCase)
+  published
+    procedure TestModerate_Name;
+    procedure TestModerate_RunAt;
+    procedure TestModerate_Approved_NoError;
+    procedure TestModerate_Rejected_RaisesException;
+    procedure TestModerate_NilAIClient_RaisesException;
+    procedure TestModerate_EmptyField_NoAction;
+    procedure TestModerate_NilEntity_NoError;
+    procedure TestModerate_WithPolicy_IncludesInPrompt;
+  end;
+
 implementation
 
 uses
@@ -425,10 +437,150 @@ begin
   end;
 end;
 
+{ TTestSkillAIModerate }
+
+procedure TTestSkillAIModerate.TestModerate_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAIModerate.New('TEXTO');
+  CheckEquals('ai-moderate', LSkill.Name, 'Should return ai-moderate');
+end;
+
+procedure TTestSkillAIModerate.TestModerate_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAIModerate.New('TEXTO', '', srBeforeUpdate);
+  CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
+end;
+
+procedure TTestSkillAIModerate.TestModerate_Approved_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Conteudo normal e aceitavel';
+    LSkill := TSkillAIModerate.New('TEXTO');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('APPROVED'), nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'APPROVED should not raise exception');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAIModerate.TestModerate_Rejected_RaisesException;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+  LRaised: Boolean;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Conteudo ofensivo';
+    LSkill := TSkillAIModerate.New('TEXTO');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('REJECTED: conteudo inapropriado'), nil, 'ARTIGO', 'INSERT');
+    LRaised := False;
+    try
+      LSkill.Execute(LEntity, LContext);
+    except
+      on E: ESimpleAIModeration do
+      begin
+        LRaised := True;
+        CheckTrue(Pos('inapropriado', E.Message) > 0,
+          'Should contain rejection reason: ' + E.Message);
+      end;
+    end;
+    CheckTrue(LRaised, 'REJECTED should raise ESimpleAIModeration');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAIModerate.TestModerate_NilAIClient_RaisesException;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LRaised: Boolean;
+begin
+  LSkill := TSkillAIModerate.New('TEXTO');
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'ARTIGO', 'INSERT');
+  LRaised := False;
+  try
+    LSkill.Execute(nil, LContext);
+  except
+    on E: ESimpleAIModeration do
+      LRaised := True;
+  end;
+  CheckTrue(LRaised, 'Nil AIClient should raise ESimpleAIModeration');
+end;
+
+procedure TTestSkillAIModerate.TestModerate_EmptyField_NoAction;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := '';
+    LSkill := TSkillAIModerate.New('TEXTO');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('REJECTED: should not check'), nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Empty field should skip moderation');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAIModerate.TestModerate_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillAIModerate.New('TEXTO');
+  LContext := TSimpleSkillContext.New(nil,
+    TSimpleAIMockClient.New('APPROVED'), nil, 'ARTIGO', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Nil entity should not raise error');
+end;
+
+procedure TTestSkillAIModerate.TestModerate_WithPolicy_IncludesInPrompt;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+  LMock: TSimpleAIMockClient;
+  LAIClient: iSimpleAIClient;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Conteudo para moderar';
+    LMock := TSimpleAIMockClient.Create('APPROVED');
+    LAIClient := LMock;
+    LSkill := TSkillAIModerate.New('TEXTO', 'Sem spam ou propaganda');
+    LContext := TSimpleSkillContext.New(nil, LAIClient, nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(Pos('Sem spam ou propaganda', LMock.LastPrompt) > 0,
+      'Prompt should contain policy: ' + LMock.LastPrompt);
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('AISkills', TTestSkillAIEnrich.Suite);
   RegisterTest('AISkills', TTestSkillAITranslate.Suite);
   RegisterTest('AISkills', TTestSkillAISummarize.Suite);
   RegisterTest('AISkills', TTestSkillAITags.Suite);
+  RegisterTest('AISkills', TTestSkillAIModerate.Suite);
 
 end.
