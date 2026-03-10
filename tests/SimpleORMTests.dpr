@@ -47,7 +47,9 @@ uses
   SimpleSupabaseAuth in '..\src\SimpleSupabaseAuth.pas',
   TestSimpleSupabaseAuth in 'TestSimpleSupabaseAuth.pas',
   SimpleSupabaseRealtime in '..\src\SimpleSupabaseRealtime.pas',
-  TestSimpleSupabaseRealtime in 'TestSimpleSupabaseRealtime.pas';
+  TestSimpleSupabaseRealtime in 'TestSimpleSupabaseRealtime.pas',
+  SimpleDataMigration in '..\src\SimpleDataMigration.pas',
+  TestSimpleDataMigration in 'TestSimpleDataMigration.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
