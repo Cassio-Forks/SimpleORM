@@ -18,7 +18,6 @@ type
     FToken: string;
 
     { JSON/DataSet conversion helpers }
-    function ParamsToJSON: string;
     procedure JSONToDataSet(const aJSON: string);
     procedure JSONArrayToDataSet(aArray: TJSONArray);
     procedure JSONObjectToDataSet(aObj: TJSONObject);
@@ -37,7 +36,9 @@ type
     function ExtractWhereFilters(const aSQL: string): string;
     function ExtractPagination(const aSQL: string; out aSkip, aTake: Integer): Boolean;
     function ExtractUpdateFields(const aSQL: string): TArray<string>;
-    function BuildSupabaseURL(const aTableName, aOperation: string): string;
+    function BuildSupabaseURL(const aTableName: string): string;
+    function ParamsToJSON: string; overload;
+    function ParamsToJSON(const aFields: TArray<string>): string; overload;
   public
     constructor Create(aBaseURL, aAPIKey: string); overload;
     constructor Create(aBaseURL, aAPIKey, aToken: string); overload;
@@ -127,11 +128,11 @@ begin
   try
     LOp := DetectOperation(FSQL.Text);
     LTableName := ExtractTableName(FSQL.Text);
-    LURL := BuildSupabaseURL(LTableName, LOp);
+    LURL := BuildSupabaseURL(LTableName);
 
     if SameText(LOp, 'INSERT') then
     begin
-      LBody := ParamsToJSON;
+      LBody := ParamsToJSON(ExtractInsertFields(FSQL.Text));
       DoHTTPRequest('POST', LURL, LBody);
     end
     else if SameText(LOp, 'UPDATE') then
@@ -139,7 +140,7 @@ begin
       LFilters := ExtractWhereFilters(FSQL.Text);
       if LFilters <> '' then
         LURL := LURL + '?' + LFilters;
-      LBody := ParamsToJSON;
+      LBody := ParamsToJSON(ExtractUpdateFields(FSQL.Text));
       DoHTTPRequest('PATCH', LURL, LBody);
     end
     else if SameText(LOp, 'DELETE') then
@@ -170,7 +171,7 @@ var
 begin
   Result := Self;
   LTableName := ExtractTableName(FSQL.Text);
-  LURL := BuildSupabaseURL(LTableName, 'SELECT');
+  LURL := BuildSupabaseURL(LTableName);
   LHasParams := False;
 
   LSelect := ExtractSelectFields(FSQL.Text);
@@ -494,8 +495,9 @@ begin
   if LWherePart = '' then
     Exit;
 
-  { Split by AND }
-  LConditions := LWherePart.Split(['AND'], TStringSplitOptions.ExcludeEmpty);
+  { Split by AND (case insensitive) }
+  LWherePart := StringReplace(LWherePart, ' AND ', '|AND|', [rfReplaceAll, rfIgnoreCase]);
+  LConditions := LWherePart.Split(['|AND|'], TStringSplitOptions.ExcludeEmpty);
   LFilters := TStringList.Create;
   try
     for I := 0 to High(LConditions) do
@@ -625,16 +627,39 @@ end;
 { JSON/DataSet conversion helpers }
 
 function TSimpleQuerySupabase.ParamsToJSON: string;
+begin
+  Result := ParamsToJSON(nil);
+end;
+
+function TSimpleQuerySupabase.ParamsToJSON(const aFields: TArray<string>): string;
 var
   LObj: TJSONObject;
-  I: Integer;
+  I, J: Integer;
   LParam: TParam;
+  LInclude: Boolean;
 begin
   LObj := TJSONObject.Create;
   try
     for I := 0 to FParams.Count - 1 do
     begin
       LParam := FParams[I];
+
+      { If field filter provided, only include params matching a field name }
+      if Length(aFields) > 0 then
+      begin
+        LInclude := False;
+        for J := 0 to High(aFields) do
+        begin
+          if SameText(LParam.Name, aFields[J]) then
+          begin
+            LInclude := True;
+            Break;
+          end;
+        end;
+        if not LInclude then
+          Continue;
+      end;
+
       if VarIsNull(LParam.Value) or VarIsEmpty(LParam.Value) then
         LObj.AddPair(LParam.Name.ToLower, TJSONNull.Create)
       else
@@ -845,7 +870,7 @@ begin
   end;
 end;
 
-function TSimpleQuerySupabase.BuildSupabaseURL(const aTableName, aOperation: string): string;
+function TSimpleQuerySupabase.BuildSupabaseURL(const aTableName: string): string;
 begin
   Result := FBaseURL + '/rest/v1/' + aTableName.ToLower;
 end;

@@ -17,7 +17,10 @@ type
     function TestExtractSelectFields(const aSQL: string): string;
     function TestExtractPagination(const aSQL: string; out aSkip, aTake: Integer): Boolean;
     function TestExtractUpdateFields(const aSQL: string): TArray<string>;
-    function TestBuildSupabaseURL(const aTableName, aOperation: string): string;
+    function TestBuildSupabaseURL(const aTableName: string): string;
+    function TestExtractWhereFilters(const aSQL: string): string;
+    function TestParamsToJSON: string; overload;
+    function TestParamsToJSON(const aFields: TArray<string>): string; overload;
   end;
 
   { Test Class 1: SQL Parser tests }
@@ -46,6 +49,12 @@ type
     procedure TestBuildSupabaseURL;
     procedure TestExtractPKFieldName_WithWhere;
     procedure TestExtractPKFieldName_NoWhere;
+    procedure TestExtractWhereFilters_SingleCondition;
+    procedure TestExtractWhereFilters_NoWhere;
+    procedure TestExtractWhereFilters_MultipleConditions;
+    procedure TestParamsToJSON_StringValue;
+    procedure TestParamsToJSON_IntegerValue;
+    procedure TestParamsToJSON_WithFieldFilter;
   end;
 
   { Test Class 2: iSimpleQuery contract tests }
@@ -118,9 +127,24 @@ begin
   Result := ExtractUpdateFields(aSQL);
 end;
 
-function TSimpleQuerySupabaseTestable.TestBuildSupabaseURL(const aTableName, aOperation: string): string;
+function TSimpleQuerySupabaseTestable.TestBuildSupabaseURL(const aTableName: string): string;
 begin
-  Result := BuildSupabaseURL(aTableName, aOperation);
+  Result := BuildSupabaseURL(aTableName);
+end;
+
+function TSimpleQuerySupabaseTestable.TestExtractWhereFilters(const aSQL: string): string;
+begin
+  Result := ExtractWhereFilters(aSQL);
+end;
+
+function TSimpleQuerySupabaseTestable.TestParamsToJSON: string;
+begin
+  Result := ParamsToJSON;
+end;
+
+function TSimpleQuerySupabaseTestable.TestParamsToJSON(const aFields: TArray<string>): string;
+begin
+  Result := ParamsToJSON(aFields);
 end;
 
 { TTestQuerySupabaseSQLParser }
@@ -257,7 +281,7 @@ procedure TTestQuerySupabaseSQLParser.TestBuildSupabaseURL;
 var
   LURL: string;
 begin
-  LURL := FQuery.TestBuildSupabaseURL('PRODUTO', 'SELECT');
+  LURL := FQuery.TestBuildSupabaseURL('PRODUTO');
   CheckTrue(Pos('/rest/v1/produto', LURL) > 0, 'URL deve conter /rest/v1/produto: ' + LURL);
   CheckTrue(LURL.StartsWith('https://example.supabase.co'), 'URL deve comecar com base URL: ' + LURL);
 end;
@@ -272,6 +296,106 @@ procedure TTestQuerySupabaseSQLParser.TestExtractPKFieldName_NoWhere;
 begin
   CheckEquals('', FQuery.TestExtractPKFieldName('SELECT * FROM PRODUTO'),
     'Deve retornar vazio sem WHERE');
+end;
+
+procedure TTestQuerySupabaseSQLParser.TestExtractWhereFilters_SingleCondition;
+var
+  LResult: string;
+  LParam: TParam;
+begin
+  LParam := FQuery.Params.AddParameter;
+  LParam.Name := 'ID';
+  LParam.DataType := ftInteger;
+  LParam.Value := 42;
+
+  LResult := FQuery.TestExtractWhereFilters('DELETE FROM PRODUTO WHERE ID = :ID');
+  CheckTrue(Pos('id=eq.42', LResult) > 0, 'Deve gerar filtro id=eq.42: ' + LResult);
+end;
+
+procedure TTestQuerySupabaseSQLParser.TestExtractWhereFilters_NoWhere;
+var
+  LResult: string;
+begin
+  LResult := FQuery.TestExtractWhereFilters('SELECT * FROM PRODUTO');
+  CheckEquals('', LResult, 'Deve retornar vazio sem WHERE');
+end;
+
+procedure TTestQuerySupabaseSQLParser.TestExtractWhereFilters_MultipleConditions;
+var
+  LResult: string;
+  LParam: TParam;
+begin
+  LParam := FQuery.Params.AddParameter;
+  LParam.Name := 'NOME';
+  LParam.DataType := ftString;
+  LParam.Value := 'Teste';
+
+  LParam := FQuery.Params.AddParameter;
+  LParam.Name := 'ATIVO';
+  LParam.DataType := ftInteger;
+  LParam.Value := 1;
+
+  LResult := FQuery.TestExtractWhereFilters('SELECT * FROM PRODUTO WHERE NOME = :NOME and ATIVO = :ATIVO');
+  CheckTrue(Pos('nome=eq.Teste', LResult) > 0, 'Deve conter filtro nome: ' + LResult);
+  CheckTrue(Pos('ativo=eq.1', LResult) > 0, 'Deve conter filtro ativo: ' + LResult);
+end;
+
+procedure TTestQuerySupabaseSQLParser.TestParamsToJSON_StringValue;
+var
+  LResult: string;
+  LParam: TParam;
+begin
+  LParam := FQuery.Params.AddParameter;
+  LParam.Name := 'NOME';
+  LParam.DataType := ftString;
+  LParam.Value := 'Produto Teste';
+
+  LResult := FQuery.TestParamsToJSON;
+  CheckTrue(Pos('"nome"', LResult) > 0, 'JSON deve conter chave nome: ' + LResult);
+  CheckTrue(Pos('Produto Teste', LResult) > 0, 'JSON deve conter valor: ' + LResult);
+end;
+
+procedure TTestQuerySupabaseSQLParser.TestParamsToJSON_IntegerValue;
+var
+  LResult: string;
+  LParam: TParam;
+begin
+  LParam := FQuery.Params.AddParameter;
+  LParam.Name := 'ID';
+  LParam.DataType := ftInteger;
+  LParam.Value := 99;
+
+  LResult := FQuery.TestParamsToJSON;
+  CheckTrue(Pos('"id"', LResult) > 0, 'JSON deve conter chave id: ' + LResult);
+  CheckTrue(Pos('99', LResult) > 0, 'JSON deve conter valor 99: ' + LResult);
+end;
+
+procedure TTestQuerySupabaseSQLParser.TestParamsToJSON_WithFieldFilter;
+var
+  LResult: string;
+  LParam: TParam;
+  LFields: TArray<string>;
+begin
+  LParam := FQuery.Params.AddParameter;
+  LParam.Name := 'NOME';
+  LParam.DataType := ftString;
+  LParam.Value := 'Teste';
+
+  LParam := FQuery.Params.AddParameter;
+  LParam.Name := 'PRECO';
+  LParam.DataType := ftFloat;
+  LParam.Value := 10.5;
+
+  LParam := FQuery.Params.AddParameter;
+  LParam.Name := 'ID';
+  LParam.DataType := ftInteger;
+  LParam.Value := 1;
+
+  LFields := TArray<string>.Create('NOME', 'PRECO');
+  LResult := FQuery.TestParamsToJSON(LFields);
+  CheckTrue(Pos('"nome"', LResult) > 0, 'JSON deve conter nome: ' + LResult);
+  CheckTrue(Pos('"preco"', LResult) > 0, 'JSON deve conter preco: ' + LResult);
+  CheckFalse(Pos('"id"', LResult) > 0, 'JSON NAO deve conter id (filtrado): ' + LResult);
 end;
 
 { TTestQuerySupabaseContract }
