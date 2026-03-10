@@ -53,6 +53,7 @@ type
     procedure Add(aSkill: iSimpleSkill);
     procedure RunBefore(aEntity: TObject; aContext: iSimpleSkillContext; aRunAt: TSkillRunAt);
     procedure RunAfter(aEntity: TObject; aContext: iSimpleSkillContext; aRunAt: TSkillRunAt);
+    procedure RunOnError(aEntity: TObject; aContext: iSimpleSkillContext);
     function Count: Integer;
   end;
 
@@ -68,6 +69,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillNotify }
@@ -82,6 +84,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillAudit }
@@ -96,6 +99,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillTimestamp }
@@ -110,6 +114,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillHistory }
@@ -124,6 +129,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillValidate }
@@ -137,6 +143,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillWebhook }
@@ -154,6 +161,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillGuardDelete }
@@ -168,6 +176,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillCalcTotal }
@@ -187,6 +196,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillSequence }
@@ -202,6 +212,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillStockMove }
@@ -220,6 +231,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   { Built-in: TSkillDuplicate }
@@ -238,6 +250,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
 implementation
@@ -331,7 +344,7 @@ var
 begin
   for LSkill in FSkills do
   begin
-    if LSkill.RunAt = aRunAt then
+    if (LSkill.RunAt = aRunAt) and (LSkill.RunMode = srmNormal) then
       LSkill.Execute(aEntity, aContext);
   end;
 end;
@@ -342,7 +355,18 @@ var
 begin
   for LSkill in FSkills do
   begin
-    if LSkill.RunAt = aRunAt then
+    if (LSkill.RunAt = aRunAt) and (LSkill.RunMode = srmNormal) then
+      LSkill.Execute(aEntity, aContext);
+  end;
+end;
+
+procedure TSimpleSkillRunner.RunOnError(aEntity: TObject; aContext: iSimpleSkillContext);
+var
+  LSkill: iSimpleSkill;
+begin
+  for LSkill in FSkills do
+  begin
+    if LSkill.RunMode = srmOnError then
       LSkill.Execute(aEntity, aContext);
   end;
 end;
@@ -405,6 +429,11 @@ begin
   Result := FRunAt;
 end;
 
+function TSkillLog.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
+end;
+
 { TSkillNotify }
 
 constructor TSkillNotify.Create(aCallback: TProc<TObject>; aRunAt: TSkillRunAt);
@@ -438,6 +467,11 @@ end;
 function TSkillNotify.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
+end;
+
+function TSkillNotify.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
 end;
 
 { TSkillAudit }
@@ -487,6 +521,11 @@ begin
   Result := FRunAt;
 end;
 
+function TSkillAudit.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
+end;
+
 { TSkillTimestamp }
 
 constructor TSkillTimestamp.Create(const aFieldName: String; aRunAt: TSkillRunAt);
@@ -530,6 +569,11 @@ end;
 function TSkillTimestamp.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
+end;
+
+function TSkillTimestamp.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
 end;
 
 { TSkillGuardDelete }
@@ -594,6 +638,11 @@ end;
 function TSkillGuardDelete.RunAt: TSkillRunAt;
 begin
   Result := srBeforeDelete;
+end;
+
+function TSkillGuardDelete.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
 end;
 
 { TSkillHistory }
@@ -684,6 +733,11 @@ begin
   Result := FRunAt;
 end;
 
+function TSkillHistory.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
+end;
+
 { TSkillValidate }
 
 constructor TSkillValidate.Create(aRunAt: TSkillRunAt);
@@ -718,6 +772,11 @@ end;
 function TSkillValidate.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
+end;
+
+function TSkillValidate.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
 end;
 
 { TSkillWebhook }
@@ -807,6 +866,11 @@ begin
   Result := FRunAt;
 end;
 
+function TSkillWebhook.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
+end;
+
 { TSkillCalcTotal }
 
 constructor TSkillCalcTotal.Create(const aTargetField, aQtyField, aPriceField: String;
@@ -874,6 +938,11 @@ end;
 function TSkillCalcTotal.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
+end;
+
+function TSkillCalcTotal.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
 end;
 
 { TSkillSequence }
@@ -961,6 +1030,11 @@ begin
   Result := srBeforeInsert;
 end;
 
+function TSkillSequence.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
+end;
+
 { TSkillStockMove }
 
 constructor TSkillStockMove.Create(const aMoveTable, aProductField, aQtyField: String;
@@ -1035,6 +1109,11 @@ end;
 function TSkillStockMove.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
+end;
+
+function TSkillStockMove.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
 end;
 
 { TSkillDuplicate }
@@ -1128,6 +1207,11 @@ end;
 function TSkillDuplicate.RunAt: TSkillRunAt;
 begin
   Result := srAfterInsert;
+end;
+
+function TSkillDuplicate.RunMode: TSkillRunMode;
+begin
+  Result := srmNormal;
 end;
 
 end.
