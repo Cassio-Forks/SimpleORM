@@ -95,6 +95,14 @@ type
     procedure TestCalcTotal_RunAt;
   end;
 
+  TTestSkillStockMove = class(TTestCase)
+  published
+    procedure TestStockMove_Name;
+    procedure TestStockMove_RunAt;
+    procedure TestStockMove_NilEntity_NoError;
+    procedure TestStockMove_NilQuery_NoError;
+  end;
+
 implementation
 
 uses
@@ -663,6 +671,53 @@ begin
   CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
 end;
 
+{ TTestSkillStockMove }
+
+procedure TTestSkillStockMove.TestStockMove_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillStockMove.New('MOV_ESTOQUE', 'PRODUTO_ID', 'QUANTIDADE');
+  CheckEquals('stock-move', LSkill.Name, 'Should return stock-move');
+end;
+
+procedure TTestSkillStockMove.TestStockMove_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillStockMove.New('MOV_ESTOQUE', 'PRODUTO_ID', 'QUANTIDADE', srAfterDelete);
+  CheckTrue(LSkill.RunAt = srAfterDelete, 'Should return configured RunAt');
+end;
+
+procedure TTestSkillStockMove.TestStockMove_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillStockMove.New('MOV_ESTOQUE', 'PRODUTO_ID', 'QUANTIDADE');
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'ITEM', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Should not raise error for nil entity');
+end;
+
+procedure TTestSkillStockMove.TestStockMove_NilQuery_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TItemCalcTest;
+begin
+  LEntity := TItemCalcTest.Create;
+  try
+    LEntity.QUANTIDADE := 10;
+    LSkill := TSkillStockMove.New('MOV_ESTOQUE', 'ID', 'QUANTIDADE');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'ITEM', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Should not raise error when query is nil');
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
@@ -675,5 +730,6 @@ initialization
   RegisterTest('Skills', TTestSkillWebhook.Suite);
   RegisterTest('Skills', TTestSkillSequence.Suite);
   RegisterTest('Skills', TTestSkillCalcTotal.Suite);
+  RegisterTest('Skills', TTestSkillStockMove.Suite);
 
 end.

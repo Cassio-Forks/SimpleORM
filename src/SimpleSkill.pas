@@ -200,6 +200,24 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { Built-in: TSkillStockMove }
+  TSkillStockMove = class(TInterfacedObject, iSimpleSkill)
+  private
+    FMoveTable: String;
+    FProductField: String;
+    FQtyField: String;
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(const aMoveTable, aProductField, aQtyField: String;
+      aRunAt: TSkillRunAt = srAfterInsert);
+    destructor Destroy; override;
+    class function New(const aMoveTable, aProductField, aQtyField: String;
+      aRunAt: TSkillRunAt = srAfterInsert): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
 implementation
 
 uses
@@ -911,6 +929,82 @@ end;
 function TSkillSequence.RunAt: TSkillRunAt;
 begin
   Result := srBeforeInsert;
+end;
+
+{ TSkillStockMove }
+
+constructor TSkillStockMove.Create(const aMoveTable, aProductField, aQtyField: String;
+  aRunAt: TSkillRunAt);
+begin
+  FMoveTable := aMoveTable;
+  FProductField := aProductField;
+  FQtyField := aQtyField;
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillStockMove.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillStockMove.New(const aMoveTable, aProductField, aQtyField: String;
+  aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aMoveTable, aProductField, aQtyField, aRunAt);
+end;
+
+function TSkillStockMove.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LContext: TRttiContext;
+  LType: TRttiType;
+  LProductProp, LQtyProp: TRttiProperty;
+  LProductId: Variant;
+  LQuantity: Double;
+  LTipo: String;
+  LSQL: String;
+begin
+  Result := Self;
+  if (aEntity = nil) or (aContext.Query = nil) then
+    Exit;
+
+  LContext := TRttiContext.Create;
+  LType := LContext.GetType(aEntity.ClassType);
+
+  LProductProp := LType.GetProperty(FProductField);
+  LQtyProp := LType.GetProperty(FQtyField);
+  if (LProductProp = nil) or (LQtyProp = nil) then
+    Exit;
+
+  LProductId := LProductProp.GetValue(aEntity).AsVariant;
+  LQuantity := Abs(LQtyProp.GetValue(aEntity).AsExtended);
+
+  if FRunAt in [srAfterDelete] then
+    LTipo := 'ENTRADA'
+  else
+    LTipo := 'SAIDA';
+
+  LSQL := 'INSERT INTO ' + FMoveTable +
+    ' (PRODUTO_ID, QUANTIDADE, TIPO, ENTITY_NAME, CREATED_AT)' +
+    ' VALUES (:pProdutoId, :pQuantidade, :pTipo, :pEntity, :pCreatedAt)';
+
+  aContext.Query.SQL.Clear;
+  aContext.Query.SQL.Add(LSQL);
+  aContext.Query.Params.ParamByName('pProdutoId').Value := LProductId;
+  aContext.Query.Params.ParamByName('pQuantidade').Value := LQuantity;
+  aContext.Query.Params.ParamByName('pTipo').Value := LTipo;
+  aContext.Query.Params.ParamByName('pEntity').Value := aContext.EntityName;
+  aContext.Query.Params.ParamByName('pCreatedAt').Value := Now;
+  aContext.Query.ExecSQL;
+end;
+
+function TSkillStockMove.Name: String;
+begin
+  Result := 'stock-move';
+end;
+
+function TSkillStockMove.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
 end;
 
 end.
