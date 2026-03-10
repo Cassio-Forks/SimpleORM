@@ -103,6 +103,15 @@ type
     procedure TestStockMove_NilQuery_NoError;
   end;
 
+  TTestSkillDuplicate = class(TTestCase)
+  published
+    procedure TestDuplicate_Name;
+    procedure TestDuplicate_RunAtIsAlwaysAfterInsert;
+    procedure TestDuplicate_NilEntity_NoError;
+    procedure TestDuplicate_NilQuery_NoError;
+    procedure TestDuplicate_ZeroTotal_NoError;
+  end;
+
 implementation
 
 uses
@@ -718,6 +727,71 @@ begin
   end;
 end;
 
+{ TTestSkillDuplicate }
+
+procedure TTestSkillDuplicate.TestDuplicate_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillDuplicate.New('PARCELA', 'VALORTOTAL', 3, 30);
+  CheckEquals('duplicate', LSkill.Name, 'Should return duplicate');
+end;
+
+procedure TTestSkillDuplicate.TestDuplicate_RunAtIsAlwaysAfterInsert;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillDuplicate.New('PARCELA', 'VALORTOTAL', 3, 30);
+  CheckTrue(LSkill.RunAt = srAfterInsert, 'Should always be srAfterInsert');
+end;
+
+procedure TTestSkillDuplicate.TestDuplicate_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillDuplicate.New('PARCELA', 'VALORTOTAL', 3, 30);
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Should not raise error for nil entity');
+end;
+
+procedure TTestSkillDuplicate.TestDuplicate_NilQuery_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LEntity.VALORTOTAL := 300;
+    LSkill := TSkillDuplicate.New('PARCELA', 'VALORTOTAL', 3, 30);
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Should not raise error when query is nil');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillDuplicate.TestDuplicate_ZeroTotal_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LEntity.VALORTOTAL := 0;
+    LSkill := TSkillDuplicate.New('PARCELA', 'VALORTOTAL', 3, 30);
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Zero total should not generate installments');
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
@@ -731,5 +805,6 @@ initialization
   RegisterTest('Skills', TTestSkillSequence.Suite);
   RegisterTest('Skills', TTestSkillCalcTotal.Suite);
   RegisterTest('Skills', TTestSkillStockMove.Suite);
+  RegisterTest('Skills', TTestSkillDuplicate.Suite);
 
 end.

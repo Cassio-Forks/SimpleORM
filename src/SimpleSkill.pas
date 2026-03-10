@@ -218,6 +218,24 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { Built-in: TSkillDuplicate }
+  TSkillDuplicate = class(TInterfacedObject, iSimpleSkill)
+  private
+    FInstallmentTable: String;
+    FTotalField: String;
+    FCount: Integer;
+    FIntervalDays: Integer;
+  public
+    constructor Create(const aInstallmentTable, aTotalField: String;
+      aCount, aIntervalDays: Integer);
+    destructor Destroy; override;
+    class function New(const aInstallmentTable, aTotalField: String;
+      aCount, aIntervalDays: Integer): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
 implementation
 
 uses
@@ -1005,6 +1023,99 @@ end;
 function TSkillStockMove.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
+end;
+
+{ TSkillDuplicate }
+
+constructor TSkillDuplicate.Create(const aInstallmentTable, aTotalField: String;
+  aCount, aIntervalDays: Integer);
+begin
+  FInstallmentTable := aInstallmentTable;
+  FTotalField := aTotalField;
+  FCount := aCount;
+  FIntervalDays := aIntervalDays;
+end;
+
+destructor TSkillDuplicate.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillDuplicate.New(const aInstallmentTable, aTotalField: String;
+  aCount, aIntervalDays: Integer): iSimpleSkill;
+begin
+  Result := Self.Create(aInstallmentTable, aTotalField, aCount, aIntervalDays);
+end;
+
+function TSkillDuplicate.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LRttiContext: TRttiContext;
+  LType: TRttiType;
+  LTotalProp: TRttiProperty;
+  LPKProp: TRttiProperty;
+  LTotal: Double;
+  LEntityId: Variant;
+  LInstallmentValue: Double;
+  LSumPrevious: Double;
+  LDueDate: TDateTime;
+  LSQL: String;
+  I: Integer;
+begin
+  Result := Self;
+  if (aEntity = nil) or (aContext.Query = nil) then
+    Exit;
+
+  LRttiContext := TRttiContext.Create;
+  LType := LRttiContext.GetType(aEntity.ClassType);
+
+  LTotalProp := LType.GetProperty(FTotalField);
+  LPKProp := LType.GetPKField;
+  if (LTotalProp = nil) or (LPKProp = nil) then
+    Exit;
+
+  LTotal := LTotalProp.GetValue(aEntity).AsExtended;
+  if LTotal <= 0 then
+    Exit;
+
+  LEntityId := LPKProp.GetValue(aEntity).AsVariant;
+
+  LSQL := 'INSERT INTO ' + FInstallmentTable +
+    ' (ENTITY_ID, NUMERO, VALOR, VENCIMENTO, STATUS, CREATED_AT)' +
+    ' VALUES (:pEntityId, :pNumero, :pValor, :pVencimento, :pStatus, :pCreatedAt)';
+
+  LSumPrevious := 0;
+  for I := 1 to FCount do
+  begin
+    if I < FCount then
+    begin
+      LInstallmentValue := Trunc(LTotal / FCount * 100) / 100;
+      LSumPrevious := LSumPrevious + LInstallmentValue;
+    end
+    else
+      LInstallmentValue := LTotal - LSumPrevious;
+
+    LDueDate := Now + (I * FIntervalDays);
+
+    aContext.Query.SQL.Clear;
+    aContext.Query.SQL.Add(LSQL);
+    aContext.Query.Params.ParamByName('pEntityId').Value := LEntityId;
+    aContext.Query.Params.ParamByName('pNumero').Value := I;
+    aContext.Query.Params.ParamByName('pValor').Value := LInstallmentValue;
+    aContext.Query.Params.ParamByName('pVencimento').Value := LDueDate;
+    aContext.Query.Params.ParamByName('pStatus').Value := 'ABERTO';
+    aContext.Query.Params.ParamByName('pCreatedAt').Value := Now;
+    aContext.Query.ExecSQL;
+  end;
+end;
+
+function TSkillDuplicate.Name: String;
+begin
+  Result := 'duplicate';
+end;
+
+function TSkillDuplicate.RunAt: TSkillRunAt;
+begin
+  Result := srAfterInsert;
 end;
 
 end.
