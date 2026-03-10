@@ -78,6 +78,9 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 - **Supabase Paginacao** - Traducao automatica de Skip/Take para query params `limit`/`offset`
 - **Supabase Sample** - Projeto exemplo demonstrando CRUD com Supabase (`samples/Supabase/`)
 - **Entidade.Produto** - Entidade compartilhada TProduto para uso em samples (`samples/Entidades/Entidade.Produto.pas`)
+- **TSimpleSupabaseAuth** - Autenticacao Supabase com SignIn, SignUp, SignOut e RefreshToken (`SimpleSupabaseAuth.pas`)
+- **Supabase Auto-Refresh** - Token JWT renovado automaticamente quando proximo da expiracao
+- **Supabase Auth + Query** - Novo construtor `TSimpleQuerySupabase.New(url, key, auth)` para integrar autenticacao com queries
 
 ## [2.0.0] - 2026-03-08
 

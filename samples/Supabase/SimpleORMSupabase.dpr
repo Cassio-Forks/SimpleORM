@@ -8,6 +8,7 @@ uses
   SimpleInterface,
   SimpleDAO,
   SimpleQuerySupabase,
+  SimpleSupabaseAuth in '..\..\src\SimpleSupabaseAuth.pas',
   System.SysUtils,
   System.Generics.Collections,
   Entidade.Produto in '..\Entidades\Entidade.Produto.pas';
@@ -28,6 +29,22 @@ begin
       'https://YOUR_PROJECT.supabase.co',  // Supabase project URL
       'YOUR_ANON_OR_SERVICE_ROLE_KEY'       // Supabase API key (anon or service_role)
     );
+
+    // ============================================================
+    // AUTENTICACAO (opcional - para Row Level Security)
+    // Descomente para usar autenticacao com JWT
+    // ============================================================
+    // var LAuth := TSimpleSupabaseAuth.New(
+    //   'https://SEU-PROJETO.supabase.co',
+    //   'SUA-ANON-KEY'
+    // );
+    // LAuth.SignIn('usuario@email.com', 'senha123');
+    // LQuery := TSimpleQuerySupabase.New(
+    //   'https://SEU-PROJETO.supabase.co',
+    //   'SUA-ANON-KEY',
+    //   LAuth
+    // );
+    // Writeln('Autenticado: ', BoolToStr(LAuth.IsAuthenticated, True));
 
     // Optional: use a JWT token for Row Level Security (RLS)
     // TSimpleQuerySupabase(LQuery).Token('YOUR_JWT_TOKEN');

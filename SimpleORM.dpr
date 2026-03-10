@@ -12,7 +12,8 @@ uses
   SimpleSerializer in 'src\SimpleSerializer.pas',
   SimpleQueryHorse in 'src\SimpleQueryHorse.pas',
   SimpleHorseRouter in 'src\SimpleHorseRouter.pas',
-  SimpleQuerySupabase in 'src\SimpleQuerySupabase.pas';
+  SimpleQuerySupabase in 'src\SimpleQuerySupabase.pas',
+  SimpleSupabaseAuth in 'src\SimpleSupabaseAuth.pas';
 
 {$R *.res}
 

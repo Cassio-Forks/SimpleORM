@@ -1320,6 +1320,58 @@ LDAO.Delete(LProduct);</code></pre>
   </table>
 
   <p class="note"><strong>Note:</strong> Transactions (StartTransaction/Commit/Rollback) are no-ops since REST is stateless. The driver uses the native <code>System.Net.HttpClient</code>, with no external dependencies.</p>
+
+  <h3>Authentication <span class="badge badge-new">NEW</span></h3>
+  <pre><code>uses SimpleSupabaseAuth, SimpleQuerySupabase;
+
+var
+  LAuth: iSimpleSupabaseAuth;
+  LQuery: iSimpleQuery;
+
+// Create auth instance
+LAuth := TSimpleSupabaseAuth.New(
+  'https://your-project.supabase.co',
+  'your-anon-key'
+);
+
+// Sign in
+LAuth.SignIn('user@email.com', 'password123');
+
+// Create query with auth (automatic JWT)
+LQuery := TSimpleQuerySupabase.New(
+  'https://your-project.supabase.co',
+  'your-anon-key',
+  LAuth
+);
+
+// CRUD with Row Level Security enabled
+var LDAO := TSimpleDAO&lt;TProduct&gt;.New(LQuery);
+LDAO.Find;
+
+// Check state
+if LAuth.IsAuthenticated then
+  Writeln('Token: ', LAuth.Token);
+
+// Sign out
+LAuth.SignOut;</code></pre>
+
+  <table>
+    <thead>
+      <tr><th>Method</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>SignIn(email, password)</td><td>Login with email and password via Supabase Auth API</td></tr>
+      <tr><td>SignUp(email, password)</td><td>Create a new user account</td></tr>
+      <tr><td>SignOut</td><td>Logout and clear tokens</td></tr>
+      <tr><td>RefreshToken</td><td>Manually refresh the JWT</td></tr>
+      <tr><td>Token</td><td>Returns the current JWT (auto-refresh if near expiration)</td></tr>
+      <tr><td>User</td><td>Returns user data as JSON</td></tr>
+      <tr><td>IsAuthenticated</td><td>Checks if a valid token exists</td></tr>
+      <tr><td>ExpiresAt</td><td>Token expiration date/time</td></tr>
+    </tbody>
+  </table>
+
+  <p class="note"><strong>Note:</strong> The JWT token is automatically refreshed when it is less than 30 seconds from expiration. For Row Level Security to work, use the <code>anon</code> key (not <code>service_role</code>) together with Auth.</p>
 </section>
 
 <footer>

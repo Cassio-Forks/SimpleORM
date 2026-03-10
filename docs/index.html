@@ -1319,6 +1319,58 @@ LDAO.Delete(LProduto);</code></pre>
   </table>
 
   <p class="note"><strong>Nota:</strong> Transacoes (StartTransaction/Commit/Rollback) sao no-ops pois REST e stateless. O driver usa <code>System.Net.HttpClient</code> nativo, sem dependencias externas.</p>
+
+  <h3>Autenticacao <span class="badge badge-new">NEW</span></h3>
+  <pre><code>uses SimpleSupabaseAuth, SimpleQuerySupabase;
+
+var
+  LAuth: iSimpleSupabaseAuth;
+  LQuery: iSimpleQuery;
+
+// Criar instancia de auth
+LAuth := TSimpleSupabaseAuth.New(
+  'https://seu-projeto.supabase.co',
+  'sua-anon-key'
+);
+
+// Fazer login
+LAuth.SignIn('usuario@email.com', 'senha123');
+
+// Criar query com auth (JWT automatico)
+LQuery := TSimpleQuerySupabase.New(
+  'https://seu-projeto.supabase.co',
+  'sua-anon-key',
+  LAuth
+);
+
+// CRUD com Row Level Security ativo
+var LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery);
+LDAO.Find;
+
+// Verificar estado
+if LAuth.IsAuthenticated then
+  Writeln('Token: ', LAuth.Token);
+
+// Logout
+LAuth.SignOut;</code></pre>
+
+  <table>
+    <thead>
+      <tr><th>Metodo</th><th>Descricao</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>SignIn(email, password)</td><td>Login com email e senha via Supabase Auth API</td></tr>
+      <tr><td>SignUp(email, password)</td><td>Criar nova conta de usuario</td></tr>
+      <tr><td>SignOut</td><td>Logout e limpar tokens</td></tr>
+      <tr><td>RefreshToken</td><td>Renovar JWT manualmente</td></tr>
+      <tr><td>Token</td><td>Retorna JWT atual (auto-refresh se proximo da expiracao)</td></tr>
+      <tr><td>User</td><td>Retorna dados do usuario em JSON</td></tr>
+      <tr><td>IsAuthenticated</td><td>Verifica se existe token valido</td></tr>
+      <tr><td>ExpiresAt</td><td>Data/hora de expiracao do token</td></tr>
+    </tbody>
+  </table>
+
+  <p class="note"><strong>Nota:</strong> O token JWT e renovado automaticamente quando esta a menos de 30 segundos da expiracao. Para Row Level Security funcionar, use a <code>anon</code> key (nao <code>service_role</code>) junto com o Auth.</p>
 </section>
 
 <footer>
