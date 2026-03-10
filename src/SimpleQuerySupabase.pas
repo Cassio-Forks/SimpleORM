@@ -17,17 +17,6 @@ type
     FAPIKey: string;
     FToken: string;
 
-    { SQL parsing helpers }
-    function ExtractTableName(const aSQL: string): string;
-    function DetectOperation(const aSQL: string): string;
-    function ExtractPKFieldName(const aSQL: string): string;
-    function ExtractPKValue: Variant;
-    function ExtractInsertFields(const aSQL: string): TArray<string>;
-    function ExtractSelectFields(const aSQL: string): string;
-    function ExtractWhereFilters(const aSQL: string): string;
-    function ExtractPagination(const aSQL: string; out aSkip, aTake: Integer): Boolean;
-    function ExtractUpdateFields(const aSQL: string): TArray<string>;
-
     { JSON/DataSet conversion helpers }
     function ParamsToJSON: string;
     procedure JSONToDataSet(const aJSON: string);
@@ -37,6 +26,17 @@ type
 
     { HTTP helpers }
     function DoHTTPRequest(const aMethod, aURL: string; const aBody: string = ''): string;
+  protected
+    { SQL parsing helpers - protected for testability }
+    function ExtractTableName(const aSQL: string): string;
+    function DetectOperation(const aSQL: string): string;
+    function ExtractPKFieldName(const aSQL: string): string;
+    function ExtractPKValue: Variant;
+    function ExtractInsertFields(const aSQL: string): TArray<string>;
+    function ExtractSelectFields(const aSQL: string): string;
+    function ExtractWhereFilters(const aSQL: string): string;
+    function ExtractPagination(const aSQL: string; out aSkip, aTake: Integer): Boolean;
+    function ExtractUpdateFields(const aSQL: string): TArray<string>;
     function BuildSupabaseURL(const aTableName, aOperation: string): string;
   public
     constructor Create(aBaseURL, aAPIKey: string); overload;

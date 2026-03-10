@@ -41,7 +41,9 @@ uses
   TestSimpleSkill in 'TestSimpleSkill.pas',
   TestSimpleAgent in 'TestSimpleAgent.pas',
   SimpleAISkill in '..\src\SimpleAISkill.pas',
-  TestSimpleAISkill in 'TestSimpleAISkill.pas';
+  TestSimpleAISkill in 'TestSimpleAISkill.pas',
+  SimpleQuerySupabase in '..\src\SimpleQuerySupabase.pas',
+  TestSimpleQuerySupabase in 'TestSimpleQuerySupabase.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
