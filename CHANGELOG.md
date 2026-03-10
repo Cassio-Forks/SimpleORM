@@ -25,6 +25,13 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 - **iAgentPlan** - Interface para planos de execucao com analise de risco
 - **Pipeline DAO** - Integracao de Rules, Skills e Agents no pipeline Insert/Update/Delete do TSimpleDAO
 - **Sample AgentsSkillsRules** - Projeto demonstrando Rules, Skills e Agents
+- **TSkillTimestamp** - Skill built-in para preencher campos de data automaticamente via RTTI (`SimpleSkill.pas`)
+- **TSkillGuardDelete** - Skill built-in para bloquear delete quando existem registros dependentes (`SimpleSkill.pas`)
+- **TSkillHistory** - Skill built-in para gravar snapshot de valores antes de update/delete (`SimpleSkill.pas`)
+- **TSkillValidate** - Skill built-in para validacao automatica via TSimpleValidator (`SimpleSkill.pas`)
+- **TSkillWebhook** - Skill built-in para HTTP POST fire-and-forget apos operacoes CRUD (`SimpleSkill.pas`)
+- **ESimpleGuardDelete** - Exception especifica para bloqueio de delete com dependencias (`SimpleSkill.pas`)
+- **Sample BuiltinSkills** - Projeto demonstrando uso das Skills built-in (`samples/BuiltinSkills/`)
 - **AI Query** - Perguntas em linguagem natural ao banco de dados via LLM (SimpleAIQuery.pas)
 - **NaturalLanguageQuery** - Traduz pergunta para SQL, executa e retorna TDataSet
 - **AskQuestion** - Traduz, executa e retorna resposta em linguagem natural

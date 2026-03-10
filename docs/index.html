@@ -192,6 +192,7 @@
       <li><a href="#mcp-server">MCP Server (AI)</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#rules">Rules</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#skills">Skills</a> <span class="badge badge-new">NEW</span></li>
+      <li><a href="#builtin-skills">Skills Built-in</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#agents">Agents</a> <span class="badge badge-new">NEW</span></li>
     </ul>
   </nav>
@@ -1212,6 +1213,58 @@ DAOPedido.Insert(Pedido);</code></pre>
 end;</code></pre>
 
   <p class="note">Skills sao opcionais. Se nenhum skill for registrado, o DAO funciona normalmente.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="builtin-skills">
+<h2>Skills Built-in</h2>
+
+<p>O SimpleORM inclui 8 Skills prontas para uso. Todas implementam <code>iSimpleSkill</code> e sao adicionadas via <code>.Skill()</code> no DAO.</p>
+
+<table>
+<tr><th>Skill</th><th>Descricao</th><th>RunAt</th></tr>
+<tr><td><code>TSkillLog</code></td><td>Loga operacao via Logger ou OutputDebugString/Writeln</td><td>Configuravel</td></tr>
+<tr><td><code>TSkillNotify</code></td><td>Dispara callback <code>TProc&lt;TObject&gt;</code></td><td>Configuravel</td></tr>
+<tr><td><code>TSkillAudit</code></td><td>Insere registro em tabela de auditoria</td><td>Configuravel</td></tr>
+<tr><td><code>TSkillTimestamp</code></td><td>Preenche campos de data (CREATED_AT, UPDATED_AT) via RTTI</td><td>srBeforeInsert / srBeforeUpdate</td></tr>
+<tr><td><code>TSkillValidate</code></td><td>Chama TSimpleValidator.Validate automaticamente</td><td>srBeforeInsert / srBeforeUpdate</td></tr>
+<tr><td><code>TSkillGuardDelete</code></td><td>Bloqueia delete quando existem registros dependentes</td><td>srBeforeDelete</td></tr>
+<tr><td><code>TSkillHistory</code></td><td>Grava snapshot dos valores antes de update/delete</td><td>srBeforeUpdate / srBeforeDelete</td></tr>
+<tr><td><code>TSkillWebhook</code></td><td>HTTP POST fire-and-forget com JSON da entidade</td><td>srAfterInsert / srAfterUpdate / srAfterDelete</td></tr>
+</table>
+
+<h3>Exemplo: Timestamp + Validacao + Log</h3>
+<pre><code>DAO := TSimpleDAO&lt;TPedido&gt;.New(Query)
+  .Skill(TSkillTimestamp.New('CREATED_AT', srBeforeInsert))
+  .Skill(TSkillTimestamp.New('UPDATED_AT', srBeforeUpdate))
+  .Skill(TSkillValidate.New(srBeforeInsert))
+  .Skill(TSkillValidate.New(srBeforeUpdate))
+  .Skill(TSkillLog.New('App', srAfterInsert))
+  .Skill(TSkillLog.New('App', srAfterUpdate));</code></pre>
+
+<h3>Exemplo: Guard Delete</h3>
+<pre><code>DAO := TSimpleDAO&lt;TPedido&gt;.New(Query)
+  .Skill(TSkillGuardDelete.New('ITEM_PEDIDO', 'ID_PEDIDO'))
+  .Skill(TSkillGuardDelete.New('PAGAMENTO', 'ID_PEDIDO'));
+
+// Se existirem itens ou pagamentos vinculados, o delete sera bloqueado
+// com ESimpleGuardDelete</code></pre>
+
+<h3>Exemplo: History</h3>
+<pre><code>DAO := TSimpleDAO&lt;TPedido&gt;.New(Query)
+  .Skill(TSkillHistory.New('PEDIDO_HISTORY', srBeforeUpdate))
+  .Skill(TSkillHistory.New('PEDIDO_HISTORY', srBeforeDelete));</code></pre>
+
+<p class="note"><strong>DDL para TSkillHistory:</strong><br>
+<code>CREATE TABLE ENTITY_HISTORY (ID INTEGER PRIMARY KEY, ENTITY_NAME VARCHAR(100), RECORD_ID VARCHAR(50), FIELD_NAME VARCHAR(100), OLD_VALUE VARCHAR(4000), OPERATION VARCHAR(20), CREATED_AT TIMESTAMP);</code></p>
+
+<h3>Exemplo: Webhook</h3>
+<pre><code>DAO := TSimpleDAO&lt;TPedido&gt;.New(Query)
+  .Skill(TSkillWebhook.New('https://api.example.com/hooks', srAfterInsert))
+  .Skill(TSkillWebhook.New('https://api.example.com/hooks', srAfterUpdate, 'Bearer token123'));</code></pre>
+
+<p class="note"><strong>Fire-and-forget:</strong> Se o POST falhar, o erro e logado mas a operacao CRUD NAO e bloqueada.</p>
+
 </section>
 
 <!-- ============================================ -->
