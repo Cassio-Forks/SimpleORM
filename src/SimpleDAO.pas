@@ -36,6 +36,7 @@ Type
         FOnAfterUpdate: TSimpleCallback;
         FOnBeforeDelete: TSimpleCallback;
         FOnAfterDelete: TSimpleCallback;
+        FOnError: TSimpleErrorCallback;
         FScopes: TDictionary<String, String>;
         FActiveScopes: TList<String>;
         FRawSQL: String;
@@ -98,6 +99,7 @@ Type
         function OnAfterUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
         function OnBeforeDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
         function OnAfterDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
+        function OnError(aCallback: TSimpleErrorCallback): iSimpleDAO<T>;
         function RawSQL(const aSQL: String): iSimpleDAO<T>;
         function RawSQLWithParams(const aSQL: String; const aParamNames: array of String; const aParamValues: array of Variant): iSimpleDAO<T>;
         function FindRaw: TObjectList<T>;
@@ -185,29 +187,40 @@ begin
     LSkillContext := TSimpleSkillContext.New(FQuery, FAIClient, FLogger, LTableName, 'DELETE');
     FSkillRunner.RunBefore(aValue, LSkillContext, srBeforeDelete);
 
-    // 3. SQL Execution
-    ExecuteCascadeDelete(aValue);
-    TSimpleSQL<T>.New(aValue).Delete(aSQL);
-    FQuery.SQL.Clear;
-    FQuery.SQL.Add(aSQL);
-    Self.FillParameter(aValue);
-    SW := TStopwatch.StartNew;
-    FQuery.ExecSQL;
-    SW.Stop;
-    if Assigned(FLogger) then
-      FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
-    if FCacheEnabled then
-      FCache.Clear;
+    try
+      // 3. SQL Execution
+      ExecuteCascadeDelete(aValue);
+      TSimpleSQL<T>.New(aValue).Delete(aSQL);
+      FQuery.SQL.Clear;
+      FQuery.SQL.Add(aSQL);
+      Self.FillParameter(aValue);
+      SW := TStopwatch.StartNew;
+      FQuery.ExecSQL;
+      SW.Stop;
+      if Assigned(FLogger) then
+        FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+      if FCacheEnabled then
+        FCache.Clear;
 
-    // 4. Skills (After)
-    FSkillRunner.RunAfter(aValue, LSkillContext, srAfterDelete);
+      // 4. Skills (After)
+      FSkillRunner.RunAfter(aValue, LSkillContext, srAfterDelete);
 
-    // 5. Agent (React)
-    if FAgent <> nil then
-      FAgent.React(aValue, aoAfterDelete);
+      // 5. Agent (React)
+      if FAgent <> nil then
+        FAgent.React(aValue, aoAfterDelete);
 
-    if Assigned(FOnAfterDelete) then
-      FOnAfterDelete(aValue);
+      if Assigned(FOnAfterDelete) then
+        FOnAfterDelete(aValue);
+    except
+      on E: Exception do
+      begin
+        LSkillContext := TSimpleSkillContext.New(FQuery, FAIClient, FLogger, LTableName, 'DELETE', E.Message);
+        FSkillRunner.RunOnError(aValue, LSkillContext);
+        if Assigned(FOnError) then
+          FOnError(aValue, E);
+        raise;
+      end;
+    end;
 end;
 {$IFNDEF CONSOLE}
 
@@ -444,28 +457,39 @@ begin
     LSkillContext := TSimpleSkillContext.New(FQuery, FAIClient, FLogger, LTableName, 'INSERT');
     FSkillRunner.RunBefore(aValue, LSkillContext, srBeforeInsert);
 
-    // 4. SQL Execution
-    TSimpleSQL<T>.New(aValue).Insert(aSQL);
-    FQuery.SQL.Clear;
-    FQuery.SQL.Add(aSQL);
-    Self.FillParameter(aValue);
-    SW := TStopwatch.StartNew;
-    FQuery.ExecSQL;
-    SW.Stop;
-    if Assigned(FLogger) then
-      FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
-    if FCacheEnabled then
-      FCache.Clear;
+    try
+      // 4. SQL Execution
+      TSimpleSQL<T>.New(aValue).Insert(aSQL);
+      FQuery.SQL.Clear;
+      FQuery.SQL.Add(aSQL);
+      Self.FillParameter(aValue);
+      SW := TStopwatch.StartNew;
+      FQuery.ExecSQL;
+      SW.Stop;
+      if Assigned(FLogger) then
+        FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+      if FCacheEnabled then
+        FCache.Clear;
 
-    // 5. Skills (After)
-    FSkillRunner.RunAfter(aValue, LSkillContext, srAfterInsert);
+      // 5. Skills (After)
+      FSkillRunner.RunAfter(aValue, LSkillContext, srAfterInsert);
 
-    // 6. Agent (React)
-    if FAgent <> nil then
-      FAgent.React(aValue, aoAfterInsert);
+      // 6. Agent (React)
+      if FAgent <> nil then
+        FAgent.React(aValue, aoAfterInsert);
 
-    if Assigned(FOnAfterInsert) then
-      FOnAfterInsert(aValue);
+      if Assigned(FOnAfterInsert) then
+        FOnAfterInsert(aValue);
+    except
+      on E: Exception do
+      begin
+        LSkillContext := TSimpleSkillContext.New(FQuery, FAIClient, FLogger, LTableName, 'INSERT', E.Message);
+        FSkillRunner.RunOnError(aValue, LSkillContext);
+        if Assigned(FOnError) then
+          FOnError(aValue, E);
+        raise;
+      end;
+    end;
 end;
 
 class function TSimpleDAO<T>.New(aQuery: iSimpleQuery): iSimpleDAO<T>;
@@ -572,28 +596,39 @@ begin
     LSkillContext := TSimpleSkillContext.New(FQuery, FAIClient, FLogger, LTableName, 'UPDATE');
     FSkillRunner.RunBefore(aValue, LSkillContext, srBeforeUpdate);
 
-    // 4. SQL Execution
-    TSimpleSQL<T>.New(aValue).Update(aSQL);
-    FQuery.SQL.Clear;
-    FQuery.SQL.Add(aSQL);
-    Self.FillParameter(aValue);
-    SW := TStopwatch.StartNew;
-    FQuery.ExecSQL;
-    SW.Stop;
-    if Assigned(FLogger) then
-      FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
-    if FCacheEnabled then
-      FCache.Clear;
+    try
+      // 4. SQL Execution
+      TSimpleSQL<T>.New(aValue).Update(aSQL);
+      FQuery.SQL.Clear;
+      FQuery.SQL.Add(aSQL);
+      Self.FillParameter(aValue);
+      SW := TStopwatch.StartNew;
+      FQuery.ExecSQL;
+      SW.Stop;
+      if Assigned(FLogger) then
+        FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
+      if FCacheEnabled then
+        FCache.Clear;
 
-    // 5. Skills (After)
-    FSkillRunner.RunAfter(aValue, LSkillContext, srAfterUpdate);
+      // 5. Skills (After)
+      FSkillRunner.RunAfter(aValue, LSkillContext, srAfterUpdate);
 
-    // 6. Agent (React)
-    if FAgent <> nil then
-      FAgent.React(aValue, aoAfterUpdate);
+      // 6. Agent (React)
+      if FAgent <> nil then
+        FAgent.React(aValue, aoAfterUpdate);
 
-    if Assigned(FOnAfterUpdate) then
-      FOnAfterUpdate(aValue);
+      if Assigned(FOnAfterUpdate) then
+        FOnAfterUpdate(aValue);
+    except
+      on E: Exception do
+      begin
+        LSkillContext := TSimpleSkillContext.New(FQuery, FAIClient, FLogger, LTableName, 'UPDATE', E.Message);
+        FSkillRunner.RunOnError(aValue, LSkillContext);
+        if Assigned(FOnError) then
+          FOnError(aValue, E);
+        raise;
+      end;
+    end;
 end;
 
 function TSimpleDAO<T>.FillParameter(aInstance: T): iSimpleDAO<T>;
@@ -1090,6 +1125,12 @@ function TSimpleDAO<T>.OnAfterDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
 begin
   Result := Self;
   FOnAfterDelete := aCallback;
+end;
+
+function TSimpleDAO<T>.OnError(aCallback: TSimpleErrorCallback): iSimpleDAO<T>;
+begin
+  Result := Self;
+  FOnError := aCallback;
 end;
 
 function TSimpleDAO<T>.RawSQL(const aSQL: String): iSimpleDAO<T>;
