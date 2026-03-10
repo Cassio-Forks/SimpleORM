@@ -11,6 +11,16 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 ## [Unreleased]
 
 ### Added
+- **iSimpleAIClient** - Interface generica para comunicacao com LLMs Claude e OpenAI (SimpleAIClient.pas)
+- **TSimpleAIClient** - Client HTTP para APIs de LLM com suporte a Claude e OpenAI (SimpleAIClient.pas)
+- **AIGenerated** - Atributo para geracao automatica de conteudo via LLM com template de prompt (SimpleAIAttributes.pas)
+- **AISummarize** - Atributo para resumo automatico de propriedades via LLM (SimpleAIAttributes.pas)
+- **AITranslate** - Atributo para traducao automatica de propriedades via LLM (SimpleAIAttributes.pas)
+- **AIClassify** - Atributo para classificacao automatica de conteudo via LLM (SimpleAIAttributes.pas)
+- **AIValidate** - Atributo para validacao de conteudo via LLM (SimpleAIAttributes.pas)
+- **TSimpleAIProcessor** - Motor de processamento que detecta atributos AI e executa via LLM (SimpleAIProcessor.pas)
+- **AIClient** - Metodo no TSimpleDAO para integrar AI automaticamente em Insert/Update
+- **Sample AIEnrichment** - Projeto demonstrando AI Entity Enrichment com mock client
 - **SimpleSerializer** - Serializador Entity <-> JSON via RTTI usando atributos `[Campo]`, sem dependencias externas (`SimpleSerializer.pas`)
 - **SimpleHorseRouter** - Auto-geracao de rotas CRUD no Horse a partir de entidades SimpleORM com callbacks opcionais OnBeforeInsert/OnAfterInsert/OnBeforeUpdate/OnBeforeDelete (`SimpleHorseRouter.pas`)
 - **SimpleQueryHorse** - Driver REST cliente que implementa `iSimpleQuery` via HTTP, com suporte a Bearer token e hook `OnBeforeRequest` (`SimpleQueryHorse.pas`)

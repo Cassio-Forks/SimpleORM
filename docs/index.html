@@ -78,6 +78,7 @@
     <li><a href="#interfaces">API de Interfaces</a></li>
     <li><a href="#tipos-banco">Tipos de Banco</a></li>
     <li><a href="#testes">Testes Unitarios (DUnit)</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#ai-enrichment">AI Enrichment</a> <span class="badge badge-new">NEW</span></li>
     <li><a href="#mcp-server">MCP Server (AI)</a> <span class="badge badge-new">NEW</span></li>
   </ul>
 </nav>
@@ -865,6 +866,81 @@ end.</code></pre>
 <div class="note">
 <strong>Regra:</strong> Toda nova feature implementada no SimpleORM DEVE incluir testes unitarios DUnit. Adicione a unit de teste no <code>uses</code> do <code>SimpleORMTests.dpr</code>.
 </div>
+</section>
+
+<!-- ============================================ -->
+<section id="ai-enrichment">
+<h2>AI Entity Enrichment <span class="badge badge-new">NEW</span></h2>
+<p>O SimpleORM permite enriquecer entidades automaticamente com IA. Basta decorar propriedades com atributos AI e o processamento acontece automaticamente durante Insert/Update.</p>
+
+<h3>Atributos AI</h3>
+<table>
+  <thead>
+    <tr><th>Atributo</th><th>Parametros</th><th>Descricao</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>AIGenerated</td><td>promptTemplate: String</td><td>Gera conteudo via LLM. Template suporta {PropertyName} para interpolacao</td></tr>
+    <tr><td>AISummarize</td><td>sourceProperty: String, maxLength: Integer</td><td>Resume o conteudo de outra propriedade</td></tr>
+    <tr><td>AITranslate</td><td>sourceProperty: String, targetLanguage: String</td><td>Traduz o conteudo de outra propriedade</td></tr>
+    <tr><td>AIClassify</td><td>sourceProperty: String, categories: String</td><td>Classifica conteudo em categorias separadas por virgula</td></tr>
+    <tr><td>AIValidate</td><td>rule: String, errorMessage: String</td><td>Valida conteudo contra uma regra. Lanca excecao se invalido</td></tr>
+  </tbody>
+</table>
+
+<h3>Exemplo de entidade com atributos AI</h3>
+<pre><code>[Tabela('PRODUTOS')]
+TProduto = class
+published
+  [Campo('NOME')]
+  property NOME: String read FNOME write SetNOME;
+  [Campo('DESCRICAO')]
+  property DESCRICAO: String read FDESCRICAO write SetDESCRICAO;
+
+  [Campo('RESUMO'), AISummarize('DESCRICAO', 100)]
+  property RESUMO: String read FRESUMO write SetRESUMO;
+
+  [Campo('CATEGORIA'), AIClassify('DESCRICAO', 'Eletronico,Vestuario,Alimento')]
+  property CATEGORIA: String read FCATEGORIA write SetCATEGORIA;
+
+  [Campo('DESCRICAO_EN'), AITranslate('DESCRICAO', 'English')]
+  property DESCRICAO_EN: String read FDESCRICAO_EN write SetDESCRICAO_EN;
+
+  [Campo('SLOGAN'), AIGenerated('Crie um slogan para {NOME}')]
+  property SLOGAN: String read FSLOGAN write SetSLOGAN;
+end;</code></pre>
+
+<h3>Uso com TSimpleDAO (automatico)</h3>
+<pre><code>// Configurar AI client no DAO
+DAOProduto := TSimpleDAO&lt;TProduto&gt;
+  .New(Conn)
+  .AIClient(TSimpleAIClient.New('claude', 'sua-api-key'));
+
+// AI processa AUTOMATICAMENTE antes de Insert/Update
+DAOProduto.Insert(Produto);
+// Propriedades com atributos AI sao preenchidas pelo LLM!</code></pre>
+
+<h3>Uso direto do Processor</h3>
+<pre><code>LAIClient := TSimpleAIClient.New('claude', 'sua-api-key');
+LProcessor := TSimpleAIProcessor.New(LAIClient);
+try
+  LProcessor.Process(Produto);
+  // Propriedades AI foram preenchidas
+finally
+  FreeAndNil(LProcessor);
+end;</code></pre>
+
+<h3>Providers suportados</h3>
+<table>
+  <thead>
+    <tr><th>Provider</th><th>Modelo padrao</th><th>Uso</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>claude</td><td>claude-sonnet-4-20250514</td><td>TSimpleAIClient.New('claude', 'api-key')</td></tr>
+    <tr><td>openai</td><td>gpt-4o-mini</td><td>TSimpleAIClient.New('openai', 'api-key')</td></tr>
+  </tbody>
+</table>
+
+<p class="note">O AI client e opcional. Se nao configurado via <code>AIClient()</code>, o DAO funciona normalmente sem processamento AI.</p>
 </section>
 
 <!-- ============================================ -->
