@@ -31,7 +31,9 @@ uses
   SimpleAIProcessor in '..\src\SimpleAIProcessor.pas',
   SimpleAIClient in '..\src\SimpleAIClient.pas',
   MockAIClient in 'Mocks\MockAIClient.pas',
-  TestSimpleAIProcessor in 'TestSimpleAIProcessor.pas';
+  TestSimpleAIProcessor in 'TestSimpleAIProcessor.pas',
+  SimpleAIQuery in '..\src\SimpleAIQuery.pas',
+  TestSimpleAIQuery in 'TestSimpleAIQuery.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
