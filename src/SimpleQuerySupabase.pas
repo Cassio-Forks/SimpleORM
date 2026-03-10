@@ -120,9 +120,39 @@ begin
 end;
 
 function TSimpleQuerySupabase.ExecSQL: iSimpleQuery;
+var
+  LOp, LTableName, LURL, LBody, LFilters: string;
 begin
   Result := Self;
-  { TODO: Implement SQL-to-PostgREST translation and HTTP execution }
+  try
+    LOp := DetectOperation(FSQL.Text);
+    LTableName := ExtractTableName(FSQL.Text);
+    LURL := BuildSupabaseURL(LTableName, LOp);
+
+    if SameText(LOp, 'INSERT') then
+    begin
+      LBody := ParamsToJSON;
+      DoHTTPRequest('POST', LURL, LBody);
+    end
+    else if SameText(LOp, 'UPDATE') then
+    begin
+      LFilters := ExtractWhereFilters(FSQL.Text);
+      if LFilters <> '' then
+        LURL := LURL + '?' + LFilters;
+      LBody := ParamsToJSON;
+      DoHTTPRequest('PATCH', LURL, LBody);
+    end
+    else if SameText(LOp, 'DELETE') then
+    begin
+      LFilters := ExtractWhereFilters(FSQL.Text);
+      if LFilters <> '' then
+        LURL := LURL + '?' + LFilters;
+      DoHTTPRequest('DELETE', LURL);
+    end;
+  except
+    Rollback;
+    raise;
+  end;
 end;
 
 function TSimpleQuerySupabase.Open(aSQL: String): iSimpleQuery;
@@ -133,9 +163,45 @@ begin
 end;
 
 function TSimpleQuerySupabase.Open: iSimpleQuery;
+var
+  LTableName, LURL, LSelect, LFilters, LResponse, LSeparator: string;
+  LSkip, LTake: Integer;
+  LHasParams: Boolean;
 begin
   Result := Self;
-  { TODO: Implement SELECT-to-PostgREST GET translation }
+  LTableName := ExtractTableName(FSQL.Text);
+  LURL := BuildSupabaseURL(LTableName, 'SELECT');
+  LHasParams := False;
+
+  LSelect := ExtractSelectFields(FSQL.Text);
+  if (LSelect <> '') and (LSelect <> '*') then
+  begin
+    LURL := LURL + '?select=' + LSelect;
+    LHasParams := True;
+  end;
+
+  LFilters := ExtractWhereFilters(FSQL.Text);
+  if LFilters <> '' then
+  begin
+    if LHasParams then
+      LSeparator := '&'
+    else
+      LSeparator := '?';
+    LURL := LURL + LSeparator + LFilters;
+    LHasParams := True;
+  end;
+
+  if ExtractPagination(FSQL.Text, LSkip, LTake) then
+  begin
+    if LHasParams then
+      LSeparator := '&'
+    else
+      LSeparator := '?';
+    LURL := LURL + LSeparator + 'limit=' + IntToStr(LTake) + '&offset=' + IntToStr(LSkip);
+  end;
+
+  LResponse := DoHTTPRequest('GET', LURL);
+  JSONToDataSet(LResponse);
 end;
 
 function TSimpleQuerySupabase.StartTransaction: iSimpleQuery;
@@ -556,43 +622,227 @@ begin
   end;
 end;
 
-{ JSON/DataSet conversion helper stubs }
+{ JSON/DataSet conversion helpers }
 
 function TSimpleQuerySupabase.ParamsToJSON: string;
+var
+  LObj: TJSONObject;
+  I: Integer;
+  LParam: TParam;
 begin
-  Result := '{}';
-  { TODO: Convert FParams to JSON object string }
+  LObj := TJSONObject.Create;
+  try
+    for I := 0 to FParams.Count - 1 do
+    begin
+      LParam := FParams[I];
+      if VarIsNull(LParam.Value) or VarIsEmpty(LParam.Value) then
+        LObj.AddPair(LParam.Name.ToLower, TJSONNull.Create)
+      else
+      begin
+        case LParam.DataType of
+          ftInteger, ftSmallint, ftWord, ftLargeint, ftAutoInc, ftShortint:
+            LObj.AddPair(LParam.Name.ToLower, TJSONNumber.Create(LParam.AsInteger));
+          ftFloat, ftCurrency, ftBCD, ftFMTBcd, ftExtended, ftSingle:
+            LObj.AddPair(LParam.Name.ToLower, TJSONNumber.Create(LParam.AsFloat));
+          ftBoolean:
+            LObj.AddPair(LParam.Name.ToLower, TJSONBool.Create(LParam.AsBoolean));
+        else
+          LObj.AddPair(LParam.Name.ToLower, LParam.AsString);
+        end;
+      end;
+    end;
+    Result := LObj.ToString;
+  finally
+    FreeAndNil(LObj);
+  end;
 end;
 
 procedure TSimpleQuerySupabase.JSONToDataSet(const aJSON: string);
+var
+  LValue: TJSONValue;
+  LArray: TJSONArray;
+  LObj: TJSONObject;
 begin
   FDataSet.Close;
   FDataSet.FieldDefs.Clear;
   FDataSet.Fields.Clear;
-  { TODO: Parse JSON response and populate FDataSet }
+
+  if aJSON.Trim = '' then
+    Exit;
+
+  LValue := TJSONObject.ParseJSONValue(aJSON);
+  if not Assigned(LValue) then
+    Exit;
+
+  try
+    if LValue is TJSONArray then
+    begin
+      LArray := TJSONArray(LValue);
+      JSONArrayToDataSet(LArray);
+    end
+    else if LValue is TJSONObject then
+    begin
+      LObj := TJSONObject(LValue);
+      if Assigned(LObj.Values['data']) and (LObj.Values['data'] is TJSONArray) then
+        JSONArrayToDataSet(TJSONArray(LObj.Values['data']))
+      else
+        JSONObjectToDataSet(LObj);
+    end;
+  finally
+    LValue.Free;
+  end;
 end;
 
 procedure TSimpleQuerySupabase.JSONArrayToDataSet(aArray: TJSONArray);
+var
+  I, J: Integer;
+  LObj: TJSONObject;
+  LPair: TJSONPair;
 begin
-  { TODO: Convert JSON array to DataSet rows }
+  if aArray.Count = 0 then
+    Exit;
+
+  if not (aArray.Items[0] is TJSONObject) then
+    Exit;
+
+  CreateFieldsFromJSONObject(TJSONObject(aArray.Items[0]));
+  FDataSet.CreateDataSet;
+
+  for I := 0 to aArray.Count - 1 do
+  begin
+    if not (aArray.Items[I] is TJSONObject) then
+      Continue;
+
+    LObj := TJSONObject(aArray.Items[I]);
+    FDataSet.Append;
+    for J := 0 to LObj.Count - 1 do
+    begin
+      LPair := LObj.Pairs[J];
+      if FDataSet.FindField(LPair.JsonString.Value) <> nil then
+      begin
+        if LPair.JsonValue is TJSONNull then
+          FDataSet.FieldByName(LPair.JsonString.Value).Clear
+        else if LPair.JsonValue is TJSONNumber then
+          FDataSet.FieldByName(LPair.JsonString.Value).AsFloat := TJSONNumber(LPair.JsonValue).AsDouble
+        else if LPair.JsonValue is TJSONBool then
+          FDataSet.FieldByName(LPair.JsonString.Value).AsBoolean := TJSONBool(LPair.JsonValue).AsBoolean
+        else
+          FDataSet.FieldByName(LPair.JsonString.Value).AsString := LPair.JsonValue.Value;
+      end;
+    end;
+    FDataSet.Post;
+  end;
+
+  FDataSet.First;
 end;
 
 procedure TSimpleQuerySupabase.JSONObjectToDataSet(aObj: TJSONObject);
+var
+  J: Integer;
+  LPair: TJSONPair;
 begin
-  { TODO: Convert single JSON object to DataSet row }
+  if aObj.Count = 0 then
+    Exit;
+
+  CreateFieldsFromJSONObject(aObj);
+  FDataSet.CreateDataSet;
+
+  FDataSet.Append;
+  for J := 0 to aObj.Count - 1 do
+  begin
+    LPair := aObj.Pairs[J];
+    if FDataSet.FindField(LPair.JsonString.Value) <> nil then
+    begin
+      if LPair.JsonValue is TJSONNull then
+        FDataSet.FieldByName(LPair.JsonString.Value).Clear
+      else if LPair.JsonValue is TJSONNumber then
+        FDataSet.FieldByName(LPair.JsonString.Value).AsFloat := TJSONNumber(LPair.JsonValue).AsDouble
+      else if LPair.JsonValue is TJSONBool then
+        FDataSet.FieldByName(LPair.JsonString.Value).AsBoolean := TJSONBool(LPair.JsonValue).AsBoolean
+      else
+        FDataSet.FieldByName(LPair.JsonString.Value).AsString := LPair.JsonValue.Value;
+    end;
+  end;
+  FDataSet.Post;
+  FDataSet.First;
 end;
 
 procedure TSimpleQuerySupabase.CreateFieldsFromJSONObject(aObj: TJSONObject);
+var
+  I: Integer;
+  LPair: TJSONPair;
 begin
-  { TODO: Create DataSet field definitions from JSON object keys }
+  for I := 0 to aObj.Count - 1 do
+  begin
+    LPair := aObj.Pairs[I];
+    if LPair.JsonValue is TJSONNumber then
+      FDataSet.FieldDefs.Add(LPair.JsonString.Value, ftFloat, 0, False)
+    else if (LPair.JsonValue is TJSONBool) then
+      FDataSet.FieldDefs.Add(LPair.JsonString.Value, ftBoolean, 0, False)
+    else
+      FDataSet.FieldDefs.Add(LPair.JsonString.Value, ftString, 255, False);
+  end;
 end;
 
-{ HTTP helper stubs }
+{ HTTP helpers }
 
 function TSimpleQuerySupabase.DoHTTPRequest(const aMethod, aURL: string; const aBody: string): string;
+var
+  LClient: THTTPClient;
+  LResponse: IHTTPResponse;
+  LContent: TStringStream;
+  LAuthToken: string;
 begin
   Result := '';
-  { TODO: Execute HTTP request with Supabase headers (apikey, Authorization, Prefer) }
+  LClient := THTTPClient.Create;
+  try
+    LClient.ContentType := 'application/json';
+    LClient.CustomHeaders['apikey'] := FAPIKey;
+
+    if FToken <> '' then
+      LAuthToken := FToken
+    else
+      LAuthToken := FAPIKey;
+    LClient.CustomHeaders['Authorization'] := 'Bearer ' + LAuthToken;
+
+    LClient.CustomHeaders['Prefer'] := 'return=representation';
+
+    if SameText(aMethod, 'GET') then
+    begin
+      LResponse := LClient.Get(aURL);
+    end
+    else if SameText(aMethod, 'POST') then
+    begin
+      LContent := TStringStream.Create(aBody, TEncoding.UTF8);
+      try
+        LResponse := LClient.Post(aURL, LContent);
+      finally
+        FreeAndNil(LContent);
+      end;
+    end
+    else if SameText(aMethod, 'PATCH') then
+    begin
+      LContent := TStringStream.Create(aBody, TEncoding.UTF8);
+      try
+        LResponse := LClient.Patch(aURL, LContent);
+      finally
+        FreeAndNil(LContent);
+      end;
+    end
+    else if SameText(aMethod, 'DELETE') then
+    begin
+      LResponse := LClient.Delete(aURL);
+    end;
+
+    if Assigned(LResponse) then
+    begin
+      if (LResponse.StatusCode >= 400) then
+        raise Exception.CreateFmt('Supabase HTTP %d: %s', [LResponse.StatusCode, LResponse.ContentAsString(TEncoding.UTF8)]);
+      Result := LResponse.ContentAsString(TEncoding.UTF8);
+    end;
+  finally
+    FreeAndNil(LClient);
+  end;
 end;
 
 function TSimpleQuerySupabase.BuildSupabaseURL(const aTableName, aOperation: string): string;
