@@ -3,9 +3,10 @@ unit SimpleQuerySupabase;
 interface
 
 uses
-  SimpleInterface, SimpleTypes, System.Classes, System.Variants, Data.DB,
-  System.SysUtils, System.JSON, System.Net.HttpClient, System.Net.URLClient,
-  Datasnap.DBClient, System.Generics.Collections;
+  SimpleInterface, SimpleTypes, SimpleSupabaseAuth, System.Classes,
+  System.Variants, Data.DB, System.SysUtils, System.JSON,
+  System.Net.HttpClient, System.Net.URLClient, Datasnap.DBClient,
+  System.Generics.Collections;
 
 type
   TSimpleQuerySupabase = class(TInterfacedObject, iSimpleQuery)
@@ -16,6 +17,7 @@ type
     FBaseURL: string;
     FAPIKey: string;
     FToken: string;
+    FAuth: iSimpleSupabaseAuth;
 
     { JSON/DataSet conversion helpers }
     procedure JSONToDataSet(const aJSON: string);
@@ -42,9 +44,11 @@ type
   public
     constructor Create(aBaseURL, aAPIKey: string); overload;
     constructor Create(aBaseURL, aAPIKey, aToken: string); overload;
+    constructor Create(aBaseURL, aAPIKey: string; aAuth: iSimpleSupabaseAuth); overload;
     destructor Destroy; override;
     class function New(aBaseURL, aAPIKey: string): iSimpleQuery; overload;
     class function New(aBaseURL, aAPIKey, aToken: string): iSimpleQuery; overload;
+    class function New(aBaseURL, aAPIKey: string; aAuth: iSimpleSupabaseAuth): iSimpleQuery; overload;
 
     { iSimpleQuery }
     function SQL: TStrings;
@@ -101,6 +105,17 @@ end;
 class function TSimpleQuerySupabase.New(aBaseURL, aAPIKey, aToken: string): iSimpleQuery;
 begin
   Result := Self.Create(aBaseURL, aAPIKey, aToken);
+end;
+
+constructor TSimpleQuerySupabase.Create(aBaseURL, aAPIKey: string; aAuth: iSimpleSupabaseAuth);
+begin
+  Create(aBaseURL, aAPIKey, '');
+  FAuth := aAuth;
+end;
+
+class function TSimpleQuerySupabase.New(aBaseURL, aAPIKey: string; aAuth: iSimpleSupabaseAuth): iSimpleQuery;
+begin
+  Result := Self.Create(aBaseURL, aAPIKey, aAuth);
 end;
 
 { iSimpleQuery implementation }
@@ -824,7 +839,9 @@ begin
     LClient.ContentType := 'application/json';
     LClient.CustomHeaders['apikey'] := FAPIKey;
 
-    if FToken <> '' then
+    if Assigned(FAuth) and FAuth.IsAuthenticated then
+      LAuthToken := FAuth.Token
+    else if FToken <> '' then
       LAuthToken := FToken
     else
       LAuthToken := FAPIKey;
