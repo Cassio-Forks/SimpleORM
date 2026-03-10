@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SimpleORM - Supabase Integration for Delphi. Connect your Delphi application to Supabase with zero external dependencies.">
+  <meta name="keywords" content="SimpleORM, Delphi, Supabase, PostgREST, ORM, Authentication, Realtime, REST API">
+  <meta name="author" content="Academia do Codigo - Thulio Bittencourt">
+  <meta name="robots" content="index, follow">
+  <meta name="ai-content-type" content="technical-documentation">
+  <meta name="ai-project" content="SimpleORM">
+  <meta name="ai-language" content="Delphi/Object Pascal">
+  <title>SimpleORM - Supabase Integration</title>
+  <style>
+    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950; --orange: #d29922; --red: #f85149; --code-bg: #0d1117; --sidebar-width: 280px; --sidebar-hover: #1c2128; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--accent); }
+    h2 { font-size: 1.6rem; margin-top: 3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
+    h3 { font-size: 1.2rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text); }
+    h4 { font-size: 1.05rem; margin-top: 1.2rem; margin-bottom: 0.4rem; color: var(--text2); }
+    p { margin-bottom: 1rem; color: var(--text2); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; background: var(--surface); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; color: var(--green); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1.5rem; }
+    pre code { background: none; padding: 0; color: var(--text); }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { text-align: left; padding: 0.6rem 0.8rem; border: 1px solid var(--border); }
+    th { background: var(--surface); color: var(--text); font-weight: 600; }
+    td { color: var(--text2); }
+    td code { color: var(--green); }
+    .badge { display: inline-block; padding: 0.15em 0.5em; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
+    .badge-new { background: #1f3a1f; color: var(--green); }
+    .subtitle { color: var(--text2); font-size: 1.1rem; margin-bottom: 2rem; }
+    section { margin-bottom: 2rem; }
+    .note { background: #1a2332; border-left: 3px solid var(--accent); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    .warning { background: #2a1f0a; border-left: 3px solid var(--orange); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text2); font-size: 0.9rem; }
+    .sidebar { position: fixed; top: 0; left: 0; width: var(--sidebar-width); height: 100vh; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem 0; overflow-y: auto; z-index: 100; }
+    .sidebar-header { padding: 0 1rem 1rem; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+    .sidebar-header h2 { font-size: 1.2rem; margin: 0; border: none; padding: 0; color: var(--accent); }
+    .sidebar-header .lang-switch { font-size: 0.85rem; margin: 0.3rem 0 0; }
+    .sidebar nav ul { list-style: none; margin: 0; padding: 0; }
+    .sidebar nav li { margin: 0; }
+    .sidebar nav li a { display: block; padding: 0.4rem 1rem; color: var(--text2); text-decoration: none; font-size: 0.9rem; transition: background 0.15s; }
+    .sidebar nav li a:hover { background: var(--sidebar-hover); color: var(--text); text-decoration: none; }
+    .content { margin-left: var(--sidebar-width); padding: 2rem 2.5rem; max-width: calc(960px + var(--sidebar-width)); }
+    @media (max-width: 768px) { .sidebar { display: none; } .content { margin-left: 0; padding: 1rem; } }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>SimpleORM + Supabase</h2>
+      <p class="lang-switch"><a href="../supabase.html">Portugues</a> | English</p>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#basic-setup">Basic Setup</a></li>
+        <li><a href="#crud">Full CRUD</a></li>
+        <li><a href="#crud-insert">&nbsp;&nbsp;Insert</a></li>
+        <li><a href="#crud-find">&nbsp;&nbsp;Find</a></li>
+        <li><a href="#crud-update">&nbsp;&nbsp;Update</a></li>
+        <li><a href="#crud-delete">&nbsp;&nbsp;Delete</a></li>
+        <li><a href="#crud-pagination">&nbsp;&nbsp;Pagination</a></li>
+        <li><a href="#crud-batch">&nbsp;&nbsp;Batch Operations</a></li>
+        <li><a href="#sql-rest-mapping">SQL to REST Mapping</a></li>
+        <li><a href="#authentication">Authentication</a></li>
+        <li><a href="#auth-apikey">&nbsp;&nbsp;API Key</a></li>
+        <li><a href="#auth-jwt">&nbsp;&nbsp;JWT Token</a></li>
+        <li><a href="#auth-signin">&nbsp;&nbsp;SignIn / SignUp</a></li>
+        <li><a href="#auth-signout">&nbsp;&nbsp;SignOut</a></li>
+        <li><a href="#auth-refresh">&nbsp;&nbsp;Refresh Token</a></li>
+        <li><a href="#auth-auto-refresh">&nbsp;&nbsp;Auto-Refresh</a></li>
+        <li><a href="#auth-rls">&nbsp;&nbsp;Row Level Security</a></li>
+        <li><a href="#realtime">Realtime</a></li>
+        <li><a href="#realtime-setup">&nbsp;&nbsp;Setup</a></li>
+        <li><a href="#realtime-global">&nbsp;&nbsp;Global Callbacks</a></li>
+        <li><a href="#realtime-table">&nbsp;&nbsp;Per-Table Callbacks</a></li>
+        <li><a href="#realtime-subscribe">&nbsp;&nbsp;Subscribe / Unsubscribe</a></li>
+        <li><a href="#realtime-connect">&nbsp;&nbsp;Connect / Disconnect</a></li>
+        <li><a href="#realtime-poll">&nbsp;&nbsp;Poll Interval</a></li>
+        <li><a href="#api-reference">API Reference</a></li>
+        <li><a href="#api-query">&nbsp;&nbsp;TSimpleQuerySupabase</a></li>
+        <li><a href="#api-auth">&nbsp;&nbsp;TSimpleSupabaseAuth</a></li>
+        <li><a href="#api-realtime">&nbsp;&nbsp;TSimpleSupabaseRealtime</a></li>
+        <li><a href="#api-event">&nbsp;&nbsp;TSupabaseRealtimeEvent</a></li>
+        <li><a href="#examples">Complete Examples</a></li>
+        <li><a href="#example-basic">&nbsp;&nbsp;Basic Console App</a></li>
+        <li><a href="#example-auth">&nbsp;&nbsp;App with Authentication</a></li>
+        <li><a href="#example-realtime">&nbsp;&nbsp;App with Realtime</a></li>
+        <li><a href="#example-full">&nbsp;&nbsp;Full App</a></li>
+        <li><a href="#troubleshooting">Troubleshooting</a></li>
+        <li><a href="index.html">&larr; Back to Docs</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <div class="content">
+
+    <h1>SimpleORM + Supabase <span class="badge badge-new">NEW</span></h1>
+    <p class="subtitle">Connect your Delphi application to Supabase with zero external dependencies.</p>
+
+    <!-- ========== INTRODUCTION ========== -->
+    <section id="introduction">
+      <h2>Introduction</h2>
+      <p>
+        The Supabase integration for SimpleORM allows you to use your Supabase project as a backend database
+        directly from Delphi, without installing any additional libraries. All communication happens via
+        Supabase's PostgREST API using standard HTTP requests from <code>System.Net.HttpClient</code>.
+      </p>
+      <p>The integration consists of <strong>3 components</strong>:</p>
+      <table>
+        <tr>
+          <th>Component</th>
+          <th>Unit</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>TSimpleQuerySupabase</code></td>
+          <td><code>SimpleQuerySupabase.pas</code></td>
+          <td>Query driver implementing <code>iSimpleQuery</code> — translates SQL operations to PostgREST REST calls</td>
+        </tr>
+        <tr>
+          <td><code>TSimpleSupabaseAuth</code></td>
+          <td><code>SimpleSupabaseAuth.pas</code></td>
+          <td>Authentication via Supabase GoTrue API — SignIn, SignUp, SignOut, token refresh</td>
+        </tr>
+        <tr>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td><code>SimpleSupabaseRealtime.pas</code></td>
+          <td>Realtime change detection via polling — monitors INSERT, UPDATE, DELETE events</td>
+        </tr>
+      </table>
+
+      <div class="note">
+        <strong>Zero external dependencies.</strong> The integration uses only native Delphi units
+        (<code>System.Net.HttpClient</code>, <code>System.JSON</code>). No need to install DLLs,
+        packages, or third-party components.
+      </div>
+    </section>
+
+    <!-- ========== INSTALLATION ========== -->
+    <section id="installation">
+      <h2>Installation</h2>
+
+      <h3>Via Boss (recommended)</h3>
+<pre><code>boss install academiadocodigo/SimpleORM</code></pre>
+
+      <h3>Manual Installation</h3>
+      <p>Add the <code>src/</code> directory to your Delphi Library Path and include the required units:</p>
+<pre><code>uses
+  SimpleInterface,
+  SimpleDAO,
+  SimpleQuerySupabase,      // Query driver for Supabase
+  SimpleSupabaseAuth,       // Authentication (optional)
+  SimpleSupabaseRealtime;   // Realtime (optional)</code></pre>
+    </section>
+
+    <!-- ========== BASIC SETUP ========== -->
+    <section id="basic-setup">
+      <h2>Basic Setup</h2>
+
+      <p><code>TSimpleQuerySupabase</code> offers 3 constructor variants for different scenarios:</p>
+
+      <h3>1. URL + API Key (simplest)</h3>
+<pre><code>var
+  LQuery: iSimpleQuery;
+begin
+  LQuery := TSimpleQuerySupabase.New(
+    'https://xyzproject.supabase.co',  // Your Supabase project URL
+    'eyJhbGciOiJIUzI1NiIs...'         // API Key (anon or service_role)
+  );
+end;</code></pre>
+
+      <h3>2. URL + API Key + JWT Token</h3>
+<pre><code>var
+  LQuery: iSimpleQuery;
+begin
+  LQuery := TSimpleQuerySupabase.New(
+    'https://xyzproject.supabase.co',  // Project URL
+    'eyJhbGciOiJIUzI1NiIs...',        // API Key (apikey header)
+    'eyJhbGciOiJIUzI1NiIs...'         // JWT Token (Authorization: Bearer)
+  );
+end;</code></pre>
+
+      <h3>3. URL + API Key + SQLType</h3>
+<pre><code>var
+  LQuery: iSimpleQuery;
+begin
+  LQuery := TSimpleQuerySupabase.New(
+    'https://xyzproject.supabase.co',
+    'eyJhbGciOiJIUzI1NiIs...',
+    TSQLType.PostgreSQL                // SQL dialect for query generation
+  );
+end;</code></pre>
+
+      <h3>Where to find URL and API Key</h3>
+      <div class="note">
+        In your <a href="https://app.supabase.com" target="_blank">Supabase Dashboard</a>, go to
+        <strong>Settings &gt; API</strong>. You will find:
+        <br><br>
+        <strong>Project URL:</strong> <code>https://xyzproject.supabase.co</code><br>
+        <strong>anon (public) key:</strong> for client-side access with RLS<br>
+        <strong>service_role key:</strong> for server-side access bypassing RLS
+      </div>
+
+      <div class="warning">
+        <strong>Security:</strong> The <code>service_role</code> key bypasses Row Level Security.
+        Never expose it in client-side applications. Use the <code>anon</code> key combined with
+        authentication for client apps.
+      </div>
+    </section>
+
+    <!-- ========== FULL CRUD ========== -->
+    <section id="crud">
+      <h2>Full CRUD</h2>
+      <p>
+        <code>TSimpleQuerySupabase</code> implements <code>iSimpleQuery</code>, so you use it with
+        <code>TSimpleDAO&lt;T&gt;</code> exactly the same way as any other driver (FireDAC, UniDAC, etc.).
+        The driver transparently translates SQL operations to PostgREST REST calls.
+      </p>
+
+      <!-- INSERT -->
+      <h3 id="crud-insert">Insert</h3>
+<pre><code>var
+  LProduct: TProduct;
+  LDAO: iSimpleDAO&lt;TProduct&gt;;
+begin
+  LProduct := TProduct.Create;
+  try
+    LProduct.Name := 'Keyboard';
+    LProduct.Price := 149.90;
+
+    LDAO := TSimpleDAO&lt;TProduct&gt;.New(
+      TSimpleQuerySupabase.New(SUPABASE_URL, SUPABASE_KEY)
+    );
+    LDAO.Insert(LProduct);
+  finally
+    LProduct.Free;
+  end;
+end;</code></pre>
+
+      <h4>Generated HTTP Request</h4>
+<pre><code>POST https://xyzproject.supabase.co/rest/v1/PRODUCTS
+Headers:
+  apikey: eyJ...
+  Authorization: Bearer eyJ...
+  Content-Type: application/json
+  Prefer: return=representation
+Body:
+  {"NAME": "Keyboard", "PRICE": 149.90}</code></pre>
+
+      <!-- FIND -->
+      <h3 id="crud-find">Find</h3>
+
+      <h4>Find All</h4>
+<pre><code>var
+  LList: TObjectList&lt;TProduct&gt;;
+  LDAO: iSimpleDAO&lt;TProduct&gt;;
+begin
+  LList := TObjectList&lt;TProduct&gt;.Create;
+  try
+    LDAO := TSimpleDAO&lt;TProduct&gt;.New(
+      TSimpleQuerySupabase.New(SUPABASE_URL, SUPABASE_KEY)
+    );
+    LDAO.Find(LList);
+
+    for var LProduct in LList do
+      Writeln(LProduct.Name, ' - $', LProduct.Price);
+  finally
+    LList.Free;
+  end;
+end;</code></pre>
+
+      <h4>Generated HTTP Request</h4>
+<pre><code>GET https://xyzproject.supabase.co/rest/v1/PRODUCTS?select=*</code></pre>
+
+      <h4>Find by ID</h4>
+<pre><code>var
+  LProduct: TProduct;
+  LDAO: iSimpleDAO&lt;TProduct&gt;;
+begin
+  LProduct := TProduct.Create;
+  try
+    LProduct.Id := 42;
+
+    LDAO := TSimpleDAO&lt;TProduct&gt;.New(
+      TSimpleQuerySupabase.New(SUPABASE_URL, SUPABASE_KEY)
+    );
+    LDAO.Find(LProduct);
+
+    Writeln('Found: ', LProduct.Name);
+  finally
+    LProduct.Free;
+  end;
+end;</code></pre>
+
+      <h4>Generated HTTP Request</h4>
+<pre><code>GET https://xyzproject.supabase.co/rest/v1/PRODUCTS?select=*&amp;ID=eq.42</code></pre>
+
+      <!-- UPDATE -->
+      <h3 id="crud-update">Update</h3>
+<pre><code>var
+  LProduct: TProduct;
+  LDAO: iSimpleDAO&lt;TProduct&gt;;
+begin
+  LProduct := TProduct.Create;
+  try
+    LProduct.Id := 42;
+    LProduct.Name := 'Mechanical Keyboard';
+    LProduct.Price := 299.90;
+
+    LDAO := TSimpleDAO&lt;TProduct&gt;.New(
+      TSimpleQuerySupabase.New(SUPABASE_URL, SUPABASE_KEY)
+    );
+    LDAO.Update(LProduct);
+  finally
+    LProduct.Free;
+  end;
+end;</code></pre>
+
+      <h4>Generated HTTP Request</h4>
+<pre><code>PATCH https://xyzproject.supabase.co/rest/v1/PRODUCTS?ID=eq.42
+Headers:
+  Content-Type: application/json
+  Prefer: return=representation
+Body:
+  {"NAME": "Mechanical Keyboard", "PRICE": 299.90}</code></pre>
+
+      <!-- DELETE -->
+      <h3 id="crud-delete">Delete</h3>
+<pre><code>var
+  LProduct: TProduct;
+  LDAO: iSimpleDAO&lt;TProduct&gt;;
+begin
+  LProduct := TProduct.Create;
+  try
+    LProduct.Id := 42;
+
+    LDAO := TSimpleDAO&lt;TProduct&gt;.New(
+      TSimpleQuerySupabase.New(SUPABASE_URL, SUPABASE_KEY)
+    );
+    LDAO.Delete(LProduct);
+  finally
+    LProduct.Free;
+  end;
+end;</code></pre>
+
+      <h4>Generated HTTP Request</h4>
+<pre><code>DELETE https://xyzproject.supabase.co/rest/v1/PRODUCTS?ID=eq.42</code></pre>
+
+      <!-- PAGINATION -->
+      <h3 id="crud-pagination">Pagination</h3>
+<pre><code>var
+  LList: TObjectList&lt;TProduct&gt;;
+  LDAO: iSimpleDAO&lt;TProduct&gt;;
+begin
+  LList := TObjectList&lt;TProduct&gt;.Create;
+  try
+    LDAO := TSimpleDAO&lt;TProduct&gt;.New(
+      TSimpleQuerySupabase.New(SUPABASE_URL, SUPABASE_KEY)
+    );
+
+    // Page 2 with 10 records per page
+    LDAO.SQL
+      .Skip(10)
+      .Take(10)
+    .&amp;End
+    .Find(LList);
+  finally
+    LList.Free;
+  end;
+end;</code></pre>
+
+      <h4>Generated HTTP Request</h4>
+<pre><code>GET https://xyzproject.supabase.co/rest/v1/PRODUCTS?select=*&amp;limit=10&amp;offset=10</code></pre>
+
+      <!-- BATCH -->
+      <h3 id="crud-batch">Batch Operations</h3>
+      <p>
+        Batch operations (<code>InsertBatch</code>, <code>UpdateBatch</code>, <code>DeleteBatch</code>)
+        work the same way as with other drivers. Each item is sent as an individual REST request.
+      </p>
+<pre><code>var
+  LList: TObjectList&lt;TProduct&gt;;
+  LDAO: iSimpleDAO&lt;TProduct&gt;;
+begin
+  LList := TObjectList&lt;TProduct&gt;.Create;
+  // ... populate list ...
+
+  LDAO := TSimpleDAO&lt;TProduct&gt;.New(
+    TSimpleQuerySupabase.New(SUPABASE_URL, SUPABASE_KEY)
+  );
+  LDAO.InsertBatch(LList);
+end;</code></pre>
+
+      <div class="note">
+        <strong>Transactions:</strong> Supabase REST API is stateless, so transactions are no-ops.
+        <code>StartTransaction</code>, <code>Commit</code>, and <code>Rollback</code> return
+        <code>Self</code> without performing any action. <code>InTransaction</code> always returns
+        <code>False</code>.
+      </div>
+    </section>
+
+    <!-- ========== SQL TO REST MAPPING ========== -->
+    <section id="sql-rest-mapping">
+      <h2>SQL to REST Mapping</h2>
+      <p>
+        The driver translates SQL operations generated by <code>TSimpleDAO</code> into PostgREST
+        REST endpoints. Here is the complete mapping:
+      </p>
+      <table>
+        <tr>
+          <th>SQL Operation</th>
+          <th>HTTP Method</th>
+          <th>PostgREST Endpoint</th>
+          <th>Notes</th>
+        </tr>
+        <tr>
+          <td><code>INSERT INTO table (...) VALUES (...)</code></td>
+          <td><code>POST</code></td>
+          <td><code>/rest/v1/table</code></td>
+          <td>Body as JSON</td>
+        </tr>
+        <tr>
+          <td><code>SELECT * FROM table</code></td>
+          <td><code>GET</code></td>
+          <td><code>/rest/v1/table?select=*</code></td>
+          <td>Returns JSON array</td>
+        </tr>
+        <tr>
+          <td><code>SELECT * FROM table WHERE id = :id</code></td>
+          <td><code>GET</code></td>
+          <td><code>/rest/v1/table?select=*&amp;id=eq.value</code></td>
+          <td>PostgREST filter</td>
+        </tr>
+        <tr>
+          <td><code>UPDATE table SET ... WHERE id = :id</code></td>
+          <td><code>PATCH</code></td>
+          <td><code>/rest/v1/table?id=eq.value</code></td>
+          <td>Body with changed fields</td>
+        </tr>
+        <tr>
+          <td><code>DELETE FROM table WHERE id = :id</code></td>
+          <td><code>DELETE</code></td>
+          <td><code>/rest/v1/table?id=eq.value</code></td>
+          <td>Filter in query string</td>
+        </tr>
+        <tr>
+          <td><code>LIMIT n OFFSET m</code></td>
+          <td>-</td>
+          <td><code>?limit=n&amp;offset=m</code></td>
+          <td>Query string parameters</td>
+        </tr>
+        <tr>
+          <td><code>ORDER BY field ASC</code></td>
+          <td>-</td>
+          <td><code>?order=field.asc</code></td>
+          <td>Query string parameter</td>
+        </tr>
+        <tr>
+          <td><code>ORDER BY field DESC</code></td>
+          <td>-</td>
+          <td><code>?order=field.desc</code></td>
+          <td>Query string parameter</td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- ========== AUTHENTICATION ========== -->
+    <section id="authentication">
+      <h2>Authentication</h2>
+      <p>
+        <code>TSimpleSupabaseAuth</code> provides complete integration with the Supabase GoTrue
+        authentication API. It supports email/password authentication, token management,
+        and automatic token refresh.
+      </p>
+
+      <!-- API Key -->
+      <h3 id="auth-apikey">API Key Only (service_role)</h3>
+      <p>
+        The simplest approach: use the <code>service_role</code> key directly. This bypasses
+        all Row Level Security policies.
+      </p>
+<pre><code>var
+  LQuery: iSimpleQuery;
+begin
+  // service_role key bypasses RLS - use only on server-side
+  LQuery := TSimpleQuerySupabase.New(
+    'https://xyzproject.supabase.co',
+    'eyJ_SERVICE_ROLE_KEY...'
+  );
+end;</code></pre>
+
+      <div class="warning">
+        <strong>Warning:</strong> The <code>service_role</code> key has full access to all data.
+        Never use it in client-side applications or expose it publicly.
+      </div>
+
+      <!-- JWT Token -->
+      <h3 id="auth-jwt">JWT Token</h3>
+      <p>
+        Pass a JWT token for authenticated requests. The token is sent in the
+        <code>Authorization: Bearer</code> header.
+      </p>
+<pre><code>var
+  LQuery: iSimpleQuery;
+begin
+  LQuery := TSimpleQuerySupabase.New(
+    'https://xyzproject.supabase.co',
+    'eyJ_ANON_KEY...',                // API Key
+    'eyJ_USER_JWT_TOKEN...'           // JWT Token from authentication
+  );
+end;</code></pre>
+
+      <!-- SignIn / SignUp -->
+      <h3 id="auth-signin">SignIn / SignUp</h3>
+<pre><code>var
+  LAuth: TSimpleSupabaseAuth;
+  LToken: string;
+begin
+  LAuth := TSimpleSupabaseAuth.Create(
+    'https://xyzproject.supabase.co',
+    'eyJ_ANON_KEY...'
+  );
+  try
+    // Sign in with existing user
+    LAuth.SignIn('user@email.com', 'password123');
+    LToken := LAuth.AccessToken;
+    Writeln('Authenticated! Token: ', Copy(LToken, 1, 20), '...');
+
+    // Use the token with the query driver
+    var LQuery := TSimpleQuerySupabase.New(
+      'https://xyzproject.supabase.co',
+      'eyJ_ANON_KEY...',
+      LToken
+    );
+  finally
+    LAuth.Free;
+  end;
+end;</code></pre>
+
+<pre><code>var
+  LAuth: TSimpleSupabaseAuth;
+begin
+  LAuth := TSimpleSupabaseAuth.Create(
+    'https://xyzproject.supabase.co',
+    'eyJ_ANON_KEY...'
+  );
+  try
+    // Register a new user
+    LAuth.SignUp('newuser@email.com', 'securepassword');
+    Writeln('User created! Token: ', Copy(LAuth.AccessToken, 1, 20), '...');
+  finally
+    LAuth.Free;
+  end;
+end;</code></pre>
+
+      <!-- SignOut -->
+      <h3 id="auth-signout">SignOut</h3>
+<pre><code>var
+  LAuth: TSimpleSupabaseAuth;
+begin
+  LAuth := TSimpleSupabaseAuth.Create(
+    'https://xyzproject.supabase.co',
+    'eyJ_ANON_KEY...'
+  );
+  try
+    LAuth.SignIn('user@email.com', 'password123');
+    // ... perform operations ...
+
+    // Invalidate the session
+    LAuth.SignOut;
+    Writeln('Session terminated.');
+  finally
+    LAuth.Free;
+  end;
+end;</code></pre>
+
+      <!-- Refresh Token -->
+      <h3 id="auth-refresh">Refresh Token</h3>
+      <p>
+        Supabase JWT tokens expire after a default period (usually 1 hour).
+        Use <code>RefreshToken</code> to obtain a new access token without re-entering credentials.
+      </p>
+<pre><code>var
+  LAuth: TSimpleSupabaseAuth;
+begin
+  LAuth := TSimpleSupabaseAuth.Create(
+    'https://xyzproject.supabase.co',
+    'eyJ_ANON_KEY...'
+  );
+  try
+    LAuth.SignIn('user@email.com', 'password123');
+    Writeln('Original token: ', Copy(LAuth.AccessToken, 1, 20), '...');
+
+    // Manually refresh the token
+    LAuth.RefreshToken;
+    Writeln('Refreshed token: ', Copy(LAuth.AccessToken, 1, 20), '...');
+  finally
+    LAuth.Free;
+  end;
+end;</code></pre>
+
+      <!-- Auto-Refresh -->
+      <h3 id="auth-auto-refresh">Auto-Refresh</h3>
+      <p>
+        <code>AutoRefresh</code> starts a background timer that automatically refreshes the token
+        30 seconds before it expires. This ensures uninterrupted access without manual management.
+      </p>
+<pre><code>var
+  LAuth: TSimpleSupabaseAuth;
+begin
+  LAuth := TSimpleSupabaseAuth.Create(
+    'https://xyzproject.supabase.co',
+    'eyJ_ANON_KEY...'
+  );
+  try
+    LAuth.SignIn('user@email.com', 'password123');
+
+    // Enable auto-refresh - token is refreshed 30s before expiry
+    LAuth.AutoRefresh;
+    Writeln('Auto-refresh enabled.');
+
+    // The token is automatically renewed in the background
+    // Use LAuth.AccessToken whenever you need the current token
+  finally
+    LAuth.Free;
+  end;
+end;</code></pre>
+
+      <div class="note">
+        <strong>How it works:</strong> <code>AutoRefresh</code> reads the <code>expires_in</code>
+        value from the authentication response and schedules a refresh 30 seconds before expiry.
+        The timer runs in the background using <code>TThread.CreateAnonymousThread</code>.
+      </div>
+
+      <!-- RLS -->
+      <h3 id="auth-rls">Row Level Security (RLS)</h3>
+      <p>
+        When using the <code>anon</code> key with RLS enabled on your Supabase tables,
+        requests are filtered based on the authenticated user's JWT token.
+      </p>
+<pre><code>var
+  LAuth: TSimpleSupabaseAuth;
+  LQuery: iSimpleQuery;
+  LDAO: iSimpleDAO&lt;TTask&gt;;
+  LList: TObjectList&lt;TTask&gt;;
+begin
+  LAuth := TSimpleSupabaseAuth.Create(
+    'https://xyzproject.supabase.co',
+    'eyJ_ANON_KEY...'
+  );
+  try
+    // Authenticate - the JWT contains the user_id
+    LAuth.SignIn('user@email.com', 'password123');
+
+    // Create query with anon key + JWT token
+    LQuery := TSimpleQuerySupabase.New(
+      'https://xyzproject.supabase.co',
+      'eyJ_ANON_KEY...',
+      LAuth.AccessToken
+    );
+
+    // RLS policy automatically filters data for this user
+    LList := TObjectList&lt;TTask&gt;.Create;
+    try
+      LDAO := TSimpleDAO&lt;TTask&gt;.New(LQuery);
+      LDAO.Find(LList);
+      // LList contains only the authenticated user's tasks
+    finally
+      LList.Free;
+    end;
+  finally
+    LAuth.Free;
+  end;
+end;</code></pre>
+
+      <div class="note">
+        <strong>Supabase RLS example policy:</strong><br>
+        <code>CREATE POLICY "Users can view own tasks" ON tasks FOR SELECT USING (auth.uid() = user_id);</code><br><br>
+        With this policy, the <code>Find</code> operation automatically returns only the rows
+        belonging to the authenticated user.
+      </div>
+    </section>
+
+    <!-- ========== REALTIME ========== -->
+    <section id="realtime">
+      <h2>Realtime</h2>
+      <p>
+        <code>TSimpleSupabaseRealtime</code> monitors changes in Supabase tables and triggers
+        callbacks for INSERT, UPDATE, and DELETE events. It works via polling, periodically
+        querying the tables and detecting differences.
+      </p>
+
+      <!-- Setup -->
+      <h3 id="realtime-setup">Setup</h3>
+<pre><code>var
+  LRealtime: TSimpleSupabaseRealtime;
+begin
+  LRealtime := TSimpleSupabaseRealtime.Create(
+    'https://xyzproject.supabase.co',
+    'eyJ_ANON_KEY...'
+  );
+  try
+    // Configure, subscribe, and connect...
+  finally
+    LRealtime.Free;
+  end;
+end;</code></pre>
+
+      <!-- Global Callbacks -->
+      <h3 id="realtime-global">Global Callbacks</h3>
+      <p>
+        Global callbacks are triggered for events on <strong>any</strong> subscribed table.
+      </p>
+<pre><code>LRealtime
+  .OnInsert(
+    procedure(const aEvent: TSupabaseRealtimeEvent)
+    begin
+      Writeln('[INSERT] Table: ', aEvent.Table);
+      Writeln('  New data: ', aEvent.NewData.ToJSON);
+    end
+  )
+  .OnUpdate(
+    procedure(const aEvent: TSupabaseRealtimeEvent)
+    begin
+      Writeln('[UPDATE] Table: ', aEvent.Table);
+      Writeln('  Old data: ', aEvent.OldData.ToJSON);
+      Writeln('  New data: ', aEvent.NewData.ToJSON);
+    end
+  )
+  .OnDelete(
+    procedure(const aEvent: TSupabaseRealtimeEvent)
+    begin
+      Writeln('[DELETE] Table: ', aEvent.Table);
+      Writeln('  Deleted data: ', aEvent.OldData.ToJSON);
+    end
+  );</code></pre>
+
+      <!-- Per-Table Callbacks -->
+      <h3 id="realtime-table">Per-Table Callbacks</h3>
+      <p>
+        Per-table callbacks are triggered only for events on a specific table.
+      </p>
+<pre><code>LRealtime
+  .OnChange('PRODUCTS',
+    procedure(const aEvent: TSupabaseRealtimeEvent)
+    begin
+      Writeln('[', aEvent.EventType, '] on PRODUCTS');
+      if Assigned(aEvent.NewData) then
+        Writeln('  Data: ', aEvent.NewData.ToJSON);
+    end
+  )
+  .OnChange('ORDERS',
+    procedure(const aEvent: TSupabaseRealtimeEvent)
+    begin
+      Writeln('[', aEvent.EventType, '] on ORDERS');
+    end
+  );</code></pre>
+
+      <!-- Subscribe / Unsubscribe -->
+      <h3 id="realtime-subscribe">Subscribe / Unsubscribe</h3>
+      <p>
+        Subscribe to one or more tables using a fluent interface. You can unsubscribe
+        from individual tables at any time.
+      </p>
+<pre><code>// Subscribe to multiple tables (fluent)
+LRealtime
+  .Subscribe('PRODUCTS')
+  .Subscribe('ORDERS')
+  .Subscribe('CUSTOMERS')
+  .Connect;
+
+// Unsubscribe from a specific table
+LRealtime.Unsubscribe('ORDERS');
+
+// Subscribe to more tables after initial connect
+LRealtime.Subscribe('INVOICES');</code></pre>
+
+      <!-- Connect / Disconnect -->
+      <h3 id="realtime-connect">Connect / Disconnect</h3>
+      <p>
+        <code>Connect</code> starts the polling loop. <code>Disconnect</code> stops it.
+      </p>
+<pre><code>// Start monitoring
+LRealtime.Connect;
+
+// ... application runs ...
+
+// Stop monitoring
+LRealtime.Disconnect;</code></pre>
+
+      <div class="note">
+        <strong>Thread safety:</strong> The polling runs in a background thread. Callbacks
+        are invoked in the context of that thread. Use <code>TThread.Synchronize</code> or
+        <code>TThread.Queue</code> inside callbacks if you need to update UI components.
+      </div>
+
+      <!-- Poll Interval -->
+      <h3 id="realtime-poll">Poll Interval</h3>
+      <p>
+        The default poll interval is 1000ms (1 second). Adjust it based on your needs:
+      </p>
+<pre><code>// Check every 5 seconds (lower server load)
+LRealtime.PollInterval(5000);
+
+// Check every 500ms (faster detection)
+LRealtime.PollInterval(500);</code></pre>
+
+      <h4>With Authentication Token</h4>
+<pre><code>var
+  LAuth: TSimpleSupabaseAuth;
+  LRealtime: TSimpleSupabaseRealtime;
+begin
+  LAuth := TSimpleSupabaseAuth.Create(SUPABASE_URL, SUPABASE_KEY);
+  try
+    LAuth.SignIn('user@email.com', 'password123');
+
+    LRealtime := TSimpleSupabaseRealtime.Create(SUPABASE_URL, SUPABASE_KEY);
+    try
+      LRealtime
+        .Token(LAuth.AccessToken)       // Authenticate realtime requests
+        .PollInterval(2000)
+        .OnInsert(
+          procedure(const aEvent: TSupabaseRealtimeEvent)
+          begin
+            Writeln('New record in ', aEvent.Table);
+          end
+        )
+        .Subscribe('TASKS')
+        .Connect;
+    finally
+      LRealtime.Free;
+    end;
+  finally
+    LAuth.Free;
+  end;
+end;</code></pre>
+    </section>
+
+    <!-- ========== API REFERENCE ========== -->
+    <section id="api-reference">
+      <h2>API Reference</h2>
+
+      <!-- TSimpleQuerySupabase -->
+      <h3 id="api-query">TSimpleQuerySupabase</h3>
+      <p>Query driver implementing <code>iSimpleQuery</code> for Supabase PostgREST.</p>
+
+      <h4>Constructors</h4>
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Parameters</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>New</code></td>
+          <td><code>aBaseURL, aApiKey: string</code></td>
+          <td>Creates driver with URL and API key</td>
+        </tr>
+        <tr>
+          <td><code>New</code></td>
+          <td><code>aBaseURL, aApiKey, aToken: string</code></td>
+          <td>Creates driver with URL, API key, and JWT token</td>
+        </tr>
+        <tr>
+          <td><code>New</code></td>
+          <td><code>aBaseURL, aApiKey: string; aSQLType: TSQLType</code></td>
+          <td>Creates driver with URL, API key, and SQL dialect</td>
+        </tr>
+      </table>
+
+      <h4>iSimpleQuery Methods</h4>
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Return</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>SQL</code></td>
+          <td><code>TStrings</code></td>
+          <td>SQL text (parsed to determine HTTP method and endpoint)</td>
+        </tr>
+        <tr>
+          <td><code>Params</code></td>
+          <td><code>TParams</code></td>
+          <td>Query parameters (mapped to JSON body or query string)</td>
+        </tr>
+        <tr>
+          <td><code>ExecSQL</code></td>
+          <td><code>iSimpleQuery</code></td>
+          <td>Executes the SQL (sends HTTP request)</td>
+        </tr>
+        <tr>
+          <td><code>Open</code></td>
+          <td><code>iSimpleQuery</code></td>
+          <td>Executes SELECT and fills DataSet</td>
+        </tr>
+        <tr>
+          <td><code>Open(aSQL: string)</code></td>
+          <td><code>iSimpleQuery</code></td>
+          <td>Executes given SQL and fills DataSet</td>
+        </tr>
+        <tr>
+          <td><code>DataSet</code></td>
+          <td><code>TDataSet</code></td>
+          <td>Returns the result DataSet (TFDMemTable)</td>
+        </tr>
+        <tr>
+          <td><code>StartTransaction</code></td>
+          <td><code>iSimpleQuery</code></td>
+          <td>No-op (REST is stateless)</td>
+        </tr>
+        <tr>
+          <td><code>Commit</code></td>
+          <td><code>iSimpleQuery</code></td>
+          <td>No-op (REST is stateless)</td>
+        </tr>
+        <tr>
+          <td><code>Rollback</code></td>
+          <td><code>iSimpleQuery</code></td>
+          <td>No-op (REST is stateless)</td>
+        </tr>
+        <tr>
+          <td><code>&amp;EndTransaction</code></td>
+          <td><code>iSimpleQuery</code></td>
+          <td>Delegates to Commit (no-op)</td>
+        </tr>
+        <tr>
+          <td><code>InTransaction</code></td>
+          <td><code>Boolean</code></td>
+          <td>Always returns <code>False</code></td>
+        </tr>
+        <tr>
+          <td><code>SQLType</code></td>
+          <td><code>TSQLType</code></td>
+          <td>Returns the configured SQL dialect</td>
+        </tr>
+      </table>
+
+      <h4>Additional Methods</h4>
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Parameters</th>
+          <th>Return</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>Token</code></td>
+          <td><code>aToken: string</code></td>
+          <td><code>iSimpleQuery</code></td>
+          <td>Sets or updates the JWT token for authenticated requests</td>
+        </tr>
+      </table>
+
+      <!-- TSimpleSupabaseAuth -->
+      <h3 id="api-auth">TSimpleSupabaseAuth</h3>
+      <p>Authentication client for Supabase GoTrue API.</p>
+
+      <h4>Constructor</h4>
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Parameters</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>Create</code></td>
+          <td><code>aBaseURL, aApiKey: string</code></td>
+          <td>Creates auth client with Supabase URL and API key</td>
+        </tr>
+      </table>
+
+      <h4>Authentication Methods</h4>
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Parameters</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>SignIn</code></td>
+          <td><code>aEmail, aPassword: string</code></td>
+          <td>Authenticates with email and password</td>
+        </tr>
+        <tr>
+          <td><code>SignUp</code></td>
+          <td><code>aEmail, aPassword: string</code></td>
+          <td>Creates a new user account</td>
+        </tr>
+        <tr>
+          <td><code>SignOut</code></td>
+          <td>-</td>
+          <td>Invalidates the current session</td>
+        </tr>
+        <tr>
+          <td><code>RefreshToken</code></td>
+          <td>-</td>
+          <td>Obtains a new access token using the refresh token</td>
+        </tr>
+        <tr>
+          <td><code>AutoRefresh</code></td>
+          <td>-</td>
+          <td>Enables automatic token refresh 30 seconds before expiry</td>
+        </tr>
+      </table>
+
+      <h4>Properties</h4>
+      <table>
+        <tr>
+          <th>Property</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>AccessToken</code></td>
+          <td><code>string</code></td>
+          <td>Current JWT access token</td>
+        </tr>
+        <tr>
+          <td><code>RefreshTokenValue</code></td>
+          <td><code>string</code></td>
+          <td>Current refresh token (used by RefreshToken method)</td>
+        </tr>
+        <tr>
+          <td><code>ExpiresIn</code></td>
+          <td><code>Integer</code></td>
+          <td>Token expiry time in seconds</td>
+        </tr>
+      </table>
+
+      <!-- TSimpleSupabaseRealtime -->
+      <h3 id="api-realtime">TSimpleSupabaseRealtime</h3>
+      <p>Realtime change monitoring via polling.</p>
+
+      <h4>Constructor</h4>
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Parameters</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>Create</code></td>
+          <td><code>aBaseURL, aApiKey: string</code></td>
+          <td>Creates realtime client with Supabase URL and API key</td>
+        </tr>
+      </table>
+
+      <h4>Subscription Methods</h4>
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Parameters</th>
+          <th>Return</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>Subscribe</code></td>
+          <td><code>aTable: string</code></td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Subscribe to changes on a table</td>
+        </tr>
+        <tr>
+          <td><code>Unsubscribe</code></td>
+          <td><code>aTable: string</code></td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Unsubscribe from a table</td>
+        </tr>
+        <tr>
+          <td><code>Connect</code></td>
+          <td>-</td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Start the polling loop</td>
+        </tr>
+        <tr>
+          <td><code>Disconnect</code></td>
+          <td>-</td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Stop the polling loop</td>
+        </tr>
+      </table>
+
+      <h4>Callback Methods</h4>
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Parameters</th>
+          <th>Return</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>OnInsert</code></td>
+          <td><code>aCallback: TProc&lt;TSupabaseRealtimeEvent&gt;</code></td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Global callback for INSERT events</td>
+        </tr>
+        <tr>
+          <td><code>OnUpdate</code></td>
+          <td><code>aCallback: TProc&lt;TSupabaseRealtimeEvent&gt;</code></td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Global callback for UPDATE events</td>
+        </tr>
+        <tr>
+          <td><code>OnDelete</code></td>
+          <td><code>aCallback: TProc&lt;TSupabaseRealtimeEvent&gt;</code></td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Global callback for DELETE events</td>
+        </tr>
+        <tr>
+          <td><code>OnChange</code></td>
+          <td><code>aTable: string; aCallback: TProc&lt;TSupabaseRealtimeEvent&gt;</code></td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Per-table callback for any event</td>
+        </tr>
+      </table>
+
+      <h4>Configuration Methods</h4>
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Parameters</th>
+          <th>Return</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>Token</code></td>
+          <td><code>aToken: string</code></td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Sets JWT token for authenticated polling requests</td>
+        </tr>
+        <tr>
+          <td><code>PollInterval</code></td>
+          <td><code>aMs: Integer</code></td>
+          <td><code>TSimpleSupabaseRealtime</code></td>
+          <td>Sets polling interval in milliseconds (default: 1000)</td>
+        </tr>
+      </table>
+
+      <!-- TSupabaseRealtimeEvent -->
+      <h3 id="api-event">TSupabaseRealtimeEvent</h3>
+      <p>Record containing realtime event data, passed to callbacks.</p>
+
+      <table>
+        <tr>
+          <th>Field</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>Table</code></td>
+          <td><code>string</code></td>
+          <td>Name of the table where the event occurred</td>
+        </tr>
+        <tr>
+          <td><code>EventType</code></td>
+          <td><code>string</code></td>
+          <td>Event type: <code>'INSERT'</code>, <code>'UPDATE'</code>, or <code>'DELETE'</code></td>
+        </tr>
+        <tr>
+          <td><code>OldData</code></td>
+          <td><code>TJSONObject</code></td>
+          <td>Previous data (for UPDATE and DELETE events; <code>nil</code> for INSERT)</td>
+        </tr>
+        <tr>
+          <td><code>NewData</code></td>
+          <td><code>TJSONObject</code></td>
+          <td>New data (for INSERT and UPDATE events; <code>nil</code> for DELETE)</td>
+        </tr>
+        <tr>
+          <td><code>Timestamp</code></td>
+          <td><code>TDateTime</code></td>
+          <td>Timestamp when the event was detected</td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- ========== COMPLETE EXAMPLES ========== -->
+    <section id="examples">
+      <h2>Complete Examples</h2>
+
+      <!-- Example 1: Basic Console -->
+      <h3 id="example-basic">Basic Console App</h3>
+      <p>Complete example with setup and full CRUD operations.</p>
+<pre><code>program SupabaseBasicExample;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  System.SysUtils,
+  System.Generics.Collections,
+  SimpleInterface,
+  SimpleDAO,
+  SimpleQuerySupabase,
+  SimpleAttributes;
+
+const
+  SUPABASE_URL = 'https://xyzproject.supabase.co';
+  SUPABASE_KEY = 'eyJ_YOUR_SERVICE_ROLE_KEY...';
+
+type
+  [Tabela('PRODUCTS')]
+  TProduct = class
+  private
+    FId: Integer;
+    FName: string;
+    FPrice: Double;
+  published
+    [Campo('ID'), PK, AutoInc]
+    property Id: Integer read FId write FId;
+    [Campo('NAME'), NotNull]
+    property Name: string read FName write FName;
+    [Campo('PRICE')]
+    property Price: Double read FPrice write FPrice;
+  end;
+
+var
+  LQuery: iSimpleQuery;
+  LDAO: iSimpleDAO&lt;TProduct&gt;;
+  LProduct: TProduct;
+  LList: TObjectList&lt;TProduct&gt;;
+
+begin
+  try
+    LQuery := TSimpleQuerySupabase.New(SUPABASE_URL, SUPABASE_KEY);
+    LDAO := TSimpleDAO&lt;TProduct&gt;.New(LQuery);
+
+    // INSERT
+    Writeln('--- INSERT ---');
+    LProduct := TProduct.Create;
+    try
+      LProduct.Name := 'Wireless Mouse';
+      LProduct.Price := 79.90;
+      LDAO.Insert(LProduct);
+      Writeln('Inserted: ', LProduct.Name);
+    finally
+      LProduct.Free;
+    end;
+
+    // FIND ALL
+    Writeln('');
+    Writeln('--- FIND ALL ---');
+    LList := TObjectList&lt;TProduct&gt;.Create;
+    try
+      LDAO.Find(LList);
+      for LProduct in LList do
+        Writeln(SysUtils.Format('  ID: %d | Name: %s | Price: %.2f',
+          [LProduct.Id, LProduct.Name, LProduct.Price]));
+    finally
+      LList.Free;
+    end;
+
+    // UPDATE
+    Writeln('');
+    Writeln('--- UPDATE ---');
+    LProduct := TProduct.Create;
+    try
+      LProduct.Id := 1;
+      LProduct.Name := 'Ergonomic Wireless Mouse';
+      LProduct.Price := 129.90;
+      LDAO.Update(LProduct);
+      Writeln('Updated: ', LProduct.Name);
+    finally
+      LProduct.Free;
+    end;
+
+    // DELETE
+    Writeln('');
+    Writeln('--- DELETE ---');
+    LProduct := TProduct.Create;
+    try
+      LProduct.Id := 1;
+      LDAO.Delete(LProduct);
+      Writeln('Deleted ID: ', LProduct.Id);
+    finally
+      LProduct.Free;
+    end;
+
+    Writeln('');
+    Writeln('Done!');
+  except
+    on E: Exception do
+      Writeln('Error: ', E.Message);
+  end;
+
+  Readln;
+end.</code></pre>
+
+      <!-- Example 2: With Auth -->
+      <h3 id="example-auth">App with Authentication</h3>
+      <p>Authentication with email/password and CRUD with RLS.</p>
+<pre><code>program SupabaseAuthExample;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  System.SysUtils,
+  System.Generics.Collections,
+  SimpleInterface,
+  SimpleDAO,
+  SimpleQuerySupabase,
+  SimpleSupabaseAuth,
+  SimpleAttributes;
+
+const
+  SUPABASE_URL = 'https://xyzproject.supabase.co';
+  SUPABASE_KEY = 'eyJ_YOUR_ANON_KEY...';
+
+type
+  [Tabela('TASKS')]
+  TTask = class
+  private
+    FId: Integer;
+    FTitle: string;
+    FCompleted: Boolean;
+    FUserId: string;
+  published
+    [Campo('ID'), PK, AutoInc]
+    property Id: Integer read FId write FId;
+    [Campo('TITLE'), NotNull]
+    property Title: string read FTitle write FTitle;
+    [Campo('COMPLETED')]
+    property Completed: Boolean read FCompleted write FCompleted;
+    [Campo('USER_ID')]
+    property UserId: string read FUserId write FUserId;
+  end;
+
+var
+  LAuth: TSimpleSupabaseAuth;
+  LQuery: iSimpleQuery;
+  LDAO: iSimpleDAO&lt;TTask&gt;;
+  LTask: TTask;
+  LList: TObjectList&lt;TTask&gt;;
+
+begin
+  LAuth := TSimpleSupabaseAuth.Create(SUPABASE_URL, SUPABASE_KEY);
+  try
+    try
+      // Authenticate
+      Writeln('Authenticating...');
+      LAuth.SignIn('user@email.com', 'password123');
+      Writeln('Authenticated! Token: ', Copy(LAuth.AccessToken, 1, 20), '...');
+      LAuth.AutoRefresh;
+
+      // Create query with auth token (RLS-aware)
+      LQuery := TSimpleQuerySupabase.New(
+        SUPABASE_URL, SUPABASE_KEY, LAuth.AccessToken
+      );
+      LDAO := TSimpleDAO&lt;TTask&gt;.New(LQuery);
+
+      // INSERT a task
+      Writeln('');
+      Writeln('--- INSERT TASK ---');
+      LTask := TTask.Create;
+      try
+        LTask.Title := 'Study SimpleORM';
+        LTask.Completed := False;
+        LDAO.Insert(LTask);
+        Writeln('Task created: ', LTask.Title);
+      finally
+        LTask.Free;
+      end;
+
+      // FIND user's tasks (RLS filters automatically)
+      Writeln('');
+      Writeln('--- MY TASKS ---');
+      LList := TObjectList&lt;TTask&gt;.Create;
+      try
+        LDAO.Find(LList);
+        for LTask in LList do
+          Writeln(SysUtils.Format('  [%s] %s',
+            [IfThen(LTask.Completed, 'X', ' '), LTask.Title]));
+        Writeln('Total: ', LList.Count, ' tasks');
+      finally
+        LList.Free;
+      end;
+
+      // Sign out
+      LAuth.SignOut;
+      Writeln('');
+      Writeln('Session terminated.');
+
+    except
+      on E: Exception do
+        Writeln('Error: ', E.Message);
+    end;
+  finally
+    LAuth.Free;
+  end;
+
+  Readln;
+end.</code></pre>
+
+      <!-- Example 3: With Realtime -->
+      <h3 id="example-realtime">App with Realtime</h3>
+      <p>Monitoring changes in real time with callbacks.</p>
+<pre><code>program SupabaseRealtimeExample;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  System.SysUtils,
+  System.JSON,
+  SimpleSupabaseRealtime;
+
+const
+  SUPABASE_URL = 'https://xyzproject.supabase.co';
+  SUPABASE_KEY = 'eyJ_YOUR_SERVICE_ROLE_KEY...';
+
+var
+  LRealtime: TSimpleSupabaseRealtime;
+
+begin
+  LRealtime := TSimpleSupabaseRealtime.Create(SUPABASE_URL, SUPABASE_KEY);
+  try
+    try
+      Writeln('Starting realtime monitoring...');
+      Writeln('Press ENTER to stop.');
+      Writeln('');
+
+      LRealtime
+        .PollInterval(2000)  // Check every 2 seconds
+
+        // Global callbacks
+        .OnInsert(
+          procedure(const aEvent: TSupabaseRealtimeEvent)
+          begin
+            Writeln(SysUtils.Format('[INSERT] %s - %s',
+              [aEvent.Table, aEvent.NewData.ToJSON]));
+          end
+        )
+        .OnUpdate(
+          procedure(const aEvent: TSupabaseRealtimeEvent)
+          begin
+            Writeln(SysUtils.Format('[UPDATE] %s - %s',
+              [aEvent.Table, aEvent.NewData.ToJSON]));
+          end
+        )
+        .OnDelete(
+          procedure(const aEvent: TSupabaseRealtimeEvent)
+          begin
+            Writeln(SysUtils.Format('[DELETE] %s - %s',
+              [aEvent.Table, aEvent.OldData.ToJSON]));
+          end
+        )
+
+        // Per-table callback
+        .OnChange('PRODUCTS',
+          procedure(const aEvent: TSupabaseRealtimeEvent)
+          begin
+            Writeln('*** Product changed! Type: ', aEvent.EventType);
+          end
+        )
+
+        // Subscribe and connect
+        .Subscribe('PRODUCTS')
+        .Subscribe('ORDERS')
+        .Connect;
+
+      Writeln('Monitoring PRODUCTS and ORDERS...');
+      Readln;  // Wait for user to press ENTER
+
+      LRealtime.Disconnect;
+      Writeln('Monitoring stopped.');
+
+    except
+      on E: Exception do
+        Writeln('Error: ', E.Message);
+    end;
+  finally
+    LRealtime.Free;
+  end;
+end.</code></pre>
+
+      <!-- Example 4: Full App -->
+      <h3 id="example-full">Full App (Auth + CRUD + Realtime)</h3>
+      <p>Complete application combining authentication, CRUD operations, and realtime monitoring.</p>
+<pre><code>program SupabaseFullExample;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  System.SysUtils,
+  System.JSON,
+  System.Generics.Collections,
+  SimpleInterface,
+  SimpleDAO,
+  SimpleQuerySupabase,
+  SimpleSupabaseAuth,
+  SimpleSupabaseRealtime,
+  SimpleAttributes;
+
+const
+  SUPABASE_URL = 'https://xyzproject.supabase.co';
+  SUPABASE_KEY = 'eyJ_YOUR_ANON_KEY...';
+
+type
+  [Tabela('PRODUCTS')]
+  TProduct = class
+  private
+    FId: Integer;
+    FName: string;
+    FPrice: Double;
+  published
+    [Campo('ID'), PK, AutoInc]
+    property Id: Integer read FId write FId;
+    [Campo('NAME'), NotNull]
+    property Name: string read FName write FName;
+    [Campo('PRICE')]
+    property Price: Double read FPrice write FPrice;
+  end;
+
+var
+  LAuth: TSimpleSupabaseAuth;
+  LRealtime: TSimpleSupabaseRealtime;
+  LQuery: iSimpleQuery;
+  LDAO: iSimpleDAO&lt;TProduct&gt;;
+  LProduct: TProduct;
+  LList: TObjectList&lt;TProduct&gt;;
+
+begin
+  LAuth := TSimpleSupabaseAuth.Create(SUPABASE_URL, SUPABASE_KEY);
+  try
+    LRealtime := TSimpleSupabaseRealtime.Create(SUPABASE_URL, SUPABASE_KEY);
+    try
+      try
+        // 1. AUTHENTICATE
+        Writeln('=== AUTHENTICATION ===');
+        LAuth.SignIn('admin@company.com', 'admin123');
+        LAuth.AutoRefresh;
+        Writeln('Authenticated as admin@company.com');
+        Writeln('');
+
+        // 2. START REALTIME MONITORING
+        Writeln('=== REALTIME ===');
+        LRealtime
+          .Token(LAuth.AccessToken)
+          .PollInterval(2000)
+          .OnInsert(
+            procedure(const aEvent: TSupabaseRealtimeEvent)
+            begin
+              Writeln('[REALTIME INSERT] ', aEvent.Table, ': ',
+                aEvent.NewData.ToJSON);
+            end
+          )
+          .OnUpdate(
+            procedure(const aEvent: TSupabaseRealtimeEvent)
+            begin
+              Writeln('[REALTIME UPDATE] ', aEvent.Table, ': ',
+                aEvent.NewData.ToJSON);
+            end
+          )
+          .OnDelete(
+            procedure(const aEvent: TSupabaseRealtimeEvent)
+            begin
+              Writeln('[REALTIME DELETE] ', aEvent.Table, ': ',
+                aEvent.OldData.ToJSON);
+            end
+          )
+          .Subscribe('PRODUCTS')
+          .Connect;
+        Writeln('Monitoring PRODUCTS table...');
+        Writeln('');
+
+        // 3. CRUD OPERATIONS
+        LQuery := TSimpleQuerySupabase.New(
+          SUPABASE_URL, SUPABASE_KEY, LAuth.AccessToken
+        );
+        LDAO := TSimpleDAO&lt;TProduct&gt;.New(LQuery);
+
+        // Insert
+        Writeln('=== INSERT ===');
+        LProduct := TProduct.Create;
+        try
+          LProduct.Name := '4K Monitor';
+          LProduct.Price := 2499.90;
+          LDAO.Insert(LProduct);
+          Writeln('Inserted: ', LProduct.Name);
+        finally
+          LProduct.Free;
+        end;
+        Writeln('');
+
+        // Find All
+        Writeln('=== FIND ALL ===');
+        LList := TObjectList&lt;TProduct&gt;.Create;
+        try
+          LDAO.Find(LList);
+          for LProduct in LList do
+            Writeln(SysUtils.Format('  #%d %s - $%.2f',
+              [LProduct.Id, LProduct.Name, LProduct.Price]));
+          Writeln('Total: ', LList.Count, ' products');
+        finally
+          LList.Free;
+        end;
+        Writeln('');
+
+        // Find with Pagination
+        Writeln('=== PAGINATION (first 5) ===');
+        LList := TObjectList&lt;TProduct&gt;.Create;
+        try
+          LDAO.SQL
+            .Skip(0)
+            .Take(5)
+          .&amp;End
+          .Find(LList);
+          for LProduct in LList do
+            Writeln(SysUtils.Format('  #%d %s', [LProduct.Id, LProduct.Name]));
+        finally
+          LList.Free;
+        end;
+        Writeln('');
+
+        // Update
+        Writeln('=== UPDATE ===');
+        LProduct := TProduct.Create;
+        try
+          LProduct.Id := 1;
+          LProduct.Name := 'Ultrawide 4K Monitor';
+          LProduct.Price := 3299.90;
+          LDAO.Update(LProduct);
+          Writeln('Updated ID 1: ', LProduct.Name);
+        finally
+          LProduct.Free;
+        end;
+        Writeln('');
+
+        // Delete
+        Writeln('=== DELETE ===');
+        LProduct := TProduct.Create;
+        try
+          LProduct.Id := 1;
+          LDAO.Delete(LProduct);
+          Writeln('Deleted ID: 1');
+        finally
+          LProduct.Free;
+        end;
+        Writeln('');
+
+        // Wait to see realtime events
+        Writeln('Waiting 5 seconds for realtime events...');
+        Sleep(5000);
+
+        // 4. CLEANUP
+        LRealtime.Disconnect;
+        LAuth.SignOut;
+
+        Writeln('');
+        Writeln('All done! Session terminated.');
+
+      except
+        on E: Exception do
+          Writeln('Error: ', E.Message);
+      end;
+    finally
+      LRealtime.Free;
+    end;
+  finally
+    LAuth.Free;
+  end;
+
+  Readln;
+end.</code></pre>
+    </section>
+
+    <!-- ========== TROUBLESHOOTING ========== -->
+    <section id="troubleshooting">
+      <h2>Troubleshooting</h2>
+
+      <h3>401 Unauthorized</h3>
+      <table>
+        <tr><th>Cause</th><th>Solution</th></tr>
+        <tr>
+          <td>Invalid or missing API key</td>
+          <td>Verify the <code>apikey</code> in your Supabase Dashboard &gt; Settings &gt; API</td>
+        </tr>
+        <tr>
+          <td>Expired JWT token</td>
+          <td>Use <code>RefreshToken</code> or enable <code>AutoRefresh</code></td>
+        </tr>
+        <tr>
+          <td>Wrong key type</td>
+          <td>Use <code>service_role</code> for server-side or <code>anon</code> + auth for client-side</td>
+        </tr>
+      </table>
+
+      <h3>404 Not Found</h3>
+      <table>
+        <tr><th>Cause</th><th>Solution</th></tr>
+        <tr>
+          <td>Table does not exist</td>
+          <td>Verify the table name in <code>[Tabela('TABLE_NAME')]</code> matches your Supabase table</td>
+        </tr>
+        <tr>
+          <td>Wrong project URL</td>
+          <td>Check the URL format: <code>https://xyzproject.supabase.co</code></td>
+        </tr>
+        <tr>
+          <td>Table not exposed via API</td>
+          <td>In Supabase Dashboard, check that the table is in the <code>public</code> schema</td>
+        </tr>
+      </table>
+
+      <h3>400 Bad Request</h3>
+      <table>
+        <tr><th>Cause</th><th>Solution</th></tr>
+        <tr>
+          <td>Column name mismatch</td>
+          <td>Ensure <code>[Campo('COLUMN')]</code> matches the exact column name in Supabase (case-sensitive)</td>
+        </tr>
+        <tr>
+          <td>Data type mismatch</td>
+          <td>Verify that Delphi property types match the PostgreSQL column types</td>
+        </tr>
+        <tr>
+          <td>Not-null constraint violation</td>
+          <td>Provide values for all required columns</td>
+        </tr>
+      </table>
+
+      <h3>Transactions Not Working</h3>
+      <div class="warning">
+        <strong>Expected behavior:</strong> Supabase REST API is stateless. Transaction methods
+        (<code>StartTransaction</code>, <code>Commit</code>, <code>Rollback</code>) are no-ops.
+        <code>InTransaction</code> always returns <code>False</code>. If you need transaction
+        support, use Supabase Edge Functions or direct database connections.
+      </div>
+
+      <h3>RLS Blocking All Requests</h3>
+      <table>
+        <tr><th>Cause</th><th>Solution</th></tr>
+        <tr>
+          <td>Using <code>anon</code> key without authentication</td>
+          <td>Authenticate with <code>SignIn</code> and pass the JWT token to the query driver</td>
+        </tr>
+        <tr>
+          <td>Missing RLS policy</td>
+          <td>Create appropriate policies in Supabase Dashboard &gt; Authentication &gt; Policies</td>
+        </tr>
+        <tr>
+          <td>Testing: need to bypass RLS</td>
+          <td>Use <code>service_role</code> key (server-side only)</td>
+        </tr>
+      </table>
+
+      <h3>Realtime Not Detecting Changes</h3>
+      <table>
+        <tr><th>Cause</th><th>Solution</th></tr>
+        <tr>
+          <td>Not calling <code>Connect</code></td>
+          <td>Call <code>.Connect</code> after configuring subscriptions</td>
+        </tr>
+        <tr>
+          <td>Poll interval too high</td>
+          <td>Reduce <code>PollInterval</code> for faster detection</td>
+        </tr>
+        <tr>
+          <td>Table not subscribed</td>
+          <td>Verify <code>.Subscribe('TABLE_NAME')</code> was called with the correct table name</td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer>
+      <p>
+        <a href="index.html">&larr; Back to SimpleORM Documentation</a> |
+        <a href="https://github.com/academiadocodigo/SimpleORM" target="_blank">GitHub</a> |
+        <a href="../supabase.html">Versao em Portugues</a>
+      </p>
+      <p>SimpleORM &copy; Academia do Codigo - Thulio Bittencourt</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>

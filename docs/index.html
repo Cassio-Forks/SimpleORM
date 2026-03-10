@@ -1265,166 +1265,44 @@ LPlan.Execute;</code></pre>
 
 <section id="supabase">
   <h2>Supabase Integration <span class="badge badge-new">NEW</span></h2>
-  <p>O SimpleORM suporta conexao direta com o <strong>Supabase</strong> via PostgREST API, sem necessidade de servidor intermediario.</p>
+  <p>O SimpleORM suporta conexao direta com o <strong>Supabase</strong> via PostgREST API, sem necessidade de servidor intermediario. A integracao inclui 3 componentes:</p>
 
-  <h3>Configuracao</h3>
-  <pre><code>uses SimpleQuerySupabase;
+  <table>
+    <thead>
+      <tr><th>Componente</th><th>Unit</th><th>Descricao</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>TSimpleQuerySupabase</strong></td><td>SimpleQuerySupabase</td><td>Driver CRUD implementando <code>iSimpleQuery</code> — INSERT, UPDATE, DELETE, SELECT via REST</td></tr>
+      <tr><td><strong>TSimpleSupabaseAuth</strong></td><td>SimpleSupabaseAuth</td><td>Autenticacao — SignIn, SignUp, SignOut, JWT auto-refresh, Row Level Security</td></tr>
+      <tr><td><strong>TSimpleSupabaseRealtime</strong></td><td>SimpleSupabaseRealtime</td><td>Monitoramento em tempo real — callbacks globais e por tabela via polling</td></tr>
+    </tbody>
+  </table>
 
-// Conexao basica (service_role key, sem RLS)
+  <h3>Exemplo rapido</h3>
+  <pre><code>uses SimpleQuerySupabase, SimpleSupabaseAuth;
+
+// Conexao basica
 var LQuery := TSimpleQuerySupabase.New(
   'https://seu-projeto.supabase.co',
   'sua-api-key'
 );
 
-// Conexao com JWT (Row Level Security ativo)
-var LQuery := TSimpleQuerySupabase.New(
-  'https://seu-projeto.supabase.co',
-  'sua-api-key',
-  'jwt-token-do-usuario'
-);
-
-// Usar com TSimpleDAO normalmente
+// CRUD identico a qualquer outro driver
 var LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery);
 LDAO.Insert(LProduto);
 LDAO.Find;
 LDAO.Update(LProduto);
-LDAO.Delete(LProduto);</code></pre>
+LDAO.Delete(LProduto);
 
-  <h3>Mapeamento SQL para REST</h3>
-  <table>
-    <thead>
-      <tr><th>Operacao SimpleORM</th><th>HTTP Supabase</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Insert</td><td>POST /rest/v1/tabela</td></tr>
-      <tr><td>Update</td><td>PATCH /rest/v1/tabela?pk=eq.valor</td></tr>
-      <tr><td>Delete</td><td>DELETE /rest/v1/tabela?pk=eq.valor</td></tr>
-      <tr><td>Find</td><td>GET /rest/v1/tabela</td></tr>
-      <tr><td>Find(id)</td><td>GET /rest/v1/tabela?pk=eq.valor</td></tr>
-      <tr><td>Skip/Take</td><td>GET /rest/v1/tabela?limit=N&amp;offset=N</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Headers enviados</h3>
-  <table>
-    <thead>
-      <tr><th>Header</th><th>Valor</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>apikey</td><td>API Key do projeto</td></tr>
-      <tr><td>Authorization</td><td>Bearer (JWT ou API Key)</td></tr>
-      <tr><td>Content-Type</td><td>application/json</td></tr>
-      <tr><td>Prefer</td><td>return=representation</td></tr>
-    </tbody>
-  </table>
-
-  <p class="note"><strong>Nota:</strong> Transacoes (StartTransaction/Commit/Rollback) sao no-ops pois REST e stateless. O driver usa <code>System.Net.HttpClient</code> nativo, sem dependencias externas.</p>
-
-  <h3>Autenticacao <span class="badge badge-new">NEW</span></h3>
-  <pre><code>uses SimpleSupabaseAuth, SimpleQuerySupabase;
-
-var
-  LAuth: iSimpleSupabaseAuth;
-  LQuery: iSimpleQuery;
-
-// Criar instancia de auth
-LAuth := TSimpleSupabaseAuth.New(
-  'https://seu-projeto.supabase.co',
-  'sua-anon-key'
-);
-
-// Fazer login
+// Com autenticacao e Row Level Security
+var LAuth := TSimpleSupabaseAuth.New(URL, AnonKey);
 LAuth.SignIn('usuario@email.com', 'senha123');
+var LQueryAuth := TSimpleQuerySupabase.New(URL, AnonKey, LAuth);</code></pre>
 
-// Criar query com auth (JWT automatico)
-LQuery := TSimpleQuerySupabase.New(
-  'https://seu-projeto.supabase.co',
-  'sua-anon-key',
-  LAuth
-);
+  <p class="note"><strong>Nota:</strong> O driver usa <code>System.Net.HttpClient</code> nativo, sem dependencias externas. Transacoes sao no-ops (REST e stateless).</p>
 
-// CRUD com Row Level Security ativo
-var LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery);
-LDAO.Find;
-
-// Verificar estado
-if LAuth.IsAuthenticated then
-  Writeln('Token: ', LAuth.Token);
-
-// Logout
-LAuth.SignOut;</code></pre>
-
-  <table>
-    <thead>
-      <tr><th>Metodo</th><th>Descricao</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>SignIn(email, password)</td><td>Login com email e senha via Supabase Auth API</td></tr>
-      <tr><td>SignUp(email, password)</td><td>Criar nova conta de usuario</td></tr>
-      <tr><td>SignOut</td><td>Logout e limpar tokens</td></tr>
-      <tr><td>RefreshToken</td><td>Renovar JWT manualmente</td></tr>
-      <tr><td>Token</td><td>Retorna JWT atual (auto-refresh se proximo da expiracao)</td></tr>
-      <tr><td>User</td><td>Retorna dados do usuario em JSON</td></tr>
-      <tr><td>IsAuthenticated</td><td>Verifica se existe token valido</td></tr>
-      <tr><td>ExpiresAt</td><td>Data/hora de expiracao do token</td></tr>
-    </tbody>
-  </table>
-
-  <p class="note"><strong>Nota:</strong> O token JWT e renovado automaticamente quando esta a menos de 30 segundos da expiracao. Para Row Level Security funcionar, use a <code>anon</code> key (nao <code>service_role</code>) junto com o Auth.</p>
-
-  <h3>Realtime <span class="badge badge-new">NEW</span></h3>
-  <pre><code>uses SimpleSupabaseRealtime, SimpleTypes;
-
-var LRealtime := TSimpleSupabaseRealtime.New(
-  'https://seu-projeto.supabase.co',
-  'sua-api-key'
-);
-
-// Callback global para INSERTs
-LRealtime.OnInsert(
-  procedure(aEvent: TSupabaseRealtimeEvent)
-  begin
-    Writeln('Novo registro em ', aEvent.Table, ': ', aEvent.NewRecord);
-  end
-);
-
-// Callback especifico por tabela
-LRealtime.OnChange('produto',
-  procedure(aEvent: TSupabaseRealtimeEvent)
-  begin
-    Writeln('Mudanca em produto: ', aEvent.NewRecord);
-  end
-);
-
-// Inscrever e conectar
-LRealtime
-  .Subscribe('produto')
-  .Subscribe('cliente')
-  .Connect;
-
-// ... aplicacao rodando ...
-
-// Desconectar ao finalizar
-LRealtime.Disconnect;</code></pre>
-
-  <table>
-    <thead>
-      <tr><th>Metodo</th><th>Descricao</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Subscribe(table)</td><td>Inscrever para receber mudancas de uma tabela</td></tr>
-      <tr><td>Unsubscribe(table)</td><td>Cancelar inscricao de uma tabela</td></tr>
-      <tr><td>OnInsert(callback)</td><td>Callback global para novos registros</td></tr>
-      <tr><td>OnUpdate(callback)</td><td>Callback global para registros atualizados</td></tr>
-      <tr><td>OnDelete(callback)</td><td>Callback global para registros deletados</td></tr>
-      <tr><td>OnChange(table, callback)</td><td>Callback especifico para uma tabela</td></tr>
-      <tr><td>Connect</td><td>Iniciar monitoramento</td></tr>
-      <tr><td>Disconnect</td><td>Parar monitoramento</td></tr>
-      <tr><td>IsConnected</td><td>Verificar se esta monitorando</td></tr>
-    </tbody>
-  </table>
-
-  <p class="note"><strong>Nota:</strong> A implementacao atual usa polling via REST API. Callbacks sao executados na thread principal via <code>TThread.Queue</code>, garantindo thread safety com componentes de UI. O intervalo de polling padrao e 2 segundos.</p>
+  <p style="margin-top: 1.5em; font-size: 1.1em;"><strong><a href="supabase.html">Documentacao completa do Supabase &rarr;</a></strong><br>
+  Referencia completa da API, exemplos detalhados de CRUD, Auth, Realtime, Row Level Security, troubleshooting e mais.</p>
 </section>
 
 <footer>
