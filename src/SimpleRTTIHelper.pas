@@ -3,7 +3,9 @@ unit SimpleRTTIHelper;
 interface
 
 uses
-  RTTI, SimpleAttributes;
+  SimpleAttributes,
+  SimpleAIAttributes,
+  RTTI;
 
 type
   TCustomAttributeClass = class of TCustomAttribute;
@@ -42,6 +44,12 @@ type
     function IsCreatedAt: Boolean;
     function IsUpdatedAt: Boolean;
     function IsCascadeDelete: Boolean;
+    function IsAIGenerated: Boolean;
+    function IsAISummarize: Boolean;
+    function IsAITranslate: Boolean;
+    function IsAIClassify: Boolean;
+    function IsAIValidate: Boolean;
+    function HasAIAttribute: Boolean;
   end;
 
   TRttiTypeHelper = class helper for TRttiType
@@ -241,6 +249,37 @@ end;
 function TRttiPropertyHelper.IsCascadeDelete: Boolean;
 begin
   Result := Tem<CascadeDelete>
+end;
+
+function TRttiPropertyHelper.IsAIGenerated: Boolean;
+begin
+  Result := Tem<AIGenerated>
+end;
+
+function TRttiPropertyHelper.IsAISummarize: Boolean;
+begin
+  Result := Tem<AISummarize>
+end;
+
+function TRttiPropertyHelper.IsAITranslate: Boolean;
+begin
+  Result := Tem<AITranslate>
+end;
+
+function TRttiPropertyHelper.IsAIClassify: Boolean;
+begin
+  Result := Tem<AIClassify>
+end;
+
+function TRttiPropertyHelper.IsAIValidate: Boolean;
+begin
+  Result := Tem<AIValidate>
+end;
+
+function TRttiPropertyHelper.HasAIAttribute: Boolean;
+begin
+  Result := IsAIGenerated or IsAISummarize or IsAITranslate or
+            IsAIClassify or IsAIValidate;
 end;
 
 function TRttiPropertyHelper.Tem<T>: Boolean;
