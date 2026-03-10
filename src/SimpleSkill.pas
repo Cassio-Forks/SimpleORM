@@ -12,6 +12,7 @@ uses
   System.JSON,
   System.DateUtils,
   System.SysUtils,
+  System.Math,
   System.Rtti,
   System.Generics.Collections;
 
@@ -160,6 +161,25 @@ type
     constructor Create(const aTable, aFKField: String);
     destructor Destroy; override;
     class function New(const aTable, aFKField: String): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
+  { Built-in: TSkillCalcTotal }
+  TSkillCalcTotal = class(TInterfacedObject, iSimpleSkill)
+  private
+    FTargetField: String;
+    FQtyField: String;
+    FPriceField: String;
+    FDiscountField: String;
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(const aTargetField, aQtyField, aPriceField: String;
+      const aDiscountField: String = ''; aRunAt: TSkillRunAt = srBeforeInsert);
+    destructor Destroy; override;
+    class function New(const aTargetField, aQtyField, aPriceField: String;
+      const aDiscountField: String = ''; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
@@ -735,6 +755,75 @@ begin
 end;
 
 function TSkillWebhook.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+{ TSkillCalcTotal }
+
+constructor TSkillCalcTotal.Create(const aTargetField, aQtyField, aPriceField: String;
+  const aDiscountField: String; aRunAt: TSkillRunAt);
+begin
+  FTargetField := aTargetField;
+  FQtyField := aQtyField;
+  FPriceField := aPriceField;
+  FDiscountField := aDiscountField;
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillCalcTotal.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillCalcTotal.New(const aTargetField, aQtyField, aPriceField: String;
+  const aDiscountField: String; aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aTargetField, aQtyField, aPriceField, aDiscountField, aRunAt);
+end;
+
+function TSkillCalcTotal.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LContext: TRttiContext;
+  LType: TRttiType;
+  LTargetProp, LQtyProp, LPriceProp, LDiscountProp: TRttiProperty;
+  LQty, LPrice, LDiscount, LTotal: Double;
+begin
+  Result := Self;
+  if aEntity = nil then
+    Exit;
+
+  LContext := TRttiContext.Create;
+  LType := LContext.GetType(aEntity.ClassType);
+
+  LTargetProp := LType.GetProperty(FTargetField);
+  LQtyProp := LType.GetProperty(FQtyField);
+  LPriceProp := LType.GetProperty(FPriceField);
+
+  if (LTargetProp = nil) or (LQtyProp = nil) or (LPriceProp = nil) then
+    Exit;
+
+  LQty := LQtyProp.GetValue(aEntity).AsExtended;
+  LPrice := LPriceProp.GetValue(aEntity).AsExtended;
+
+  LDiscount := 0;
+  if FDiscountField <> '' then
+  begin
+    LDiscountProp := LType.GetProperty(FDiscountField);
+    if LDiscountProp <> nil then
+      LDiscount := LDiscountProp.GetValue(aEntity).AsExtended;
+  end;
+
+  LTotal := SimpleRoundTo(LQty * LPrice - LDiscount, -2);
+  LTargetProp.SetValue(aEntity, TValue.From<Double>(LTotal));
+end;
+
+function TSkillCalcTotal.Name: String;
+begin
+  Result := 'calc-total';
+end;
+
+function TSkillCalcTotal.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
 end;

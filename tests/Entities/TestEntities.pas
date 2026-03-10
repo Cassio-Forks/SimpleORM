@@ -190,6 +190,28 @@ type
     property CNPJ: String read FCNPJ write FCNPJ;
   end;
 
+  { Entidade para teste de CalcTotal }
+  [Tabela('ITEM_CALC')]
+  TItemCalcTest = class
+  private
+    FID: Integer;
+    FQUANTIDADE: Double;
+    FPRECO_UNITARIO: Double;
+    FDESCONTO: Double;
+    FVALOR_TOTAL: Double;
+  published
+    [Campo('ID'), PK, AutoInc]
+    property ID: Integer read FID write FID;
+    [Campo('QUANTIDADE')]
+    property QUANTIDADE: Double read FQUANTIDADE write FQUANTIDADE;
+    [Campo('PRECO_UNITARIO')]
+    property PRECO_UNITARIO: Double read FPRECO_UNITARIO write FPRECO_UNITARIO;
+    [Campo('DESCONTO')]
+    property DESCONTO: Double read FDESCONTO write FDESCONTO;
+    [Campo('VALOR_TOTAL')]
+    property VALOR_TOTAL: Double read FVALOR_TOTAL write FVALOR_TOTAL;
+  end;
+
 implementation
 
 end.

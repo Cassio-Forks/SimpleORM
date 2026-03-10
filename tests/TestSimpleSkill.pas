@@ -85,6 +85,16 @@ type
     procedure TestSequence_NilQuery_NoError;
   end;
 
+  TTestSkillCalcTotal = class(TTestCase)
+  published
+    procedure TestCalcTotal_CalculatesCorrectly;
+    procedure TestCalcTotal_WithDiscount;
+    procedure TestCalcTotal_WithoutDiscount;
+    procedure TestCalcTotal_NilEntity_NoError;
+    procedure TestCalcTotal_Name;
+    procedure TestCalcTotal_RunAt;
+  end;
+
 implementation
 
 uses
@@ -565,6 +575,94 @@ begin
   end;
 end;
 
+{ TTestSkillCalcTotal }
+
+procedure TTestSkillCalcTotal.TestCalcTotal_CalculatesCorrectly;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TItemCalcTest;
+begin
+  LEntity := TItemCalcTest.Create;
+  try
+    LEntity.QUANTIDADE := 10;
+    LEntity.PRECO_UNITARIO := 25.50;
+    LEntity.DESCONTO := 5.00;
+    LSkill := TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO', 'DESCONTO');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'ITEM', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals(250.00, LEntity.VALOR_TOTAL, 0.01, 'Should be 10 * 25.50 - 5.00 = 250.00');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillCalcTotal.TestCalcTotal_WithDiscount;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TItemCalcTest;
+begin
+  LEntity := TItemCalcTest.Create;
+  try
+    LEntity.QUANTIDADE := 3;
+    LEntity.PRECO_UNITARIO := 100.00;
+    LEntity.DESCONTO := 50.00;
+    LSkill := TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO', 'DESCONTO');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'ITEM', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals(250.00, LEntity.VALOR_TOTAL, 0.01, 'Should be 3 * 100 - 50 = 250');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillCalcTotal.TestCalcTotal_WithoutDiscount;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TItemCalcTest;
+begin
+  LEntity := TItemCalcTest.Create;
+  try
+    LEntity.QUANTIDADE := 5;
+    LEntity.PRECO_UNITARIO := 10.00;
+    LSkill := TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO', '');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'ITEM', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals(50.00, LEntity.VALOR_TOTAL, 0.01, 'Should be 5 * 10 = 50');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillCalcTotal.TestCalcTotal_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO');
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'ITEM', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Should not raise error for nil entity');
+end;
+
+procedure TTestSkillCalcTotal.TestCalcTotal_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO');
+  CheckEquals('calc-total', LSkill.Name, 'Should return calc-total');
+end;
+
+procedure TTestSkillCalcTotal.TestCalcTotal_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO', '', srBeforeUpdate);
+  CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
@@ -576,5 +674,6 @@ initialization
   RegisterTest('Skills', TTestSkillValidate.Suite);
   RegisterTest('Skills', TTestSkillWebhook.Suite);
   RegisterTest('Skills', TTestSkillSequence.Suite);
+  RegisterTest('Skills', TTestSkillCalcTotal.Suite);
 
 end.
