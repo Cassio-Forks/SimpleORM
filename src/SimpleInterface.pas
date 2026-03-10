@@ -167,6 +167,18 @@ type
     function RowsAffected: Integer;
   end;
 
+  iSimpleSupabaseAuth = interface
+    ['{7B3F8A2E-C4D1-4E6F-9A5B-D8E2F7C6A1B0}']
+    function SignIn(aEmail, aPassword: String): iSimpleSupabaseAuth;
+    function SignUp(aEmail, aPassword: String): iSimpleSupabaseAuth;
+    function SignOut: iSimpleSupabaseAuth;
+    function RefreshToken: iSimpleSupabaseAuth;
+    function Token: String;
+    function User: String;
+    function IsAuthenticated: Boolean;
+    function ExpiresAt: TDateTime;
+  end;
+
   iSimpleSkillContext = interface
     ['{B2C3D4E5-F6A7-8901-BCDE-F12345678901}']
     function Query: iSimpleQuery;
