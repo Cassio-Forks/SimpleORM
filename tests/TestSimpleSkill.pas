@@ -77,6 +77,14 @@ type
     procedure TestWebhook_InvalidURL_NoError;
   end;
 
+  TTestSkillSequence = class(TTestCase)
+  published
+    procedure TestSequence_Name;
+    procedure TestSequence_RunAtIsAlwaysBeforeInsert;
+    procedure TestSequence_NilEntity_NoError;
+    procedure TestSequence_NilQuery_NoError;
+  end;
+
 implementation
 
 uses
@@ -511,6 +519,52 @@ begin
   end;
 end;
 
+{ TTestSkillSequence }
+
+procedure TTestSkillSequence.TestSequence_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillSequence.New('NUMERO', 'NUMERACAO', 'PEDIDO');
+  CheckEquals('sequence', LSkill.Name, 'Should return sequence');
+end;
+
+procedure TTestSkillSequence.TestSequence_RunAtIsAlwaysBeforeInsert;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillSequence.New('NUMERO', 'NUMERACAO', 'PEDIDO');
+  CheckTrue(LSkill.RunAt = srBeforeInsert, 'Should always be srBeforeInsert');
+end;
+
+procedure TTestSkillSequence.TestSequence_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillSequence.New('NUMERO', 'NUMERACAO', 'PEDIDO');
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Should not raise error for nil entity');
+end;
+
+procedure TTestSkillSequence.TestSequence_NilQuery_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LSkill := TSkillSequence.New('NUMERO', 'NUMERACAO', 'PEDIDO');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Should not raise error when query is nil');
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
@@ -521,5 +575,6 @@ initialization
   RegisterTest('Skills', TTestSkillHistory.Suite);
   RegisterTest('Skills', TTestSkillValidate.Suite);
   RegisterTest('Skills', TTestSkillWebhook.Suite);
+  RegisterTest('Skills', TTestSkillSequence.Suite);
 
 end.

@@ -165,6 +165,21 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { Built-in: TSkillSequence }
+  TSkillSequence = class(TInterfacedObject, iSimpleSkill)
+  private
+    FFieldName: String;
+    FControlTable: String;
+    FSerie: String;
+  public
+    constructor Create(const aFieldName, aControlTable, aSerie: String);
+    destructor Destroy; override;
+    class function New(const aFieldName, aControlTable, aSerie: String): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
 implementation
 
 uses
@@ -722,6 +737,91 @@ end;
 function TSkillWebhook.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
+end;
+
+{ TSkillSequence }
+
+constructor TSkillSequence.Create(const aFieldName, aControlTable, aSerie: String);
+begin
+  FFieldName := aFieldName;
+  FControlTable := aControlTable;
+  FSerie := aSerie;
+end;
+
+destructor TSkillSequence.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillSequence.New(const aFieldName, aControlTable, aSerie: String): iSimpleSkill;
+begin
+  Result := Self.Create(aFieldName, aControlTable, aSerie);
+end;
+
+function TSkillSequence.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LContext: TRttiContext;
+  LType: TRttiType;
+  LProp: TRttiProperty;
+  LNextNumber: Integer;
+begin
+  Result := Self;
+  if (aEntity = nil) or (aContext.Query = nil) then
+    Exit;
+
+  LContext := TRttiContext.Create;
+  LType := LContext.GetType(aEntity.ClassType);
+  LProp := LType.GetProperty(FFieldName);
+  if LProp = nil then
+    Exit;
+
+  // Try to get current number
+  aContext.Query.SQL.Clear;
+  aContext.Query.SQL.Add('SELECT ULTIMO_NUMERO FROM ' + FControlTable + ' WHERE SERIE = :pSerie');
+  aContext.Query.Params.ParamByName('pSerie').Value := FSerie;
+  aContext.Query.Open;
+  try
+    if aContext.Query.DataSet.IsEmpty then
+    begin
+      aContext.Query.DataSet.Close;
+      // Insert first record
+      LNextNumber := 1;
+      aContext.Query.SQL.Clear;
+      aContext.Query.SQL.Add('INSERT INTO ' + FControlTable + ' (SERIE, ULTIMO_NUMERO) VALUES (:pSerie, :pNumero)');
+      aContext.Query.Params.ParamByName('pSerie').Value := FSerie;
+      aContext.Query.Params.ParamByName('pNumero').Value := LNextNumber;
+      aContext.Query.ExecSQL;
+    end
+    else
+    begin
+      LNextNumber := aContext.Query.DataSet.Fields[0].AsInteger + 1;
+      aContext.Query.DataSet.Close;
+      // Update existing record
+      aContext.Query.SQL.Clear;
+      aContext.Query.SQL.Add('UPDATE ' + FControlTable + ' SET ULTIMO_NUMERO = :pNumero WHERE SERIE = :pSerie');
+      aContext.Query.Params.ParamByName('pNumero').Value := LNextNumber;
+      aContext.Query.Params.ParamByName('pSerie').Value := FSerie;
+      aContext.Query.ExecSQL;
+    end;
+  except
+    on E: Exception do
+    begin
+      aContext.Query.DataSet.Close;
+      raise;
+    end;
+  end;
+
+  LProp.SetValue(aEntity, TValue.From<Integer>(LNextNumber));
+end;
+
+function TSkillSequence.Name: String;
+begin
+  Result := 'sequence';
+end;
+
+function TSkillSequence.RunAt: TSkillRunAt;
+begin
+  Result := srBeforeInsert;
 end;
 
 end.
