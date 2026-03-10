@@ -81,6 +81,9 @@
     <li><a href="#ai-enrichment">AI Enrichment</a> <span class="badge badge-new">NEW</span></li>
     <li><a href="#ai-query">AI Query</a> <span class="badge badge-new">NEW</span></li>
     <li><a href="#mcp-server">MCP Server (AI)</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#rules">Rules</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#skills">Skills</a> <span class="badge badge-new">NEW</span></li>
+    <li><a href="#agents">Agents</a> <span class="badge badge-new">NEW</span></li>
   </ul>
 </nav>
 
@@ -1019,6 +1022,109 @@ Server
 </ul>
 
 <p><strong><a href="mcp-server.html">Documentacao completa do MCP Server &rarr;</a></strong></p>
+</section>
+
+<!-- ============================================ -->
+<section id="rules">
+  <h2>Rules (Regras) <span class="badge badge-new">NEW</span></h2>
+  <p>Regras declarativas na entidade que executam automaticamente durante CRUD. Podem ser deterministicas (expressoes Delphi) ou inteligentes (via AI).</p>
+
+  <h3>Atributos</h3>
+  <table>
+    <thead>
+      <tr><th>Atributo</th><th>Parametros</th><th>Descricao</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Rule</td><td>expression, action, message</td><td>Regra deterministica avaliada contra propriedades da entidade</td></tr>
+      <tr><td>AIRule</td><td>description, action</td><td>Regra inteligente avaliada pelo LLM</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Exemplo</h3>
+  <pre><code>[Tabela('PEDIDOS')]
+[Rule('VALOR &gt; 0', raBeforeInsert, 'Valor deve ser positivo')]
+[Rule('STATUS &lt;&gt; ''CANCELADO''', raBeforeUpdate, 'Pedido cancelado nao pode ser alterado')]
+[AIRule('Verificar se o endereco e valido', raBeforeInsert)]
+TPedido = class
+published
+  [Campo('VALOR')]
+  property VALOR: Currency;
+  [Campo('STATUS')]
+  property STATUS: String;
+end;</code></pre>
+
+  <p class="note">Rules sao detectadas automaticamente via RTTI. Nenhuma configuracao no DAO e necessaria.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="skills">
+  <h2>Skills (Habilidades) <span class="badge badge-new">NEW</span></h2>
+  <p>Plugins reutilizaveis que se conectam ao DAO via fluent API. Executam antes ou depois de operacoes CRUD.</p>
+
+  <h3>Skills built-in</h3>
+  <table>
+    <thead>
+      <tr><th>Skill</th><th>Descricao</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TSkillLog</td><td>Loga operacoes com detalhes da entidade</td></tr>
+      <tr><td>TSkillNotify</td><td>Dispara callback apos operacao</td></tr>
+      <tr><td>TSkillAudit</td><td>Grava registro de auditoria em tabela do banco</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Uso</h3>
+  <pre><code>DAOPedido := TSimpleDAO&lt;TPedido&gt;
+  .New(Conn)
+  .Skill(TSkillLog.New('app', srAfterInsert))
+  .Skill(TSkillAudit.New('AUDIT_LOG', srAfterInsert))
+  .Skill(TSkillNotify.New(
+    procedure(aObj: TObject)
+    begin
+      Writeln('Pedido inserido!');
+    end, srAfterInsert));
+
+DAOPedido.Insert(Pedido);</code></pre>
+
+  <h3>Criar skill customizado</h3>
+  <pre><code>TSkillEnviarEmail = class(TInterfacedObject, iSimpleSkill)
+  function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+  function Name: String;
+  function RunAt: TSkillRunAt;
+end;</code></pre>
+
+  <p class="note">Skills sao opcionais. Se nenhum skill for registrado, o DAO funciona normalmente.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="agents">
+  <h2>Agents (Agentes) <span class="badge badge-new">NEW</span></h2>
+  <p>Orquestradores que combinam Rules, Skills e operacoes CRUD. Modo reativo (reage a eventos) e proativo (linguagem natural via AI).</p>
+
+  <h3>Modo Reativo</h3>
+  <pre><code>LAgent := TSimpleAgent.New;
+LAgent.When(TPedido, aoAfterInsert)
+  .Condition(function(aEntity: TObject): Boolean
+    begin
+      Result := TPedido(aEntity).VALOR &gt; 5000;
+    end)
+  .Execute(TSkillEnviarEmail.New('gerente@empresa.com'))
+  .Execute(TSkillLog.New('alto-valor'));
+
+DAOPedido := TSimpleDAO&lt;TPedido&gt;.New(Conn).Agent(LAgent);
+DAOPedido.Insert(Pedido); // Agent reage automaticamente</code></pre>
+
+  <h3>Modo Proativo</h3>
+  <pre><code>LAgent := TSimpleAgent.New(Conn, AIClient);
+LAgent.RegisterEntity&lt;TPedido&gt;.RegisterEntity&lt;TCliente&gt;;
+
+// Planejar antes de executar (SafeMode)
+LPlan := LAgent.Plan('Listar pedidos pendentes de hoje');
+Writeln(LPlan.Description);
+Writeln(LPlan.Risk); // LOW, MEDIUM ou HIGH
+LPlan.Execute;</code></pre>
+
+  <p class="warning">O modo proativo requer SafeMode (padrao: True). Use Plan() para inspecionar antes de Execute().</p>
 </section>
 
 <footer>

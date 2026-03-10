@@ -11,6 +11,20 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 ## [Unreleased]
 
 ### Added
+- **Rule** - Atributo declarativo para regras de negocio deterministicas na entidade (SimpleRules.pas)
+- **AIRule** - Atributo para regras de negocio inteligentes avaliadas por LLM (SimpleRules.pas)
+- **TSimpleRuleEngine** - Motor de avaliacao de regras com parser de expressoes simples
+- **ESimpleRuleViolation** - Excecao para violacoes de regras de negocio
+- **iSimpleSkill** - Interface para plugins reutilizaveis no pipeline do DAO
+- **iSimpleSkillContext** - Contexto com Query, AIClient e Logger disponivel para Skills
+- **TSkillLog** - Skill built-in para logging de operacoes
+- **TSkillNotify** - Skill built-in para callbacks/notificacoes
+- **TSkillAudit** - Skill built-in para auditoria em tabela do banco
+- **TSimpleAgent** - Agente com modo reativo (When/Condition/Execute) e proativo (Plan/Execute via LLM)
+- **iAgentResult** - Interface para resultados de execucao de agentes
+- **iAgentPlan** - Interface para planos de execucao com analise de risco
+- **Pipeline DAO** - Integracao de Rules, Skills e Agents no pipeline Insert/Update/Delete do TSimpleDAO
+- **Sample AgentsSkillsRules** - Projeto demonstrando Rules, Skills e Agents
 - **AI Query** - Perguntas em linguagem natural ao banco de dados via LLM (SimpleAIQuery.pas)
 - **NaturalLanguageQuery** - Traduz pergunta para SQL, executa e retorna TDataSet
 - **AskQuestion** - Traduz, executa e retorna resposta em linguagem natural
