@@ -32,6 +32,13 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 - **TSkillWebhook** - Skill built-in para HTTP POST fire-and-forget apos operacoes CRUD (`SimpleSkill.pas`)
 - **ESimpleGuardDelete** - Exception especifica para bloqueio de delete com dependencias (`SimpleSkill.pas`)
 - **Sample BuiltinSkills** - Projeto demonstrando uso das Skills built-in (`samples/BuiltinSkills/`)
+- **[CPF]** - Atributo de validacao de CPF brasileiro com algoritmo completo (`SimpleAttributes.pas`)
+- **[CNPJ]** - Atributo de validacao de CNPJ brasileiro com algoritmo completo (`SimpleAttributes.pas`)
+- **TSkillSequence** - Skill ERP para numeracao sequencial via tabela de controle (`SimpleSkill.pas`)
+- **TSkillCalcTotal** - Skill ERP para calculo de total (qtd * preco - desconto) via RTTI (`SimpleSkill.pas`)
+- **TSkillStockMove** - Skill ERP para movimentacao de estoque (entrada/saida) (`SimpleSkill.pas`)
+- **TSkillDuplicate** - Skill ERP para geracao de parcelas financeiras (`SimpleSkill.pas`)
+- **Sample ERPSkills** - Projeto demonstrando Skills ERP e validacao CPF/CNPJ (`samples/ERPSkills/`)
 - **AI Query** - Perguntas em linguagem natural ao banco de dados via LLM (SimpleAIQuery.pas)
 - **NaturalLanguageQuery** - Traduz pergunta para SQL, executa e retorna TDataSet
 - **AskQuestion** - Traduz, executa e retorna resposta em linguagem natural

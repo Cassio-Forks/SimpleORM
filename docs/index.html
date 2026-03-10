@@ -193,6 +193,7 @@
       <li><a href="#rules">Rules</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#skills">Skills</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#builtin-skills">Skills Built-in</a> <span class="badge badge-new">NEW</span></li>
+      <li><a href="#erp-skills">Skills ERP</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#agents">Agents</a> <span class="badge badge-new">NEW</span></li>
     </ul>
   </nav>
@@ -1264,6 +1265,92 @@ end;</code></pre>
   .Skill(TSkillWebhook.New('https://api.example.com/hooks', srAfterUpdate, 'Bearer token123'));</code></pre>
 
 <p class="note"><strong>Fire-and-forget:</strong> Se o POST falhar, o erro e logado mas a operacao CRUD NAO e bloqueada.</p>
+
+</section>
+
+<!-- ============================================ -->
+<section id="erp-skills">
+<h2>Skills ERP <span class="badge badge-new">NEW</span></h2>
+
+<p>Skills focadas para ERPs comerciais brasileiros. Incluem validacao de documentos (CPF/CNPJ) e automacoes comuns como numeracao sequencial, calculo de totais, movimentacao de estoque e geracao de parcelas.</p>
+
+<h3>Atributos de Validacao BR</h3>
+
+<table>
+<tr><th>Atributo</th><th>Descricao</th></tr>
+<tr><td><code>[CPF]</code></td><td>Valida CPF brasileiro (11 digitos, algoritmo de verificacao)</td></tr>
+<tr><td><code>[CNPJ]</code></td><td>Valida CNPJ brasileiro (14 digitos, algoritmo de verificacao)</td></tr>
+</table>
+
+<pre><code>type
+  [Tabela('CLIENTE')]
+  TCliente = class
+  published
+    [Campo('CPF'), CPF]
+    property CPF: String read FCPF write FCPF;
+
+    [Campo('CNPJ'), CNPJ]
+    property CNPJ: String read FCNPJ write FCNPJ;
+  end;
+
+// Validacao automatica via TSimpleValidator.Validate(Cliente)
+// ou via TSkillValidate no pipeline do DAO</code></pre>
+
+<h3>Skills ERP</h3>
+
+<table>
+<tr><th>Skill</th><th>Descricao</th><th>RunAt</th></tr>
+<tr><td><code>TSkillSequence</code></td><td>Numeracao sequencial via tabela de controle</td><td>srBeforeInsert</td></tr>
+<tr><td><code>TSkillCalcTotal</code></td><td>Calcula total: Qtd * Preco - Desconto</td><td>srBeforeInsert / srBeforeUpdate</td></tr>
+<tr><td><code>TSkillStockMove</code></td><td>Registra movimentacao de estoque</td><td>srAfterInsert / srAfterDelete</td></tr>
+<tr><td><code>TSkillDuplicate</code></td><td>Gera parcelas financeiras</td><td>srAfterInsert</td></tr>
+</table>
+
+<h3>Exemplo: Numeracao Sequencial</h3>
+<pre><code>// Parametros: campo destino, tabela de controle, serie
+DAO.Skill(TSkillSequence.New('NUMERO', 'NUMERACAO', 'PEDIDO'));</code></pre>
+
+<h3>Exemplo: Calculo de Total</h3>
+<pre><code>// Parametros: campo total, campo quantidade, campo preco, campo desconto
+DAO.Skill(TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO', 'DESCONTO'));</code></pre>
+
+<h3>Exemplo: Movimentacao de Estoque</h3>
+<pre><code>// Parametros: tabela estoque, campo produto, campo quantidade, RunAt
+DAO.Skill(TSkillStockMove.New('MOV_ESTOQUE', 'PRODUTO_ID', 'QUANTIDADE', srAfterInsert))
+   .Skill(TSkillStockMove.New('MOV_ESTOQUE', 'PRODUTO_ID', 'QUANTIDADE', srAfterDelete));</code></pre>
+
+<h3>Exemplo: Geracao de Parcelas</h3>
+<pre><code>// Parametros: tabela parcelas, campo valor total, qtd parcelas, intervalo em dias
+DAO.Skill(TSkillDuplicate.New('PARCELA', 'VALOR_TOTAL', 3, 30));</code></pre>
+
+<h3>DDL das Tabelas de Suporte</h3>
+
+<pre><code>-- TSkillSequence
+CREATE TABLE NUMERACAO (
+  SERIE         VARCHAR(50) PRIMARY KEY,
+  ULTIMO_NUMERO INTEGER DEFAULT 0
+);
+
+-- TSkillStockMove
+CREATE TABLE MOV_ESTOQUE (
+  ID          INTEGER PRIMARY KEY,
+  PRODUTO_ID  INTEGER,
+  QUANTIDADE  DOUBLE PRECISION,
+  TIPO        VARCHAR(10),
+  ENTITY_NAME VARCHAR(100),
+  CREATED_AT  TIMESTAMP
+);
+
+-- TSkillDuplicate
+CREATE TABLE PARCELA (
+  ID          INTEGER PRIMARY KEY,
+  ENTITY_ID   INTEGER,
+  NUMERO      INTEGER,
+  VALOR       DOUBLE PRECISION,
+  VENCIMENTO  DATE,
+  STATUS      VARCHAR(20),
+  CREATED_AT  TIMESTAMP
+);</code></pre>
 
 </section>
 
