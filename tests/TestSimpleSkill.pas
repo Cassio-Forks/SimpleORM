@@ -44,6 +44,14 @@ type
     procedure TestTimestamp_RunAt;
   end;
 
+  TTestSkillGuardDelete = class(TTestCase)
+  published
+    procedure TestGuardDelete_Name;
+    procedure TestGuardDelete_RunAtIsAlwaysBeforeDelete;
+    procedure TestGuardDelete_NilEntity_NoError;
+    procedure TestGuardDelete_NilQuery_NoError;
+  end;
+
 implementation
 
 uses
@@ -261,11 +269,59 @@ begin
   CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
 end;
 
+{ TTestSkillGuardDelete }
+
+procedure TTestSkillGuardDelete.TestGuardDelete_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillGuardDelete.New('ITEM_PEDIDO', 'ID_PEDIDO');
+  CheckEquals('guard-delete', LSkill.Name, 'Should return guard-delete');
+end;
+
+procedure TTestSkillGuardDelete.TestGuardDelete_RunAtIsAlwaysBeforeDelete;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillGuardDelete.New('ITEM_PEDIDO', 'ID_PEDIDO');
+  CheckTrue(LSkill.RunAt = srBeforeDelete, 'Should always be srBeforeDelete');
+end;
+
+procedure TTestSkillGuardDelete.TestGuardDelete_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillGuardDelete.New('ITEM_PEDIDO', 'ID_PEDIDO');
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'DELETE');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Should not raise error for nil entity');
+end;
+
+procedure TTestSkillGuardDelete.TestGuardDelete_NilQuery_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LEntity.ID := 1;
+    LSkill := TSkillGuardDelete.New('ITEM_PEDIDO', 'ID_PEDIDO');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'DELETE');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Should not raise error when query is nil');
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
   RegisterTest('Skills', TTestSkillNotify.Suite);
   RegisterTest('Skills', TTestSkillContext.Suite);
   RegisterTest('Skills', TTestSkillTimestamp.Suite);
+  RegisterTest('Skills', TTestSkillGuardDelete.Suite);
 
 end.

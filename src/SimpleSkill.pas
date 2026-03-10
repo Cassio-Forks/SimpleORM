@@ -13,6 +13,8 @@ uses
   System.Generics.Collections;
 
 type
+  ESimpleGuardDelete = class(Exception);
+
   TSimpleSkillContext = class(TInterfacedObject, iSimpleSkillContext)
   private
     FQuery: iSimpleQuery;
@@ -97,6 +99,20 @@ type
     constructor Create(const aFieldName: String; aRunAt: TSkillRunAt = srBeforeInsert);
     destructor Destroy; override;
     class function New(const aFieldName: String; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
+  { Built-in: TSkillGuardDelete }
+  TSkillGuardDelete = class(TInterfacedObject, iSimpleSkill)
+  private
+    FTable: String;
+    FFKField: String;
+  public
+    constructor Create(const aTable, aFKField: String);
+    destructor Destroy; override;
+    class function New(const aTable, aFKField: String): iSimpleSkill;
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
@@ -380,6 +396,70 @@ end;
 function TSkillTimestamp.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
+end;
+
+{ TSkillGuardDelete }
+
+constructor TSkillGuardDelete.Create(const aTable, aFKField: String);
+begin
+  FTable := aTable;
+  FFKField := aFKField;
+end;
+
+destructor TSkillGuardDelete.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillGuardDelete.New(const aTable, aFKField: String): iSimpleSkill;
+begin
+  Result := Self.Create(aTable, aFKField);
+end;
+
+function TSkillGuardDelete.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LContext: TRttiContext;
+  LType: TRttiType;
+  LProp: TRttiProperty;
+  LPKValue: Variant;
+  LCount: Integer;
+begin
+  Result := Self;
+  if (aEntity = nil) or (aContext.Query = nil) then
+    Exit;
+
+  LContext := TRttiContext.Create;
+  LType := LContext.GetType(aEntity.ClassType);
+
+  LProp := LType.GetPKField;
+  if LProp = nil then
+    Exit;
+
+  LPKValue := LProp.GetValue(aEntity).AsVariant;
+
+  aContext.Query.SQL.Clear;
+  aContext.Query.SQL.Add('SELECT COUNT(*) FROM ' + FTable + ' WHERE ' + FFKField + ' = :pValue');
+  aContext.Query.Params.ParamByName('pValue').Value := LPKValue;
+  aContext.Query.Open;
+  try
+    LCount := aContext.Query.DataSet.Fields[0].AsInteger;
+  finally
+    aContext.Query.DataSet.Close;
+  end;
+
+  if LCount > 0 then
+    raise ESimpleGuardDelete.Create('Cannot delete: ' + IntToStr(LCount) +
+      ' dependent records found in ' + FTable);
+end;
+
+function TSkillGuardDelete.Name: String;
+begin
+  Result := 'guard-delete';
+end;
+
+function TSkillGuardDelete.RunAt: TSkillRunAt;
+begin
+  Result := srBeforeDelete;
 end;
 
 end.
