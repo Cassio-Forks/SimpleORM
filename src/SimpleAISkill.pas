@@ -102,6 +102,40 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { AI Skill: TSkillAIValidate }
+  TSkillAIValidate = class(TInterfacedObject, iSimpleSkill)
+  private
+    FRule: String;
+    FErrorMessage: String;
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(const aRule: String;
+      const aErrorMessage: String = ''; aRunAt: TSkillRunAt = srBeforeInsert);
+    destructor Destroy; override;
+    class function New(const aRule: String;
+      const aErrorMessage: String = ''; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
+  { AI Skill: TSkillAISentiment }
+  TSkillAISentiment = class(TInterfacedObject, iSimpleSkill)
+  private
+    FSourceField: String;
+    FTargetField: String;
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(const aSourceField, aTargetField: String;
+      aRunAt: TSkillRunAt = srBeforeInsert);
+    destructor Destroy; override;
+    class function New(const aSourceField, aTargetField: String;
+      aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
 implementation
 
 { TSkillAIEnrich }
@@ -451,6 +485,148 @@ begin
 end;
 
 function TSkillAIModerate.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+{ TSkillAIValidate }
+
+constructor TSkillAIValidate.Create(const aRule: String;
+  const aErrorMessage: String; aRunAt: TSkillRunAt);
+begin
+  FRule := aRule;
+  FErrorMessage := aErrorMessage;
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillAIValidate.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillAIValidate.New(const aRule: String;
+  const aErrorMessage: String; aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aRule, aErrorMessage, aRunAt);
+end;
+
+function TSkillAIValidate.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LRttiContext: TRttiContext;
+  LType: TRttiType;
+  LProp: TRttiProperty;
+  LEntityData: String;
+  LPrompt: String;
+  LResponse: String;
+begin
+  Result := Self;
+  if aContext.AIClient = nil then
+    raise ESimpleAIModeration.Create('AIClient is required for AI validation');
+
+  if aEntity = nil then
+    Exit;
+
+  LRttiContext := TRttiContext.Create;
+  LType := LRttiContext.GetType(aEntity.ClassType);
+
+  LEntityData := '';
+  for LProp in LType.GetProperties do
+  begin
+    if LProp.IsIgnore then
+      Continue;
+    if not LProp.EhCampo then
+      Continue;
+    LEntityData := LEntityData + LProp.FieldName + ' = ' +
+      LProp.GetValue(aEntity).AsVariant + sLineBreak;
+  end;
+
+  LPrompt := 'Validate the following entity data against this rule: ' + FRule +
+    sLineBreak + sLineBreak + 'Entity data:' + sLineBreak + LEntityData + sLineBreak +
+    'Respond with exactly VALID if the data satisfies the rule, or INVALID: reason if it does not.';
+
+  LResponse := aContext.AIClient.Complete(LPrompt);
+
+  if LResponse.StartsWith('INVALID') then
+  begin
+    if FErrorMessage <> '' then
+      raise ESimpleAIModeration.Create(FErrorMessage)
+    else if Pos(':', LResponse) > 0 then
+      raise ESimpleAIModeration.Create(Trim(Copy(LResponse, Pos(':', LResponse) + 1, MaxInt)))
+    else
+      raise ESimpleAIModeration.Create('AI validation failed');
+  end;
+end;
+
+function TSkillAIValidate.Name: String;
+begin
+  Result := 'ai-validate';
+end;
+
+function TSkillAIValidate.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+{ TSkillAISentiment }
+
+constructor TSkillAISentiment.Create(const aSourceField, aTargetField: String;
+  aRunAt: TSkillRunAt);
+begin
+  FSourceField := aSourceField;
+  FTargetField := aTargetField;
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillAISentiment.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillAISentiment.New(const aSourceField, aTargetField: String;
+  aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aSourceField, aTargetField, aRunAt);
+end;
+
+function TSkillAISentiment.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LContext: TRttiContext;
+  LType: TRttiType;
+  LSourceProp, LTargetProp: TRttiProperty;
+  LSourceText: String;
+  LPrompt: String;
+  LResponse: String;
+begin
+  Result := Self;
+  if (aEntity = nil) or (aContext.AIClient = nil) then
+    Exit;
+
+  LContext := TRttiContext.Create;
+  LType := LContext.GetType(aEntity.ClassType);
+
+  LSourceProp := LType.GetProperty(FSourceField);
+  LTargetProp := LType.GetProperty(FTargetField);
+  if (LSourceProp = nil) or (LTargetProp = nil) then
+    Exit;
+
+  LSourceText := LSourceProp.GetValue(aEntity).AsString;
+  if LSourceText = '' then
+    Exit;
+
+  LPrompt := 'Analyze the sentiment of the following text. ' +
+    'Respond with exactly one word: POSITIVO, NEGATIVO, or NEUTRO.' +
+    sLineBreak + sLineBreak + 'Text: ' + LSourceText;
+
+  LResponse := aContext.AIClient.Complete(LPrompt);
+  LTargetProp.SetValue(aEntity, TValue.From<String>(LResponse));
+end;
+
+function TSkillAISentiment.Name: String;
+begin
+  Result := 'ai-sentiment';
+end;
+
+function TSkillAISentiment.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
 end;

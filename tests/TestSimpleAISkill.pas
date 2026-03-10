@@ -63,6 +63,28 @@ type
     procedure TestModerate_WithPolicy_IncludesInPrompt;
   end;
 
+  TTestSkillAIValidate = class(TTestCase)
+  published
+    procedure TestAIValidate_Name;
+    procedure TestAIValidate_RunAt;
+    procedure TestAIValidate_Valid_NoError;
+    procedure TestAIValidate_Invalid_RaisesException;
+    procedure TestAIValidate_Invalid_CustomMessage;
+    procedure TestAIValidate_NilAIClient_RaisesException;
+    procedure TestAIValidate_NilEntity_NoError;
+    procedure TestAIValidate_IncludesEntityDataInPrompt;
+  end;
+
+  TTestSkillAISentiment = class(TTestCase)
+  published
+    procedure TestSentiment_Name;
+    procedure TestSentiment_RunAt;
+    procedure TestSentiment_SetsSentiment;
+    procedure TestSentiment_EmptySource_NoAction;
+    procedure TestSentiment_NilAIClient_NoError;
+    procedure TestSentiment_NilEntity_NoError;
+  end;
+
 implementation
 
 uses
@@ -576,11 +598,254 @@ begin
   end;
 end;
 
+{ TTestSkillAIValidate }
+
+procedure TTestSkillAIValidate.TestAIValidate_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAIValidate.New('Preco deve ser positivo');
+  CheckEquals('ai-validate', LSkill.Name, 'Should return ai-validate');
+end;
+
+procedure TTestSkillAIValidate.TestAIValidate_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAIValidate.New('Regra', '', srBeforeUpdate);
+  CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
+end;
+
+procedure TTestSkillAIValidate.TestAIValidate_Valid_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TProdutoTest;
+begin
+  LEntity := TProdutoTest.Create;
+  try
+    LEntity.NOME := 'Notebook';
+    LEntity.PRECO := 5000;
+    LSkill := TSkillAIValidate.New('Preco deve ser positivo');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('VALID'), nil, 'PRODUTO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'VALID should not raise exception');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAIValidate.TestAIValidate_Invalid_RaisesException;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TProdutoTest;
+  LRaised: Boolean;
+begin
+  LEntity := TProdutoTest.Create;
+  try
+    LEntity.NOME := 'Notebook';
+    LEntity.PRECO := -10;
+    LSkill := TSkillAIValidate.New('Preco deve ser positivo');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('INVALID: preco negativo nao permitido'), nil, 'PRODUTO', 'INSERT');
+    LRaised := False;
+    try
+      LSkill.Execute(LEntity, LContext);
+    except
+      on E: ESimpleAIModeration do
+      begin
+        LRaised := True;
+        CheckTrue(Pos('negativo', E.Message) > 0,
+          'Should contain AI reason: ' + E.Message);
+      end;
+    end;
+    CheckTrue(LRaised, 'INVALID should raise ESimpleAIModeration');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAIValidate.TestAIValidate_Invalid_CustomMessage;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TProdutoTest;
+  LRaised: Boolean;
+begin
+  LEntity := TProdutoTest.Create;
+  try
+    LEntity.NOME := 'Notebook';
+    LEntity.PRECO := -10;
+    LSkill := TSkillAIValidate.New('Regra', 'Erro customizado');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('INVALID: razao da IA'), nil, 'PRODUTO', 'INSERT');
+    LRaised := False;
+    try
+      LSkill.Execute(LEntity, LContext);
+    except
+      on E: ESimpleAIModeration do
+      begin
+        LRaised := True;
+        CheckEquals('Erro customizado', E.Message, 'Should use custom error message');
+      end;
+    end;
+    CheckTrue(LRaised, 'INVALID should raise ESimpleAIModeration');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAIValidate.TestAIValidate_NilAIClient_RaisesException;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LRaised: Boolean;
+begin
+  LSkill := TSkillAIValidate.New('Regra');
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'INSERT');
+  LRaised := False;
+  try
+    LSkill.Execute(nil, LContext);
+  except
+    on E: ESimpleAIModeration do
+      LRaised := True;
+  end;
+  CheckTrue(LRaised, 'Nil AIClient should raise ESimpleAIModeration');
+end;
+
+procedure TTestSkillAIValidate.TestAIValidate_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillAIValidate.New('Regra');
+  LContext := TSimpleSkillContext.New(nil,
+    TSimpleAIMockClient.New('VALID'), nil, 'TEST', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Nil entity should not raise error');
+end;
+
+procedure TTestSkillAIValidate.TestAIValidate_IncludesEntityDataInPrompt;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TProdutoTest;
+  LMock: TSimpleAIMockClient;
+  LAIClient: iSimpleAIClient;
+begin
+  LEntity := TProdutoTest.Create;
+  try
+    LEntity.NOME := 'Notebook';
+    LEntity.PRECO := 5000;
+    LMock := TSimpleAIMockClient.Create('VALID');
+    LAIClient := LMock;
+    LSkill := TSkillAIValidate.New('Verificar preco');
+    LContext := TSimpleSkillContext.New(nil, LAIClient, nil, 'PRODUTO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(Pos('Notebook', LMock.LastPrompt) > 0,
+      'Prompt should contain entity data: ' + LMock.LastPrompt);
+    CheckTrue(Pos('5000', LMock.LastPrompt) > 0,
+      'Prompt should contain PRECO value: ' + LMock.LastPrompt);
+  finally
+    LEntity.Free;
+  end;
+end;
+
+{ TTestSkillAISentiment }
+
+procedure TTestSkillAISentiment.TestSentiment_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAISentiment.New('TEXTO', 'SENTIMENTO');
+  CheckEquals('ai-sentiment', LSkill.Name, 'Should return ai-sentiment');
+end;
+
+procedure TTestSkillAISentiment.TestSentiment_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAISentiment.New('TEXTO', 'SENTIMENTO', srBeforeUpdate);
+  CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
+end;
+
+procedure TTestSkillAISentiment.TestSentiment_SetsSentiment;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Produto excelente, adorei!';
+    LSkill := TSkillAISentiment.New('TEXTO', 'SENTIMENTO');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('POSITIVO'), nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals('POSITIVO', LEntity.SENTIMENTO, 'Should set sentiment from AI');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAISentiment.TestSentiment_EmptySource_NoAction;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := '';
+    LSkill := TSkillAISentiment.New('TEXTO', 'SENTIMENTO');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('POSITIVO'), nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals('', LEntity.SENTIMENTO, 'Should not analyze empty source');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAISentiment.TestSentiment_NilAIClient_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Texto';
+    LSkill := TSkillAISentiment.New('TEXTO', 'SENTIMENTO');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals('', LEntity.SENTIMENTO, 'Should ignore when AIClient is nil');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAISentiment.TestSentiment_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillAISentiment.New('TEXTO', 'SENTIMENTO');
+  LContext := TSimpleSkillContext.New(nil,
+    TSimpleAIMockClient.New('POSITIVO'), nil, 'TEST', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Nil entity should not raise error');
+end;
+
 initialization
   RegisterTest('AISkills', TTestSkillAIEnrich.Suite);
   RegisterTest('AISkills', TTestSkillAITranslate.Suite);
   RegisterTest('AISkills', TTestSkillAISummarize.Suite);
   RegisterTest('AISkills', TTestSkillAITags.Suite);
   RegisterTest('AISkills', TTestSkillAIModerate.Suite);
+  RegisterTest('AISkills', TTestSkillAIValidate.Suite);
+  RegisterTest('AISkills', TTestSkillAISentiment.Suite);
 
 end.
