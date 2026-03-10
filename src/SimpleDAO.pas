@@ -43,6 +43,8 @@ Type
         FCacheEnabled: Boolean;
         FCache: TDictionary<String, T>;
         FAIClient: iSimpleAIClient;
+        FSkillRunner: TSimpleSkillRunner;
+        FAgent: iSimpleAgent;
         function FillParameter(aInstance: T): iSimpleDAO<T>; overload;
         function FillParameter(aInstance: T; aId: Variant)
           : iSimpleDAO<T>; overload;
@@ -88,6 +90,8 @@ Type
         function UpdateOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
         function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
         function AIClient(aValue: iSimpleAIClient): iSimpleDAO<T>;
+        function Skill(aSkill: iSimpleSkill): iSimpleDAO<T>;
+        function Agent(aAgent: iSimpleAgent): iSimpleDAO<T>;
         function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
         function OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
         function OnBeforeUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
@@ -120,6 +124,9 @@ uses
     SimpleProxy,
     SimpleAIProcessor,
     SimpleAIAttributes,
+    SimpleRules,
+    SimpleSkill,
+    SimpleAgent,
     Variants;
 { TGenericDAO }
 {$IFNDEF CONSOLE}
@@ -142,6 +149,7 @@ begin
     FRawParams := TDictionary<String, Variant>.Create;
     FCacheEnabled := False;
     FCache := TDictionary<String, T>.Create;
+    FSkillRunner := TSimpleSkillRunner.New;
 end;
 
 function TSimpleDAO<T>.DataSource(aDataSource: TDataSource): iSimpleDAO<T>;
@@ -156,10 +164,28 @@ function TSimpleDAO<T>.Delete(aValue: T): iSimpleDAO<T>;
 var
     aSQL: String;
     SW: TStopwatch;
+    LRuleEngine: TSimpleRuleEngine;
+    LSkillContext: iSimpleSkillContext;
+    LTableName: String;
 begin
     Result := Self;
     if Assigned(FOnBeforeDelete) then
       FOnBeforeDelete(aValue);
+
+    // 1. Rules (Before)
+    LRuleEngine := TSimpleRuleEngine.New(FAIClient);
+    try
+      LRuleEngine.Evaluate(aValue, raBeforeDelete);
+    finally
+      FreeAndNil(LRuleEngine);
+    end;
+
+    // 2. Skills (Before)
+    TSimpleRTTI<T>.New(aValue).TableName(LTableName);
+    LSkillContext := TSimpleSkillContext.New(FQuery, FAIClient, FLogger, LTableName, 'DELETE');
+    FSkillRunner.RunBefore(aValue, LSkillContext, srBeforeDelete);
+
+    // 3. SQL Execution
     ExecuteCascadeDelete(aValue);
     TSimpleSQL<T>.New(aValue).Delete(aSQL);
     FQuery.SQL.Clear;
@@ -172,6 +198,14 @@ begin
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
     if FCacheEnabled then
       FCache.Clear;
+
+    // 4. Skills (After)
+    FSkillRunner.RunAfter(aValue, LSkillContext, srAfterDelete);
+
+    // 5. Agent (React)
+    if FAgent <> nil then
+      FAgent.React(aValue, aoAfterDelete);
+
     if Assigned(FOnAfterDelete) then
       FOnAfterDelete(aValue);
 end;
@@ -249,6 +283,7 @@ begin
     FreeAndNil(FActiveScopes);
     FreeAndNil(FRawParams);
     FreeAndNil(FCache);
+    FreeAndNil(FSkillRunner);
     inherited;
 end;
 
@@ -377,10 +412,23 @@ var
     aSQL: String;
     SW: TStopwatch;
     LAIProcessor: TSimpleAIProcessor;
+    LRuleEngine: TSimpleRuleEngine;
+    LSkillContext: iSimpleSkillContext;
+    LTableName: String;
 begin
     Result := Self;
     if Assigned(FOnBeforeInsert) then
       FOnBeforeInsert(aValue);
+
+    // 1. Rules (Before)
+    LRuleEngine := TSimpleRuleEngine.New(FAIClient);
+    try
+      LRuleEngine.Evaluate(aValue, raBeforeInsert);
+    finally
+      FreeAndNil(LRuleEngine);
+    end;
+
+    // 2. AI Attributes
     if FAIClient <> nil then
     begin
       LAIProcessor := TSimpleAIProcessor.New(FAIClient);
@@ -390,6 +438,13 @@ begin
         FreeAndNil(LAIProcessor);
       end;
     end;
+
+    // 3. Skills (Before)
+    TSimpleRTTI<T>.New(aValue).TableName(LTableName);
+    LSkillContext := TSimpleSkillContext.New(FQuery, FAIClient, FLogger, LTableName, 'INSERT');
+    FSkillRunner.RunBefore(aValue, LSkillContext, srBeforeInsert);
+
+    // 4. SQL Execution
     TSimpleSQL<T>.New(aValue).Insert(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
@@ -401,6 +456,14 @@ begin
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
     if FCacheEnabled then
       FCache.Clear;
+
+    // 5. Skills (After)
+    FSkillRunner.RunAfter(aValue, LSkillContext, srAfterInsert);
+
+    // 6. Agent (React)
+    if FAgent <> nil then
+      FAgent.React(aValue, aoAfterInsert);
+
     if Assigned(FOnAfterInsert) then
       FOnAfterInsert(aValue);
 end;
@@ -438,6 +501,18 @@ begin
     Result := Self;
     FAIClient := aValue;
 end;
+
+function TSimpleDAO<T>.Skill(aSkill: iSimpleSkill): iSimpleDAO<T>;
+begin
+    Result := Self;
+    FSkillRunner.Add(aSkill);
+end;
+
+function TSimpleDAO<T>.Agent(aAgent: iSimpleAgent): iSimpleDAO<T>;
+begin
+    Result := Self;
+    FAgent := aAgent;
+end;
 {$IFNDEF CONSOLE}
 
 function TSimpleDAO<T>.Update: iSimpleDAO<T>;
@@ -465,10 +540,23 @@ var
     aSQL: String;
     SW: TStopwatch;
     LAIProcessor: TSimpleAIProcessor;
+    LRuleEngine: TSimpleRuleEngine;
+    LSkillContext: iSimpleSkillContext;
+    LTableName: String;
 begin
     Result := Self;
     if Assigned(FOnBeforeUpdate) then
       FOnBeforeUpdate(aValue);
+
+    // 1. Rules (Before)
+    LRuleEngine := TSimpleRuleEngine.New(FAIClient);
+    try
+      LRuleEngine.Evaluate(aValue, raBeforeUpdate);
+    finally
+      FreeAndNil(LRuleEngine);
+    end;
+
+    // 2. AI Attributes
     if FAIClient <> nil then
     begin
       LAIProcessor := TSimpleAIProcessor.New(FAIClient);
@@ -478,6 +566,13 @@ begin
         FreeAndNil(LAIProcessor);
       end;
     end;
+
+    // 3. Skills (Before)
+    TSimpleRTTI<T>.New(aValue).TableName(LTableName);
+    LSkillContext := TSimpleSkillContext.New(FQuery, FAIClient, FLogger, LTableName, 'UPDATE');
+    FSkillRunner.RunBefore(aValue, LSkillContext, srBeforeUpdate);
+
+    // 4. SQL Execution
     TSimpleSQL<T>.New(aValue).Update(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
@@ -489,6 +584,14 @@ begin
       FLogger.Log(aSQL, FQuery.Params, SW.ElapsedMilliseconds);
     if FCacheEnabled then
       FCache.Clear;
+
+    // 5. Skills (After)
+    FSkillRunner.RunAfter(aValue, LSkillContext, srAfterUpdate);
+
+    // 6. Agent (React)
+    if FAgent <> nil then
+      FAgent.React(aValue, aoAfterUpdate);
+
     if Assigned(FOnAfterUpdate) then
       FOnAfterUpdate(aValue);
 end;
