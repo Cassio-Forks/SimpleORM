@@ -118,6 +118,19 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { Built-in: TSkillValidate }
+  TSkillValidate = class(TInterfacedObject, iSimpleSkill)
+  private
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(aRunAt: TSkillRunAt = srBeforeInsert);
+    destructor Destroy; override;
+    class function New(aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
   { Built-in: TSkillGuardDelete }
   TSkillGuardDelete = class(TInterfacedObject, iSimpleSkill)
   private
@@ -133,6 +146,9 @@ type
   end;
 
 implementation
+
+uses
+  SimpleValidator;
 
 { TSimpleSkillContext }
 
@@ -560,6 +576,42 @@ begin
 end;
 
 function TSkillHistory.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+{ TSkillValidate }
+
+constructor TSkillValidate.Create(aRunAt: TSkillRunAt);
+begin
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillValidate.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillValidate.New(aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aRunAt);
+end;
+
+function TSkillValidate.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+begin
+  Result := Self;
+  if aEntity = nil then
+    Exit;
+
+  TSimpleValidator.Validate(aEntity);
+end;
+
+function TSkillValidate.Name: String;
+begin
+  Result := 'validate';
+end;
+
+function TSkillValidate.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
 end;

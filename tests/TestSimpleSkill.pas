@@ -60,10 +60,20 @@ type
     procedure TestHistory_NilQuery_NoError;
   end;
 
+  TTestSkillValidate = class(TTestCase)
+  published
+    procedure TestValidate_ValidEntity_NoError;
+    procedure TestValidate_InvalidEntity_RaisesException;
+    procedure TestValidate_NilEntity_NoError;
+    procedure TestValidate_Name;
+    procedure TestValidate_RunAt;
+  end;
+
 implementation
 
 uses
-  TestEntities;
+  TestEntities,
+  SimpleValidator;
 
 { TTestSkillRunner }
 
@@ -370,6 +380,80 @@ begin
   end;
 end;
 
+{ TTestSkillValidate }
+
+procedure TTestSkillValidate.TestValidate_ValidEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LEntity.CLIENTE := 'Joao';
+    LEntity.VALORTOTAL := 100;
+    LSkill := TSkillValidate.New(srBeforeInsert);
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Valid entity should not raise');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillValidate.TestValidate_InvalidEntity_RaisesException;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+  LRaised: Boolean;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LEntity.CLIENTE := '';
+    LEntity.VALORTOTAL := 0;
+    LSkill := TSkillValidate.New(srBeforeInsert);
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT');
+    LRaised := False;
+    try
+      LSkill.Execute(LEntity, LContext);
+    except
+      on E: ESimpleValidator do
+        LRaised := True;
+    end;
+    CheckTrue(LRaised, 'Invalid entity should raise ESimpleValidator');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillValidate.TestValidate_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillValidate.New;
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Nil entity should not raise');
+end;
+
+procedure TTestSkillValidate.TestValidate_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillValidate.New;
+  CheckEquals('validate', LSkill.Name, 'Should return validate');
+end;
+
+procedure TTestSkillValidate.TestValidate_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillValidate.New(srBeforeUpdate);
+  CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
@@ -378,5 +462,6 @@ initialization
   RegisterTest('Skills', TTestSkillTimestamp.Suite);
   RegisterTest('Skills', TTestSkillGuardDelete.Suite);
   RegisterTest('Skills', TTestSkillHistory.Suite);
+  RegisterTest('Skills', TTestSkillValidate.Suite);
 
 end.
