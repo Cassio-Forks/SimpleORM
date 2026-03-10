@@ -31,6 +31,16 @@ type
     procedure TestTranslate_NilEntity_NoError;
   end;
 
+  TTestSkillAISummarize = class(TTestCase)
+  published
+    procedure TestSummarize_Name;
+    procedure TestSummarize_RunAt;
+    procedure TestSummarize_SummarizesField;
+    procedure TestSummarize_WithMaxLength_IncludesInPrompt;
+    procedure TestSummarize_EmptySource_NoAction;
+    procedure TestSummarize_NilAIClient_NoError;
+  end;
+
 implementation
 
 uses
@@ -211,8 +221,106 @@ begin
   CheckTrue(True, 'Should not raise error for nil entity');
 end;
 
+{ TTestSkillAISummarize }
+
+procedure TTestSkillAISummarize.TestSummarize_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAISummarize.New('TEXTO', 'RESUMO');
+  CheckEquals('ai-summarize', LSkill.Name, 'Should return ai-summarize');
+end;
+
+procedure TTestSkillAISummarize.TestSummarize_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillAISummarize.New('TEXTO', 'RESUMO', 0, srBeforeUpdate);
+  CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
+end;
+
+procedure TTestSkillAISummarize.TestSummarize_SummarizesField;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Um texto muito longo que precisa ser resumido';
+    LSkill := TSkillAISummarize.New('TEXTO', 'RESUMO');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('Resumo do texto'), nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals('Resumo do texto', LEntity.RESUMO, 'Should set summary');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAISummarize.TestSummarize_WithMaxLength_IncludesInPrompt;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+  LMock: TSimpleAIMockClient;
+  LAIClient: iSimpleAIClient;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Texto para resumir';
+    LMock := TSimpleAIMockClient.Create('resumo');
+    LAIClient := LMock;
+    LSkill := TSkillAISummarize.New('TEXTO', 'RESUMO', 200);
+    LContext := TSimpleSkillContext.New(nil, LAIClient, nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(Pos('200', LMock.LastPrompt) > 0,
+      'Prompt should contain max length: ' + LMock.LastPrompt);
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAISummarize.TestSummarize_EmptySource_NoAction;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := '';
+    LSkill := TSkillAISummarize.New('TEXTO', 'RESUMO');
+    LContext := TSimpleSkillContext.New(nil,
+      TSimpleAIMockClient.New('should not appear'), nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals('', LEntity.RESUMO, 'Should not summarize empty source');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillAISummarize.TestSummarize_NilAIClient_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TArtigoTest;
+begin
+  LEntity := TArtigoTest.Create;
+  try
+    LEntity.TEXTO := 'Texto';
+    LSkill := TSkillAISummarize.New('TEXTO', 'RESUMO');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'ARTIGO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckEquals('', LEntity.RESUMO, 'Should ignore when AIClient is nil');
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('AISkills', TTestSkillAIEnrich.Suite);
   RegisterTest('AISkills', TTestSkillAITranslate.Suite);
+  RegisterTest('AISkills', TTestSkillAISummarize.Suite);
 
 end.

@@ -49,6 +49,24 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { AI Skill: TSkillAISummarize }
+  TSkillAISummarize = class(TInterfacedObject, iSimpleSkill)
+  private
+    FSourceField: String;
+    FTargetField: String;
+    FMaxLength: Integer;
+    FRunAt: TSkillRunAt;
+  public
+    constructor Create(const aSourceField, aTargetField: String;
+      aMaxLength: Integer = 0; aRunAt: TSkillRunAt = srBeforeInsert);
+    destructor Destroy; override;
+    class function New(const aSourceField, aTargetField: String;
+      aMaxLength: Integer = 0; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
 implementation
 
 { TSkillAIEnrich }
@@ -185,6 +203,75 @@ begin
 end;
 
 function TSkillAITranslate.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+{ TSkillAISummarize }
+
+constructor TSkillAISummarize.Create(const aSourceField, aTargetField: String;
+  aMaxLength: Integer; aRunAt: TSkillRunAt);
+begin
+  FSourceField := aSourceField;
+  FTargetField := aTargetField;
+  FMaxLength := aMaxLength;
+  FRunAt := aRunAt;
+end;
+
+destructor TSkillAISummarize.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillAISummarize.New(const aSourceField, aTargetField: String;
+  aMaxLength: Integer; aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create(aSourceField, aTargetField, aMaxLength, aRunAt);
+end;
+
+function TSkillAISummarize.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LContext: TRttiContext;
+  LType: TRttiType;
+  LSourceProp, LTargetProp: TRttiProperty;
+  LSourceText: String;
+  LPrompt: String;
+  LResponse: String;
+begin
+  Result := Self;
+  if (aEntity = nil) or (aContext.AIClient = nil) then
+    Exit;
+
+  LContext := TRttiContext.Create;
+  LType := LContext.GetType(aEntity.ClassType);
+
+  LSourceProp := LType.GetProperty(FSourceField);
+  LTargetProp := LType.GetProperty(FTargetField);
+  if (LSourceProp = nil) or (LTargetProp = nil) then
+    Exit;
+
+  LSourceText := LSourceProp.GetValue(aEntity).AsString;
+  if LSourceText = '' then
+    Exit;
+
+  if FMaxLength > 0 then
+    LPrompt := 'Summarize the following text in at most ' + IntToStr(FMaxLength) +
+      ' characters. Return only the summary, nothing else.' + sLineBreak + sLineBreak +
+      'Text: ' + LSourceText
+  else
+    LPrompt := 'Summarize the following text. Return only the summary, nothing else.' +
+      sLineBreak + sLineBreak + 'Text: ' + LSourceText;
+
+  LResponse := aContext.AIClient.Complete(LPrompt);
+  LTargetProp.SetValue(aEntity, TValue.From<String>(LResponse));
+end;
+
+function TSkillAISummarize.Name: String;
+begin
+  Result := 'ai-summarize';
+end;
+
+function TSkillAISummarize.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
 end;
