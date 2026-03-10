@@ -33,7 +33,13 @@ uses
   MockAIClient in 'Mocks\MockAIClient.pas',
   TestSimpleAIProcessor in 'TestSimpleAIProcessor.pas',
   SimpleAIQuery in '..\src\SimpleAIQuery.pas',
-  TestSimpleAIQuery in 'TestSimpleAIQuery.pas';
+  TestSimpleAIQuery in 'TestSimpleAIQuery.pas',
+  SimpleRules in '..\src\SimpleRules.pas',
+  SimpleSkill in '..\src\SimpleSkill.pas',
+  SimpleAgent in '..\src\SimpleAgent.pas',
+  TestSimpleRules in 'TestSimpleRules.pas',
+  TestSimpleSkill in 'TestSimpleSkill.pas',
+  TestSimpleAgent in 'TestSimpleAgent.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
