@@ -195,6 +195,7 @@
       <li><a href="#agents">Agents</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#supabase">Supabase</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#github-issue">GitHub Issue</a> <span class="badge badge-new">NEW</span></li>
+      <li><a href="#data-migration">Data Migration</a> <span class="badge badge-new">NEW</span></li>
     </ul>
   </nav>
 </aside>
@@ -1361,6 +1362,111 @@ LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
   </table>
 
   <p class="note"><strong>Nota:</strong> Fire-and-forget — erros HTTP sao logados mas nunca interrompem o fluxo CRUD. Requer Personal Access Token do GitHub com permissao <code>repo</code>.</p>
+</section>
+
+<section id="data-migration">
+  <h2>Data Migration <span class="badge badge-new">NEW</span></h2>
+  <p>O SimpleORM oferece um framework fluent para <strong>migracao de dados</strong> entre bancos de dados, arquivos CSV e JSON. Permite mapear campos, aplicar transformacoes, definir valores padrao e gerar relatorios detalhados.</p>
+
+  <table>
+    <thead>
+      <tr><th>Componente</th><th>Descricao</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>TSimpleDataMigration</strong></td><td>Classe principal com API fluent para configurar e executar migracoes</td></tr>
+      <tr><td><strong>TFieldMap</strong></td><td>Mapeamento de campos com Field, Transform, DefaultValue, Lookup e Ignore</td></tr>
+      <tr><td><strong>TFieldTransform</strong></td><td>Transformacoes built-in para manipulacao de dados durante migracao</td></tr>
+      <tr><td><strong>TMigrationReport</strong></td><td>Relatorio com TotalRecords, Migrated, Failed, Skipped, ToJSON e ToCSV</td></tr>
+      <tr><td><strong>TTableReport</strong></td><td>Relatorio por tabela com lista de erros detalhada</td></tr>
+      <tr><td><strong>TCSVReader / TCSVWriter</strong></td><td>Leitor e escritor de CSV com suporte a headers</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Migracao DB-to-DB</h3>
+  <pre><code>uses SimpleDataMigration;
+
+LMigration := TSimpleDataMigration.New(LQueryOrigem, LQueryDestino)
+  .TableMap('CLIENTES_ANTIGO', 'CLIENTES')
+    .Field('NOME_COMPLETO', 'NOME')
+    .Transform('NOME', TFieldTransform.Upper)
+    .DefaultValue('STATUS', '1')
+    .Field('CPF_CNPJ', 'DOCUMENTO')
+    .Transform('DOCUMENTO', TFieldTransform.Trim)
+    .Ignore('CAMPO_OBSOLETO')
+  .&amp;End
+  .OnProgress(procedure(aTable: string; aCurrent, aTotal: Integer)
+    begin
+      Writeln(SysUtils.Format('%s: %d/%d', [aTable, aCurrent, aTotal]));
+    end)
+  .OnError(procedure(aTable: string; aRecord: Integer; aMsg: string)
+    begin
+      Writeln(SysUtils.Format('Erro em %s registro %d: %s', [aTable, aRecord, aMsg]));
+    end);
+
+LReport := LMigration.Execute;</code></pre>
+
+  <h3>Migracao CSV-to-DB</h3>
+  <pre><code>LMigration := TSimpleDataMigration.New(LQueryDestino)
+  .SourceFormat(mfCSV)
+  .SourceFile('clientes_export.csv')
+  .TableMap('', 'CLIENTES')
+    .Field('nome', 'NOME')
+    .Transform('NOME', TFieldTransform.Upper)
+    .Field('email', 'EMAIL')
+    .Transform('EMAIL', TFieldTransform.Lower)
+    .DefaultValue('DATA_IMPORT', '2026-03-10')
+  .&amp;End;
+
+LReport := LMigration.Execute;</code></pre>
+
+  <h3>Transformacoes Built-in</h3>
+  <table>
+    <thead>
+      <tr><th>Transformacao</th><th>Descricao</th><th>Exemplo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>TFieldTransform.Upper</code></td><td>Converte para maiusculas</td><td><code>'joao'</code> &rarr; <code>'JOAO'</code></td></tr>
+      <tr><td><code>TFieldTransform.Lower</code></td><td>Converte para minusculas</td><td><code>'JOAO'</code> &rarr; <code>'joao'</code></td></tr>
+      <tr><td><code>TFieldTransform.Trim</code></td><td>Remove espacos no inicio e fim</td><td><code>' joao '</code> &rarr; <code>'joao'</code></td></tr>
+      <tr><td><code>TFieldTransform.Replace('a', 'b')</code></td><td>Substitui substring</td><td><code>'abc'</code> &rarr; <code>'bbc'</code></td></tr>
+      <tr><td><code>TFieldTransform.DateFormat('dd/mm/yyyy', 'yyyy-mm-dd')</code></td><td>Converte formato de data</td><td><code>'10/03/2026'</code> &rarr; <code>'2026-03-10'</code></td></tr>
+      <tr><td><code>TFieldTransform.Split(';', 0)</code></td><td>Divide string e retorna parte N</td><td><code>'a;b;c'</code> &rarr; <code>'a'</code></td></tr>
+      <tr><td><code>TFieldTransform.Concat(' - ')</code></td><td>Concatena campos com separador</td><td><code>'campo1' + ' - ' + 'campo2'</code></td></tr>
+      <tr><td><code>TFieldTransform.Custom(func)</code></td><td>Funcao customizada de transformacao</td><td>Qualquer logica personalizada</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Persistencia de Mapeamentos</h3>
+  <pre><code>// Salvar mapeamento para reutilizar
+LMigration.SaveToJSON('migracao_clientes.json');
+
+// Carregar mapeamento salvo
+LMigration := TSimpleDataMigration.New(LQueryOrigem, LQueryDestino)
+  .LoadFromJSON('migracao_clientes.json');
+
+LReport := LMigration.Execute;</code></pre>
+
+  <h3>Relatorio de Migracao</h3>
+  <pre><code>LReport := LMigration.Execute;
+
+Writeln('Total: ', LReport.TotalRecords);
+Writeln('Migrados: ', LReport.Migrated);
+Writeln('Falhas: ', LReport.Failed);
+Writeln('Ignorados: ', LReport.Skipped);
+
+// Exportar relatorio
+LReport.ToJSON('relatorio.json');
+LReport.ToCSV('relatorio.csv');
+
+// Detalhes por tabela
+for LTable in LReport.Tables do
+begin
+  Writeln(LTable.TableName, ': ', LTable.Migrated, ' migrados, ', LTable.Failed, ' falhas');
+  for LError in LTable.Errors do
+    Writeln('  Registro ', LError.RecordIndex, ': ', LError.Message);
+end;</code></pre>
+
+  <p class="note"><strong>Nota:</strong> A migracao usa transacoes automaticas por tabela. Em caso de erro, o rollback e feito apenas na tabela atual, preservando as tabelas ja migradas com sucesso.</p>
 </section>
 
 <footer>

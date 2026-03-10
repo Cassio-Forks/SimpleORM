@@ -8,6 +8,23 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **TSimpleDataMigration** - Framework fluent para migracao de dados entre bancos/sistemas (SimpleDataMigration.pas)
+- **TFieldMap** - Mapeamento tabela-a-tabela com Field, Transform, DefaultValue, Lookup e Ignore (SimpleDataMigration.pas)
+- **TFieldTransform** - Transformacoes built-in: Upper, Lower, Trim, Replace, DateFormat, Split, Concat, Custom (SimpleDataMigration.pas)
+- **TMigrationReport** - Relatorio estruturado com TotalRecords, Migrated, Failed, Skipped, ToJSON, ToCSV (SimpleDataMigration.pas)
+- **TTableReport** - Relatorio por tabela com lista de erros detalhada (SimpleDataMigration.pas)
+- **TCSVReader** - Leitor de CSV com headers e iteracao sequencial (SimpleDataMigration.pas)
+- **TCSVWriter** - Escritor de CSV com headers e flush (SimpleDataMigration.pas)
+- **TMigrationFormat** - Enum para formato de fonte/destino: CSV, JSON (SimpleTypes.pas)
+- **TMigrationError** - Record com detalhes de erro por registro (SimpleTypes.pas)
+- **Persistencia JSON** - SaveToJSON/LoadFromJSON para reutilizar mapeamentos de migracao
+- **Migracao CSV** - Suporte a CSV como fonte e/ou destino de migracao
+- **Callbacks de progresso** - OnProgress e OnError para controle durante migracao
+- **Sample DataMigration** - Projeto demonstrando API fluent, transformacoes e relatorio (samples/DataMigration/)
+
 ## [3.05.00] - 2026-03-10
 
 ### Added
