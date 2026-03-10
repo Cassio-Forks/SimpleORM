@@ -171,6 +171,25 @@ type
     property DataAtualizacao: TDateTime read FUpdatedAt write FUpdatedAt;
   end;
 
+  { Entidade com CPF e CNPJ }
+  [Tabela('PESSOA')]
+  TPessoaTest = class
+  private
+    FID: Integer;
+    FNOME: String;
+    FCPF: String;
+    FCNPJ: String;
+  published
+    [Campo('ID'), PK, AutoInc]
+    property ID: Integer read FID write FID;
+    [Campo('NOME'), NotNull]
+    property NOME: String read FNOME write FNOME;
+    [Campo('CPF'), CPF]
+    property CPF: String read FCPF write FCPF;
+    [Campo('CNPJ'), CNPJ]
+    property CNPJ: String read FCNPJ write FCNPJ;
+  end;
+
 implementation
 
 end.

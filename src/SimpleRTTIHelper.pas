@@ -50,6 +50,8 @@ type
     function IsAIClassify: Boolean;
     function IsAIValidate: Boolean;
     function HasAIAttribute: Boolean;
+    function IsCPF: Boolean;
+    function IsCNPJ: Boolean;
   end;
 
   TRttiTypeHelper = class helper for TRttiType
@@ -280,6 +282,16 @@ function TRttiPropertyHelper.HasAIAttribute: Boolean;
 begin
   Result := IsAIGenerated or IsAISummarize or IsAITranslate or
             IsAIClassify or IsAIValidate;
+end;
+
+function TRttiPropertyHelper.IsCPF: Boolean;
+begin
+  Result := Tem<CPF>
+end;
+
+function TRttiPropertyHelper.IsCNPJ: Boolean;
+begin
+  Result := Tem<CNPJ>
 end;
 
 function TRttiPropertyHelper.Tem<T>: Boolean;

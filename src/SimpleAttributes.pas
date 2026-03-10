@@ -166,6 +166,12 @@ type
   CascadeDelete = class(TCustomAttribute)
   end;
 
+  CPF = class(TCustomAttribute)
+  end;
+
+  CNPJ = class(TCustomAttribute)
+  end;
+
   /// AI-generated content: LLM generates value based on a prompt template.
   /// Template can reference other property values with {PropertyName}.
   AIGenerated = class(TCustomAttribute)
