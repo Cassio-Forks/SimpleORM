@@ -21,6 +21,8 @@ type
   TSimpleCallback = reference to procedure(aEntity: TObject);
 
   iSimpleDAOSQLAttribute<T : class> = interface;
+  iSimpleSkill = interface;
+  iSimpleAgent = interface;
 
   iSimpleDAO<T : class> = interface
     ['{19261B52-6122-4C41-9DDE-D3A1247CC461}']
@@ -57,6 +59,8 @@ type
     function UpdateOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
     function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
     function AIClient(aValue: iSimpleAIClient): iSimpleDAO<T>;
+    function Skill(aSkill: iSimpleSkill): iSimpleDAO<T>;
+    function Agent(aAgent: iSimpleAgent): iSimpleDAO<T>;
     function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnBeforeUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
@@ -163,7 +167,42 @@ type
     function RowsAffected: Integer;
   end;
 
+  iSimpleSkillContext = interface
+    ['{B2C3D4E5-F6A7-8901-BCDE-F12345678901}']
+    function Query: iSimpleQuery;
+    function AIClient: iSimpleAIClient;
+    function Logger: iSimpleQueryLogger;
+    function EntityName: String;
+    function Operation: String;
+  end;
 
+  iSimpleSkill = interface
+    ['{C3D4E5F6-A7B8-9012-CDEF-123456789012}']
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
+  iAgentResult = interface
+    ['{D4E5F6A7-B8C9-0123-DEFA-234567890123}']
+    function Summary: String;
+    function StepsCount: Integer;
+    function Success: Boolean;
+  end;
+
+  iAgentPlan = interface
+    ['{E5F6A7B8-C9D0-1234-EFAB-345678901234}']
+    function Description: String;
+    function SQL: String;
+    function Risk: String;
+    function StepsCount: Integer;
+    procedure Execute;
+  end;
+
+  iSimpleAgent = interface
+    ['{F6A7B8C9-D0E1-2345-FABC-456789012345}']
+    procedure React(aEntity: TObject; aOperation: TAgentOperation);
+  end;
 
 implementation
 

@@ -3,7 +3,7 @@ unit SimpleAttributes;
 interface
 
 uses
-  System.RTTI, System.Variants, System.Classes;
+  System.RTTI, System.Variants, System.Classes, SimpleTypes;
 
 type
   Tabela = class(TCustomAttribute)
@@ -221,6 +221,28 @@ type
     property ErrorMessage: String read FErrorMessage;
   end;
 
+  Rule = class(TCustomAttribute)
+  private
+    FExpression: String;
+    FAction: TRuleAction;
+    FMessage: String;
+  public
+    constructor Create(const aExpression: String; aAction: TRuleAction; const aMessage: String = '');
+    property Expression: String read FExpression;
+    property Action: TRuleAction read FAction;
+    property &Message: String read FMessage;
+  end;
+
+  AIRule = class(TCustomAttribute)
+  private
+    FDescription: String;
+    FAction: TRuleAction;
+  public
+    constructor Create(const aDescription: String; aAction: TRuleAction);
+    property Description: String read FDescription;
+    property Action: TRuleAction read FAction;
+  end;
+
 implementation
 
 
@@ -373,6 +395,23 @@ constructor AIValidate.Create(const aRule: String; const aErrorMessage: String);
 begin
   FRule := aRule;
   FErrorMessage := aErrorMessage;
+end;
+
+{ Rule }
+
+constructor Rule.Create(const aExpression: String; aAction: TRuleAction; const aMessage: String);
+begin
+  FExpression := aExpression;
+  FAction := aAction;
+  FMessage := aMessage;
+end;
+
+{ AIRule }
+
+constructor AIRule.Create(const aDescription: String; aAction: TRuleAction);
+begin
+  FDescription := aDescription;
+  FAction := aAction;
 end;
 
 end.
