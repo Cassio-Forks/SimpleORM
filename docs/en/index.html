@@ -194,6 +194,7 @@
       <li><a href="#skills">Skills <span class="badge badge-new">NEW</span></a></li>
       <li><a href="#builtin-skills">Built-in Skills</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#erp-skills">ERP Skills</a> <span class="badge badge-new">NEW</span></li>
+      <li><a href="#ai-skills">AI Skills</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#agents">Agents <span class="badge badge-new">NEW</span></a></li>
     </ul>
   </nav>
@@ -1353,6 +1354,57 @@ CREATE TABLE PARCELA (
   CREATED_AT  TIMESTAMP
 );</code></pre>
 
+</section>
+
+<!-- ============================================ -->
+<section id="ai-skills">
+  <h2>AI Skills <span class="badge badge-new">NEW</span></h2>
+  <p>7 AI-powered Skills for data enrichment, validation/moderation and sentiment analysis via LLM. All in <code>SimpleAISkill.pas</code>.</p>
+
+  <h3>Reference</h3>
+  <table>
+    <thead>
+      <tr><th>Skill</th><th>Type</th><th>No AIClient</th><th>Default RunAt</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TSkillAIEnrich</td><td>Enrichment</td><td>Ignores</td><td>srBeforeInsert</td></tr>
+      <tr><td>TSkillAITranslate</td><td>Enrichment</td><td>Ignores</td><td>srBeforeInsert</td></tr>
+      <tr><td>TSkillAISummarize</td><td>Enrichment</td><td>Ignores</td><td>srBeforeInsert</td></tr>
+      <tr><td>TSkillAITags</td><td>Enrichment</td><td>Ignores</td><td>srBeforeInsert</td></tr>
+      <tr><td>TSkillAIModerate</td><td>Validation</td><td>Raises Exception</td><td>srBeforeInsert</td></tr>
+      <tr><td>TSkillAIValidate</td><td>Validation</td><td>Raises Exception</td><td>srBeforeInsert</td></tr>
+      <tr><td>TSkillAISentiment</td><td>Analysis</td><td>Ignores</td><td>srBeforeInsert</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Examples</h3>
+
+  <h4>TSkillAIEnrich - Generate content with template</h4>
+<pre><code>DAO.Skill(TSkillAIEnrich.New('DESCRICAO',
+  'Generate a commercial description for product {NOME} in category {CATEGORIA}'));</code></pre>
+
+  <h4>TSkillAITranslate - Automatic translation</h4>
+<pre><code>DAO.Skill(TSkillAITranslate.New('DESCRICAO', 'DESCRIPTION_EN', 'English'))
+   .Skill(TSkillAITranslate.New('DESCRICAO', 'DESCRIPCION_ES', 'Spanish'));</code></pre>
+
+  <h4>TSkillAISummarize - Automatic summarization</h4>
+<pre><code>DAO.Skill(TSkillAISummarize.New('FULL_TEXT', 'SUMMARY', 200));</code></pre>
+
+  <h4>TSkillAITags - Tag generation</h4>
+<pre><code>DAO.Skill(TSkillAITags.New('DESCRICAO', 'TAGS', 5));</code></pre>
+
+  <h4>TSkillAIModerate - Content moderation</h4>
+<pre><code>DAO.Skill(TSkillAIModerate.New('COMMENT',
+  'Reject content with offensive language or spam'));</code></pre>
+
+  <h4>TSkillAIValidate - Natural language validation</h4>
+<pre><code>DAO.Skill(TSkillAIValidate.New(
+  'Price must be consistent with the product category'));</code></pre>
+
+  <h4>TSkillAISentiment - Sentiment analysis</h4>
+<pre><code>DAO.Skill(TSkillAISentiment.New('COMMENT', 'SENTIMENT'));</code></pre>
+
+  <p class="note"><strong>Note:</strong> Validation/moderation Skills raise <code>ESimpleAIModeration</code> when issues are detected or when AIClient is nil. Enrichment/analysis Skills silently ignore when AIClient is nil.</p>
 </section>
 
 <!-- ============================================ -->

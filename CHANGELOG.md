@@ -39,6 +39,16 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 - **TSkillStockMove** - Skill ERP para movimentacao de estoque (entrada/saida) (`SimpleSkill.pas`)
 - **TSkillDuplicate** - Skill ERP para geracao de parcelas financeiras (`SimpleSkill.pas`)
 - **Sample ERPSkills** - Projeto demonstrando Skills ERP e validacao CPF/CNPJ (`samples/ERPSkills/`)
+- **SimpleAISkill.pas** - Nova unit com 7 Skills baseadas em IA
+- **TSkillAIEnrich** - Skill AI para gerar conteudo via prompt template com `{PropertyName}` (`SimpleAISkill.pas`)
+- **TSkillAITranslate** - Skill AI para traducao automatica entre campos (`SimpleAISkill.pas`)
+- **TSkillAISummarize** - Skill AI para resumo automatico de texto (`SimpleAISkill.pas`)
+- **TSkillAITags** - Skill AI para geracao automatica de tags/keywords (`SimpleAISkill.pas`)
+- **TSkillAIModerate** - Skill AI para moderacao de conteudo com bloqueio (`SimpleAISkill.pas`)
+- **TSkillAIValidate** - Skill AI para validacao de dados com regra em linguagem natural (`SimpleAISkill.pas`)
+- **TSkillAISentiment** - Skill AI para analise de sentimento (POSITIVO/NEGATIVO/NEUTRO) (`SimpleAISkill.pas`)
+- **ESimpleAIModeration** - Exception para bloqueio por moderacao/validacao AI (`SimpleAISkill.pas`)
+- **Sample AISkills** - Projeto demonstrando as 7 Skills AI com mock client (`samples/AISkills/`)
 - **AI Query** - Perguntas em linguagem natural ao banco de dados via LLM (SimpleAIQuery.pas)
 - **NaturalLanguageQuery** - Traduz pergunta para SQL, executa e retorna TDataSet
 - **AskQuestion** - Traduz, executa e retorna resposta em linguagem natural
