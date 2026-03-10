@@ -11,6 +11,13 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 ## [Unreleased]
 
 ### Added
+- **AI Query** - Perguntas em linguagem natural ao banco de dados via LLM (SimpleAIQuery.pas)
+- **NaturalLanguageQuery** - Traduz pergunta para SQL, executa e retorna TDataSet
+- **AskQuestion** - Traduz, executa e retorna resposta em linguagem natural
+- **ExplainQuery** - Explica SQL em linguagem natural via LLM
+- **SuggestQuery** - Sugere SQL baseado em objetivo descrito em linguagem natural
+- **Validacao SQL AIQuery** - Bloqueio automatico de operacoes nao-SELECT em queries geradas por LLM
+- **Sample AIQuery** - Projeto demonstrando AI Query com mock client
 - **iSimpleAIClient** - Interface generica para comunicacao com LLMs Claude e OpenAI (SimpleAIClient.pas)
 - **TSimpleAIClient** - Client HTTP para APIs de LLM com suporte a Claude e OpenAI (SimpleAIClient.pas)
 - **AIGenerated** - Atributo para geracao automatica de conteudo via LLM com template de prompt (SimpleAIAttributes.pas)
