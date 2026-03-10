@@ -72,6 +72,11 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 - **Sample horse-integration** - Exemplos de servidor (HorseServer.dpr) e cliente (HorseClient.dpr) usando a integracao Horse
 - **DUnit Test Suite** - Suite completa de testes unitarios com 99 testes cobrindo SimpleAttributes, SimpleRTTIHelper, SimpleSQL, SimpleValidator e SimpleSerializer (`tests/SimpleORMTests.dpr`)
 - **Regra de testes obrigatorios** - Toda nova feature deve incluir testes DUnit (`.claude/rules/testing.md`)
+- **TSimpleQuerySupabase** - Novo driver `iSimpleQuery` para conexao direta com Supabase via PostgREST API (`SimpleQuerySupabase.pas`)
+- **Supabase CRUD** - Suporte completo a INSERT (POST), UPDATE (PATCH), DELETE (DELETE) e SELECT (GET) via REST
+- **Supabase Auth** - Suporte a API Key (service_role) e JWT token para Row Level Security
+- **Supabase Paginacao** - Traducao automatica de Skip/Take para query params `limit`/`offset`
+- **Supabase Sample** - Projeto exemplo demonstrando CRUD com Supabase (`samples/Supabase/`)
 
 ## [2.0.0] - 2026-03-08
 
