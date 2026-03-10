@@ -69,6 +69,14 @@ type
     procedure TestValidate_RunAt;
   end;
 
+  TTestSkillWebhook = class(TTestCase)
+  published
+    procedure TestWebhook_Name;
+    procedure TestWebhook_RunAt;
+    procedure TestWebhook_NilEntity_NoError;
+    procedure TestWebhook_InvalidURL_NoError;
+  end;
+
 implementation
 
 uses
@@ -454,6 +462,55 @@ begin
   CheckTrue(LSkill.RunAt = srBeforeUpdate, 'Should return configured RunAt');
 end;
 
+{ TTestSkillWebhook }
+
+procedure TTestSkillWebhook.TestWebhook_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillWebhook.New('http://localhost:9999/hooks');
+  CheckEquals('webhook', LSkill.Name, 'Should return webhook');
+end;
+
+procedure TTestSkillWebhook.TestWebhook_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillWebhook.New('http://localhost:9999/hooks', srAfterUpdate);
+  CheckTrue(LSkill.RunAt = srAfterUpdate, 'Should return configured RunAt');
+end;
+
+procedure TTestSkillWebhook.TestWebhook_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillWebhook.New('http://localhost:9999/hooks');
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Nil entity should not raise');
+end;
+
+procedure TTestSkillWebhook.TestWebhook_InvalidURL_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LEntity.ID := 1;
+    LEntity.CLIENTE := 'Teste';
+    LEntity.VALORTOTAL := 100;
+    LSkill := TSkillWebhook.New('http://invalid-host-that-does-not-exist:9999/hooks');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Invalid URL should not raise (fire-and-forget)');
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
@@ -463,5 +520,6 @@ initialization
   RegisterTest('Skills', TTestSkillGuardDelete.Suite);
   RegisterTest('Skills', TTestSkillHistory.Suite);
   RegisterTest('Skills', TTestSkillValidate.Suite);
+  RegisterTest('Skills', TTestSkillWebhook.Suite);
 
 end.

@@ -8,6 +8,9 @@ uses
   SimpleRTTIHelper,
   SimpleTypes,
   SimpleLogger,
+  System.Net.HttpClient,
+  System.JSON,
+  System.DateUtils,
   System.SysUtils,
   System.Rtti,
   System.Generics.Collections;
@@ -131,6 +134,23 @@ type
     function RunAt: TSkillRunAt;
   end;
 
+  { Built-in: TSkillWebhook }
+  TSkillWebhook = class(TInterfacedObject, iSimpleSkill)
+  private
+    FURL: String;
+    FRunAt: TSkillRunAt;
+    FAuthHeader: String;
+  public
+    constructor Create(const aURL: String; aRunAt: TSkillRunAt = srAfterInsert;
+      const aAuthHeader: String = '');
+    destructor Destroy; override;
+    class function New(const aURL: String; aRunAt: TSkillRunAt = srAfterInsert;
+      const aAuthHeader: String = ''): iSimpleSkill;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+  end;
+
   { Built-in: TSkillGuardDelete }
   TSkillGuardDelete = class(TInterfacedObject, iSimpleSkill)
   private
@@ -148,7 +168,8 @@ type
 implementation
 
 uses
-  SimpleValidator;
+  SimpleValidator,
+  SimpleSerializer;
 
 { TSimpleSkillContext }
 
@@ -612,6 +633,93 @@ begin
 end;
 
 function TSkillValidate.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+{ TSkillWebhook }
+
+constructor TSkillWebhook.Create(const aURL: String; aRunAt: TSkillRunAt;
+  const aAuthHeader: String);
+begin
+  FURL := aURL;
+  FRunAt := aRunAt;
+  FAuthHeader := aAuthHeader;
+end;
+
+destructor TSkillWebhook.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillWebhook.New(const aURL: String; aRunAt: TSkillRunAt;
+  const aAuthHeader: String): iSimpleSkill;
+begin
+  Result := Self.Create(aURL, aRunAt, aAuthHeader);
+end;
+
+function TSkillWebhook.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LClient: THTTPClient;
+  LPayload: TJSONObject;
+  LEntityJSON: TJSONObject;
+  LBody: TStringStream;
+begin
+  Result := Self;
+  if aEntity = nil then
+    Exit;
+
+  LClient := THTTPClient.Create;
+  try
+    try
+      LEntityJSON := TSimpleSerializer.EntityToJSON<TObject>(aEntity);
+      try
+        LPayload := TJSONObject.Create;
+        try
+          LPayload.AddPair('entity', aContext.EntityName);
+          LPayload.AddPair('operation', aContext.Operation);
+          LPayload.AddPair('timestamp', DateToISO8601(Now));
+          LPayload.AddPair('data', LEntityJSON.Clone as TJSONObject);
+
+          LBody := TStringStream.Create(LPayload.ToJSON, TEncoding.UTF8);
+          try
+            LClient.ContentType := 'application/json';
+            if FAuthHeader <> '' then
+              LClient.CustomHeaders['Authorization'] := FAuthHeader;
+            LClient.ConnectionTimeout := 5000;
+            LClient.ResponseTimeout := 10000;
+            LClient.Post(FURL, LBody);
+          finally
+            LBody.Free;
+          end;
+        finally
+          LPayload.Free;
+        end;
+      finally
+        LEntityJSON.Free;
+      end;
+    except
+      on E: Exception do
+      begin
+        {$IFDEF MSWINDOWS}
+        OutputDebugString(PChar('[Skill:Webhook] Error: ' + E.Message));
+        {$ENDIF}
+        {$IFDEF CONSOLE}
+        Writeln('[Skill:Webhook] Error: ', E.Message);
+        {$ENDIF}
+      end;
+    end;
+  finally
+    LClient.Free;
+  end;
+end;
+
+function TSkillWebhook.Name: String;
+begin
+  Result := 'webhook';
+end;
+
+function TSkillWebhook.RunAt: TSkillRunAt;
 begin
   Result := FRunAt;
 end;
