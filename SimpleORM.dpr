@@ -14,7 +14,8 @@ uses
   SimpleHorseRouter in 'src\SimpleHorseRouter.pas',
   SimpleQuerySupabase in 'src\SimpleQuerySupabase.pas',
   SimpleSupabaseAuth in 'src\SimpleSupabaseAuth.pas',
-  SimpleSupabaseRealtime in 'src\SimpleSupabaseRealtime.pas';
+  SimpleSupabaseRealtime in 'src\SimpleSupabaseRealtime.pas',
+  SimpleDataMigration in 'src\SimpleDataMigration.pas';
 
 {$R *.res}
 

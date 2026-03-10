@@ -430,7 +430,12 @@ begin
     begin
       LFS := TFormatSettings.Create;
       LFS.ShortDateFormat := aFromFormat;
-      LFS.DateSeparator := aFromFormat[Pos(aFromFormat[3], aFromFormat)];
+      if Pos('-', aFromFormat) > 0 then
+        LFS.DateSeparator := '-'
+      else if Pos('/', aFromFormat) > 0 then
+        LFS.DateSeparator := '/'
+      else if Pos('.', aFromFormat) > 0 then
+        LFS.DateSeparator := '.';
 
       LOutFS := TFormatSettings.Create;
       LOutFS.ShortDateFormat := aToFormat;
@@ -1117,18 +1122,10 @@ end;
 
 function TSimpleDataMigration.ResolveLookup(aMapping: TFieldMapping; aSourceValue: Variant): Variant;
 begin
+  { TODO: Lookup requires a separate query connection to avoid corrupting
+    the target query mid-INSERT. For now, returns source value as fallback.
+    Future: accept a dedicated lookup query in TSimpleDataMigration }
   Result := aSourceValue;
-  if not Assigned(FTargetQuery) then
-    Exit;
-
-  FTargetQuery.SQL.Clear;
-  FTargetQuery.SQL.Add(SysUtils.Format('SELECT %s FROM %s WHERE %s = :pValue',
-    [aMapping.ReturnField, aMapping.LookupTable, aMapping.LookupField]));
-  FTargetQuery.Params.ParamByName('pValue').Value := aSourceValue;
-  FTargetQuery.Open;
-
-  if Assigned(FTargetQuery.DataSet) and not FTargetQuery.DataSet.IsEmpty then
-    Result := FTargetQuery.DataSet.FieldByName(aMapping.ReturnField).Value;
 end;
 
 function TSimpleDataMigration.SaveToJSON(const aFilePath: String): TSimpleDataMigration;
