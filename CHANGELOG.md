@@ -8,7 +8,7 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 
 ---
 
-## [Unreleased]
+## [3.06.00] - 2026-03-10
 
 ### Added
 - **TSimpleDataMigration** - Framework fluent para migracao de dados entre bancos/sistemas (SimpleDataMigration.pas)
