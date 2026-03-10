@@ -26,7 +26,12 @@ uses
   TestSimpleMigration in 'TestSimpleMigration.pas',
   SimpleMCPServer in '..\src\SimpleMCPServer.pas',
   SimpleMCPTypes in '..\src\SimpleMCPTypes.pas',
-  TestSimpleMCPServer in 'TestSimpleMCPServer.pas';
+  TestSimpleMCPServer in 'TestSimpleMCPServer.pas',
+  SimpleAIAttributes in '..\src\SimpleAIAttributes.pas',
+  SimpleAIProcessor in '..\src\SimpleAIProcessor.pas',
+  SimpleAIClient in '..\src\SimpleAIClient.pas',
+  MockAIClient in 'Mocks\MockAIClient.pas',
+  TestSimpleAIProcessor in 'TestSimpleAIProcessor.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
