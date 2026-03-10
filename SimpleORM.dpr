@@ -11,7 +11,8 @@ uses
   SimpleQueryRestDW in 'src\SimpleQueryRestDW.pas',
   SimpleSerializer in 'src\SimpleSerializer.pas',
   SimpleQueryHorse in 'src\SimpleQueryHorse.pas',
-  SimpleHorseRouter in 'src\SimpleHorseRouter.pas';
+  SimpleHorseRouter in 'src\SimpleHorseRouter.pas',
+  SimpleQuerySupabase in 'src\SimpleQuerySupabase.pas';
 
 {$R *.res}
 
