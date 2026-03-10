@@ -23,6 +23,22 @@ type
 
   TSimpleErrorCallback = reference to procedure(aEntity: TObject; aException: Exception);
 
+  TMigrationFormat = (mfCSV, mfJSON);
+
+  TMigrationStatus = (msInProgress, msCompleted, msFailed);
+
+  TMigrationError = record
+    SourceTable: String;
+    RecordIndex: Integer;
+    FieldName: String;
+    ErrorMessage: String;
+    OriginalValue: Variant;
+  end;
+
+  TFieldTransformFunc = reference to function(aValue: Variant): Variant;
+  TSimpleMigrationProgress = reference to procedure(aTable: String; aCurrent, aTotal: Integer);
+  TSimpleMigrationErrorCallback = reference to procedure(aError: TMigrationError; var aSkip: Boolean);
+
 implementation
 
 end.
