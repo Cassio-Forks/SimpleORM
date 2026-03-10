@@ -43,7 +43,9 @@ uses
   SimpleAISkill in '..\src\SimpleAISkill.pas',
   TestSimpleAISkill in 'TestSimpleAISkill.pas',
   SimpleQuerySupabase in '..\src\SimpleQuerySupabase.pas',
-  TestSimpleQuerySupabase in 'TestSimpleQuerySupabase.pas';
+  TestSimpleQuerySupabase in 'TestSimpleQuerySupabase.pas',
+  SimpleSupabaseAuth in '..\src\SimpleSupabaseAuth.pas',
+  TestSimpleSupabaseAuth in 'TestSimpleSupabaseAuth.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
