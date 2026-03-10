@@ -137,6 +137,14 @@ type
     function DatabaseType(aType: TSQLType): iSimpleSQL<T>;
   end;
 
+  iSimpleAIClient = interface
+    ['{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}']
+    function Complete(const aPrompt: String): String;
+    function Model(const aValue: String): iSimpleAIClient;
+    function MaxTokens(aValue: Integer): iSimpleAIClient;
+    function Temperature(aValue: Double): iSimpleAIClient;
+  end;
+
   iSimpleQuery = interface
     ['{6DCCA942-736D-4C66-AC9B-94151F14853A}']
     function SQL : TStrings;
