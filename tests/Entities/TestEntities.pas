@@ -190,6 +190,37 @@ type
     property CNPJ: String read FCNPJ write FCNPJ;
   end;
 
+  { Entidade para teste de AI Skills }
+  [Tabela('ARTIGO')]
+  TArtigoTest = class
+  private
+    FID: Integer;
+    FTITULO: String;
+    FDESCRICAO: String;
+    FTEXTO: String;
+    FRESUMO: String;
+    FTAGS: String;
+    FSENTIMENTO: String;
+    FTITULO_EN: String;
+  published
+    [Campo('ID'), PK, AutoInc]
+    property ID: Integer read FID write FID;
+    [Campo('TITULO'), NotNull]
+    property TITULO: String read FTITULO write FTITULO;
+    [Campo('DESCRICAO')]
+    property DESCRICAO: String read FDESCRICAO write FDESCRICAO;
+    [Campo('TEXTO')]
+    property TEXTO: String read FTEXTO write FTEXTO;
+    [Campo('RESUMO')]
+    property RESUMO: String read FRESUMO write FRESUMO;
+    [Campo('TAGS')]
+    property TAGS: String read FTAGS write FTAGS;
+    [Campo('SENTIMENTO')]
+    property SENTIMENTO: String read FSENTIMENTO write FSENTIMENTO;
+    [Campo('TITULO_EN')]
+    property TITULO_EN: String read FTITULO_EN write FTITULO_EN;
+  end;
+
   { Entidade para teste de CalcTotal }
   [Tabela('ITEM_CALC')]
   TItemCalcTest = class

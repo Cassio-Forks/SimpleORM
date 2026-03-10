@@ -39,7 +39,9 @@ uses
   SimpleAgent in '..\src\SimpleAgent.pas',
   TestSimpleRules in 'TestSimpleRules.pas',
   TestSimpleSkill in 'TestSimpleSkill.pas',
-  TestSimpleAgent in 'TestSimpleAgent.pas';
+  TestSimpleAgent in 'TestSimpleAgent.pas',
+  SimpleAISkill in '..\src\SimpleAISkill.pas',
+  TestSimpleAISkill in 'TestSimpleAISkill.pas';
 
 var
   ExitBehavior: TRunnerExitBehavior;
