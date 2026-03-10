@@ -12,10 +12,96 @@
   <meta name="ai-language" content="Delphi/Object Pascal">
   <title>SimpleORM - Complete Documentation</title>
   <style>
-    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950; --orange: #d29922; --red: #f85149; --code-bg: #0d1117; }
+    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950; --orange: #d29922; --red: #f85149; --code-bg: #0d1117; --sidebar-width: 280px; --sidebar-hover: #1c2129; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-    .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* Sidebar toggle (checkbox hack) */
+    .sidebar-toggle-input { display: none; }
+    .sidebar-toggle-label {
+      display: none;
+      position: fixed;
+      top: 0.8rem;
+      left: 0.8rem;
+      z-index: 1100;
+      font-size: 1.6rem;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.2rem 0.6rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      z-index: 1000;
+      padding-bottom: 2rem;
+    }
+    .sidebar-header {
+      padding: 1.5rem 1rem 1rem 1rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.5rem;
+    }
+    .sidebar-header h2 {
+      font-size: 1.4rem;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+      border-bottom: none;
+      margin-top: 0;
+      padding-bottom: 0;
+    }
+    .sidebar-header .lang-switch {
+      font-size: 0.85rem;
+      color: var(--text2);
+      margin-bottom: 0;
+    }
+    .sidebar-header .lang-switch a { color: var(--accent); text-decoration: none; }
+    .sidebar-header .lang-switch a:hover { text-decoration: underline; }
+    .sidebar nav { padding: 0.5rem 0; }
+    .sidebar nav ul { list-style: none; }
+    .sidebar nav li { margin: 0; }
+    .sidebar nav a {
+      display: block;
+      padding: 0.4rem 1rem;
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: background 0.15s;
+    }
+    .sidebar nav a:hover {
+      background: var(--sidebar-hover);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    /* Main content */
+    .content {
+      margin-left: var(--sidebar-width);
+      padding: 2rem 2.5rem;
+      max-width: calc(960px + var(--sidebar-width));
+    }
+
+    /* Typography */
     h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--accent); }
     h2 { font-size: 1.6rem; margin-top: 3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
     h3 { font-size: 1.2rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text); }
@@ -30,9 +116,6 @@
     th { background: var(--surface); color: var(--text); font-weight: 600; }
     td { color: var(--text2); }
     td code { color: var(--green); }
-    nav { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem; }
-    nav ul { list-style: none; columns: 2; }
-    nav li { margin-bottom: 0.3rem; }
     .badge { display: inline-block; padding: 0.15em 0.5em; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
     .badge-new { background: #1f3a1f; color: var(--green); }
     .badge-driver { background: #1a2a3a; color: var(--accent); }
@@ -41,54 +124,86 @@
     section { margin-bottom: 2rem; }
     .note { background: #1a2332; border-left: 3px solid var(--accent); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
     .warning { background: #2a1f0a; border-left: 3px solid var(--orange); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
-    .lang-switcher { float: right; font-size: 0.9rem; }
     footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text2); font-size: 0.9rem; }
-    @media (max-width: 600px) { nav ul { columns: 1; } }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar-toggle-label { display: block; }
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      .sidebar-toggle-input:checked ~ .sidebar {
+        transform: translateX(0);
+      }
+      .sidebar-toggle-input:checked ~ .sidebar-overlay {
+        display: block;
+      }
+      .content {
+        margin-left: 0;
+        padding: 3.5rem 1.5rem 2rem 1.5rem;
+      }
+    }
+
+    /* Desktop */
+    @media (min-width: 769px) {
+      .sidebar-toggle-label { display: none; }
+      .sidebar-toggle-input { display: none; }
+      .sidebar-overlay { display: none !important; }
+    }
   </style>
 </head>
 <body>
-<div class="container">
 
-<div class="lang-switcher"><a href="../index.html">Portugues</a> | <strong>English</strong></div>
+<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-input">
+<label for="sidebar-toggle" class="sidebar-toggle-label">&#9776;</label>
+<label for="sidebar-toggle" class="sidebar-overlay"></label>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2>SimpleORM</h2>
+    <p class="lang-switch"><a href="../index.html">Portugues</a> | <strong>English</strong></p>
+  </div>
+  <nav aria-label="Table of Contents">
+    <ul>
+      <li><a href="#installation">Installation</a></li>
+      <li><a href="#entity-mapping">Entity Mapping</a></li>
+      <li><a href="#attributes">All Attributes</a></li>
+      <li><a href="#initialization">Initialization</a></li>
+      <li><a href="#crud">CRUD Operations</a></li>
+      <li><a href="#fluent-sql">Fluent SQL Builder</a></li>
+      <li><a href="#pagination">Pagination</a></li>
+      <li><a href="#validation">Validation</a></li>
+      <li><a href="#relationships">Relationships</a></li>
+      <li><a href="#soft-delete">Soft Delete</a></li>
+      <li><a href="#batch">Batch Operations</a></li>
+      <li><a href="#transactions">Transactions</a></li>
+      <li><a href="#logging">Query Logging</a></li>
+      <li><a href="#drivers">Database Drivers</a></li>
+      <li><a href="#horse-server">Horse Server</a></li>
+      <li><a href="#horse-client">Horse Client REST</a></li>
+      <li><a href="#serializer">SimpleSerializer</a></li>
+      <li><a href="#bind-form">Form Binding</a></li>
+      <li><a href="#interfaces">Interface API</a></li>
+      <li><a href="#database-types">Database Types</a></li>
+      <li><a href="#tests">Unit Tests (DUnit) <span class="badge badge-new">NEW</span></a></li>
+      <li><a href="#ai-enrichment">AI Enrichment <span class="badge badge-new">NEW</span></a></li>
+      <li><a href="#ai-query">AI Query <span class="badge badge-new">NEW</span></a></li>
+      <li><a href="#mcp-server">MCP Server (AI) <span class="badge badge-new">NEW</span></a></li>
+      <li><a href="#rules">Rules <span class="badge badge-new">NEW</span></a></li>
+      <li><a href="#skills">Skills <span class="badge badge-new">NEW</span></a></li>
+      <li><a href="#agents">Agents <span class="badge badge-new">NEW</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+<main class="content">
 
 <header>
   <h1>SimpleORM</h1>
   <p class="subtitle">Complete ORM for Delphi &mdash; Entity mapping, CRUD, validation, pagination, Horse integration</p>
   <p class="version">Repository: <a href="https://github.com/academiadocodigo/SimpleORM">github.com/academiadocodigo/SimpleORM</a></p>
 </header>
-
-<nav aria-label="Table of Contents">
-  <strong>Table of Contents</strong>
-  <ul>
-    <li><a href="#installation">Installation</a></li>
-    <li><a href="#entity-mapping">Entity Mapping</a></li>
-    <li><a href="#attributes">All Attributes</a></li>
-    <li><a href="#initialization">Initialization</a></li>
-    <li><a href="#crud">CRUD Operations</a></li>
-    <li><a href="#fluent-sql">Fluent SQL Builder</a></li>
-    <li><a href="#pagination">Pagination</a></li>
-    <li><a href="#validation">Validation</a></li>
-    <li><a href="#relationships">Relationships</a></li>
-    <li><a href="#soft-delete">Soft Delete</a></li>
-    <li><a href="#batch">Batch Operations</a></li>
-    <li><a href="#transactions">Transactions</a></li>
-    <li><a href="#logging">Query Logging</a></li>
-    <li><a href="#drivers">Database Drivers</a></li>
-    <li><a href="#horse-server">Horse Server</a></li>
-    <li><a href="#horse-client">Horse Client REST</a></li>
-    <li><a href="#serializer">SimpleSerializer</a></li>
-    <li><a href="#bind-form">Form Binding</a></li>
-    <li><a href="#interfaces">Interface API</a></li>
-    <li><a href="#database-types">Database Types</a></li>
-    <li><a href="#tests">Unit Tests (DUnit)</a> <span class="badge badge-new">NEW</span></li>
-    <li><a href="#ai-enrichment">AI Enrichment</a> <span class="badge badge-new">NEW</span></li>
-    <li><a href="#ai-query">AI Query</a> <span class="badge badge-new">NEW</span></li>
-    <li><a href="#mcp-server">MCP Server (AI)</a> <span class="badge badge-new">NEW</span></li>
-    <li><a href="#rules">Rules</a> <span class="badge badge-new">NEW</span></li>
-    <li><a href="#skills">Skills</a> <span class="badge badge-new">NEW</span></li>
-    <li><a href="#agents">Agents</a> <span class="badge badge-new">NEW</span></li>
-  </ul>
-</nav>
 
 <!-- ============================================ -->
 <section id="installation">
@@ -1137,6 +1252,7 @@ LPlan.Execute;</code></pre>
   <p><a href="https://t.me/joinchat/Tv8fVFe_hdz0rJwq">Telegram Group</a></p>
 </footer>
 
-</div>
+</main>
+
 </body>
 </html>
