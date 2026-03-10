@@ -121,6 +121,20 @@ type
     procedure TestContext_ErrorMessage_WithValue;
   end;
 
+  TTestSkillGitHubIssue = class(TTestCase)
+  published
+    procedure TestGitHubIssue_Name;
+    procedure TestGitHubIssue_RunAt;
+    procedure TestGitHubIssue_RunMode_Normal;
+    procedure TestGitHubIssue_RunMode_OnError;
+    procedure TestGitHubIssue_Labels_ReturnsSelf;
+    procedure TestGitHubIssue_TitleTemplate_ReturnsSelf;
+    procedure TestGitHubIssue_BodyTemplate_ReturnsSelf;
+    procedure TestGitHubIssue_NilEntity_NoError;
+    procedure TestGitHubIssue_InvalidRepo_NoError;
+    procedure TestGitHubIssue_Execute_FireAndForget;
+  end;
+
 implementation
 
 uses
@@ -876,6 +890,137 @@ begin
   CheckEquals('Something went wrong', LContext.ErrorMessage, 'Should return the error message');
 end;
 
+{ TTestSkillGitHubIssue }
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_Name;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillGitHubIssue.New('test/repo', 'fake-token');
+  CheckEquals('github-issue', LSkill.Name, 'Should return github-issue');
+end;
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_RunAt;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillGitHubIssue.New('test/repo', 'fake-token', srAfterDelete);
+  CheckTrue(LSkill.RunAt = srAfterDelete, 'Should return configured RunAt');
+end;
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_RunMode_Normal;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillGitHubIssue.New('test/repo', 'fake-token', srAfterInsert, srmNormal);
+  CheckTrue(LSkill.RunMode = srmNormal, 'Should return Normal');
+end;
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_RunMode_OnError;
+var
+  LSkill: iSimpleSkill;
+begin
+  LSkill := TSkillGitHubIssue.New('test/repo', 'fake-token', srAfterInsert, srmOnError);
+  CheckTrue(LSkill.RunMode = srmOnError, 'Should return OnError');
+end;
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_Labels_ReturnsSelf;
+var
+  LSkill: TSkillGitHubIssue;
+  LResult: TSkillGitHubIssue;
+begin
+  LSkill := TSkillGitHubIssue.New('test/repo', 'fake-token');
+  try
+    LResult := LSkill.Labels(['bug', 'critical']);
+    CheckTrue(LResult = LSkill, 'Labels should return Self');
+  finally
+    LSkill.Free;
+  end;
+end;
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_TitleTemplate_ReturnsSelf;
+var
+  LSkill: TSkillGitHubIssue;
+  LResult: TSkillGitHubIssue;
+begin
+  LSkill := TSkillGitHubIssue.New('test/repo', 'fake-token');
+  try
+    LResult := LSkill.TitleTemplate('[Test] {entity}');
+    CheckTrue(LResult = LSkill, 'TitleTemplate should return Self');
+  finally
+    LSkill.Free;
+  end;
+end;
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_BodyTemplate_ReturnsSelf;
+var
+  LSkill: TSkillGitHubIssue;
+  LResult: TSkillGitHubIssue;
+begin
+  LSkill := TSkillGitHubIssue.New('test/repo', 'fake-token');
+  try
+    LResult := LSkill.BodyTemplate('Error: {error}');
+    CheckTrue(LResult = LSkill, 'BodyTemplate should return Self');
+  finally
+    LSkill.Free;
+  end;
+end;
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_NilEntity_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+begin
+  LSkill := TSkillGitHubIssue.New('test/repo', 'fake-token');
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'INSERT');
+  LSkill.Execute(nil, LContext);
+  CheckTrue(True, 'Nil entity should not raise (fire-and-forget)');
+end;
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_InvalidRepo_NoError;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LEntity.ID := 1;
+    LEntity.CLIENTE := 'Teste';
+    LSkill := TSkillGitHubIssue.New('invalid/nonexistent-repo-12345', 'fake-token');
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Invalid repo should not raise (fire-and-forget)');
+  finally
+    LEntity.Free;
+  end;
+end;
+
+procedure TTestSkillGitHubIssue.TestGitHubIssue_Execute_FireAndForget;
+var
+  LSkill: iSimpleSkill;
+  LContext: iSimpleSkillContext;
+  LEntity: TPedidoTest;
+begin
+  LEntity := TPedidoTest.Create;
+  try
+    LEntity.ID := 99;
+    LEntity.CLIENTE := 'GitHub Test';
+    LEntity.VALORTOTAL := 250;
+    LSkill := TSkillGitHubIssue.New(
+      'invalid-host-that-does-not-exist/repo',
+      'invalid-token',
+      srAfterInsert,
+      srmOnError
+    );
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'PEDIDO', 'INSERT', 'Database connection lost');
+    LSkill.Execute(LEntity, LContext);
+    CheckTrue(True, 'Fire-and-forget: should not raise even with invalid endpoint');
+  finally
+    LEntity.Free;
+  end;
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
@@ -891,5 +1036,6 @@ initialization
   RegisterTest('Skills', TTestSkillStockMove.Suite);
   RegisterTest('Skills', TTestSkillDuplicate.Suite);
   RegisterTest('Skills', TTestSkillRunMode.Suite);
+  RegisterTest('Skills', TTestSkillGitHubIssue.Suite);
 
 end.
