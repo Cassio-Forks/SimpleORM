@@ -67,6 +67,7 @@ type
     function OnAfterUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnBeforeDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnAfterDelete(aCallback: TSimpleCallback): iSimpleDAO<T>;
+    function OnError(aCallback: TSimpleErrorCallback): iSimpleDAO<T>;
     function RawSQL(const aSQL: String): iSimpleDAO<T>;
     function RawSQLWithParams(const aSQL: String; const aParamNames: array of String; const aParamValues: array of Variant): iSimpleDAO<T>;
     function FindRaw: TObjectList<T>;
@@ -186,6 +187,7 @@ type
     function Logger: iSimpleQueryLogger;
     function EntityName: String;
     function Operation: String;
+    function ErrorMessage: String;
   end;
 
   iSimpleSkill = interface
@@ -193,6 +195,7 @@ type
     function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
     function Name: String;
     function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
   end;
 
   iAgentResult = interface
