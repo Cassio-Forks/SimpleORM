@@ -1371,6 +1371,60 @@ LAuth.SignOut;</code></pre>
   </table>
 
   <p class="note"><strong>Nota:</strong> O token JWT e renovado automaticamente quando esta a menos de 30 segundos da expiracao. Para Row Level Security funcionar, use a <code>anon</code> key (nao <code>service_role</code>) junto com o Auth.</p>
+
+  <h3>Realtime <span class="badge badge-new">NEW</span></h3>
+  <pre><code>uses SimpleSupabaseRealtime, SimpleTypes;
+
+var LRealtime := TSimpleSupabaseRealtime.New(
+  'https://seu-projeto.supabase.co',
+  'sua-api-key'
+);
+
+// Callback global para INSERTs
+LRealtime.OnInsert(
+  procedure(aEvent: TSupabaseRealtimeEvent)
+  begin
+    Writeln('Novo registro em ', aEvent.Table, ': ', aEvent.NewRecord);
+  end
+);
+
+// Callback especifico por tabela
+LRealtime.OnChange('produto',
+  procedure(aEvent: TSupabaseRealtimeEvent)
+  begin
+    Writeln('Mudanca em produto: ', aEvent.NewRecord);
+  end
+);
+
+// Inscrever e conectar
+LRealtime
+  .Subscribe('produto')
+  .Subscribe('cliente')
+  .Connect;
+
+// ... aplicacao rodando ...
+
+// Desconectar ao finalizar
+LRealtime.Disconnect;</code></pre>
+
+  <table>
+    <thead>
+      <tr><th>Metodo</th><th>Descricao</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Subscribe(table)</td><td>Inscrever para receber mudancas de uma tabela</td></tr>
+      <tr><td>Unsubscribe(table)</td><td>Cancelar inscricao de uma tabela</td></tr>
+      <tr><td>OnInsert(callback)</td><td>Callback global para novos registros</td></tr>
+      <tr><td>OnUpdate(callback)</td><td>Callback global para registros atualizados</td></tr>
+      <tr><td>OnDelete(callback)</td><td>Callback global para registros deletados</td></tr>
+      <tr><td>OnChange(table, callback)</td><td>Callback especifico para uma tabela</td></tr>
+      <tr><td>Connect</td><td>Iniciar monitoramento</td></tr>
+      <tr><td>Disconnect</td><td>Parar monitoramento</td></tr>
+      <tr><td>IsConnected</td><td>Verificar se esta monitorando</td></tr>
+    </tbody>
+  </table>
+
+  <p class="note"><strong>Nota:</strong> A implementacao atual usa polling via REST API. Callbacks sao executados na thread principal via <code>TThread.Queue</code>, garantindo thread safety com componentes de UI. O intervalo de polling padrao e 2 segundos.</p>
 </section>
 
 <footer>

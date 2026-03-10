@@ -81,6 +81,9 @@ O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0
 - **TSimpleSupabaseAuth** - Autenticacao Supabase com SignIn, SignUp, SignOut e RefreshToken (`SimpleSupabaseAuth.pas`)
 - **Supabase Auto-Refresh** - Token JWT renovado automaticamente quando proximo da expiracao
 - **Supabase Auth + Query** - Novo construtor `TSimpleQuerySupabase.New(url, key, auth)` para integrar autenticacao com queries
+- **TSimpleSupabaseRealtime** - Monitoramento de mudancas em tabelas Supabase com callbacks (`SimpleSupabaseRealtime.pas`)
+- **Supabase Realtime Events** - Callbacks globais (OnInsert/OnUpdate/OnDelete) e por tabela (OnChange)
+- **TSupabaseRealtimeEvent** - Record com Table, EventType, OldRecord e NewRecord para notificacoes
 
 ## [2.0.0] - 2026-03-08
 

@@ -71,6 +71,7 @@ contains
   SimpleQueryHorse in 'src\SimpleQueryHorse.pas',
   SimpleHorseRouter in 'src\SimpleHorseRouter.pas',
   SimpleQuerySupabase in 'src\SimpleQuerySupabase.pas',
-  SimpleSupabaseAuth in 'src\SimpleSupabaseAuth.pas';
+  SimpleSupabaseAuth in 'src\SimpleSupabaseAuth.pas',
+  SimpleSupabaseRealtime in 'src\SimpleSupabaseRealtime.pas';
 
 end.

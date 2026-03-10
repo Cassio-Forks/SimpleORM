@@ -9,6 +9,7 @@ uses
   SimpleDAO,
   SimpleQuerySupabase,
   SimpleSupabaseAuth in '..\..\src\SimpleSupabaseAuth.pas',
+  SimpleSupabaseRealtime in '..\..\src\SimpleSupabaseRealtime.pas',
   System.SysUtils,
   System.Generics.Collections,
   Entidade.Produto in '..\Entidades\Entidade.Produto.pas';
@@ -165,6 +166,24 @@ begin
 
     Writeln('');
     Writeln('All operations completed successfully!');
+
+    // ============================================================
+    // REALTIME (opcional - monitoramento de mudancas)
+    // Descomente para receber notificacoes de mudancas
+    // ============================================================
+    // var LRealtime := TSimpleSupabaseRealtime.New(
+    //   'https://SEU-PROJETO.supabase.co',
+    //   'SUA-API-KEY'
+    // );
+    // LRealtime.OnInsert(
+    //   procedure(aEvent: TSupabaseRealtimeEvent)
+    //   begin
+    //     Writeln('[REALTIME] Novo registro em ', aEvent.Table);
+    //   end
+    // );
+    // LRealtime.Subscribe('produto').Connect;
+    // // ... ao finalizar:
+    // LRealtime.Disconnect;
 
   except
     on E: Exception do
