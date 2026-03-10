@@ -5,7 +5,8 @@ interface
 uses
   SimpleTypes, SimpleInterface,
   System.SysUtils, System.Classes, System.JSON,
-  System.Generics.Collections, System.DateUtils, System.Variants;
+  System.Generics.Collections, System.DateUtils, System.Variants,
+  Data.DB;
 
 type
   TSimpleDataMigration = class;
@@ -152,6 +153,10 @@ type
     FValidate: Boolean;
     FOnProgress: TSimpleMigrationProgress;
     FOnError: TSimpleMigrationErrorCallback;
+    procedure ExecuteWithDataSet(aFieldMap: TFieldMap; aTableReport: TTableReport);
+    procedure ExecuteCSVToQuery(aFieldMap: TFieldMap; aTableReport: TTableReport);
+    procedure ExecuteQueryToCSV(aFieldMap: TFieldMap; aTableReport: TTableReport);
+    function ResolveLookup(aMapping: TFieldMapping; aSourceValue: Variant): Variant;
   public
     constructor Create;
     destructor Destroy; override;
@@ -746,10 +751,384 @@ begin
 end;
 
 function TSimpleDataMigration.Execute: TMigrationReport;
+var
+  I: Integer;
+  LFieldMap: TFieldMap;
+  LTableReport: TTableReport;
 begin
   Result := TMigrationReport.Create;
   Result.MarkStart;
-  Result.MarkEnd;
+  try
+    for I := 0 to FMaps.Count - 1 do
+    begin
+      LFieldMap := FMaps[I];
+      LTableReport := Result.AddTable(LFieldMap.SourceTable, LFieldMap.TargetTable);
+
+      if (FSourceFile <> '') and Assigned(FTargetQuery) then
+        ExecuteCSVToQuery(LFieldMap, LTableReport)
+      else if Assigned(FSourceQuery) and (FTargetFile <> '') then
+        ExecuteQueryToCSV(LFieldMap, LTableReport)
+      else if Assigned(FSourceQuery) and Assigned(FTargetQuery) then
+        ExecuteWithDataSet(LFieldMap, LTableReport);
+      { Otherwise: no source or target configured, skip silently }
+    end;
+  finally
+    Result.MarkEnd;
+  end;
+end;
+
+procedure TSimpleDataMigration.ExecuteWithDataSet(aFieldMap: TFieldMap; aTableReport: TTableReport);
+var
+  LFields: String;
+  LParams: String;
+  LSQL: String;
+  I: Integer;
+  LMapping: TFieldMapping;
+  LValue: Variant;
+  LRecordIndex: Integer;
+  LError: TMigrationError;
+  LSkip: Boolean;
+begin
+  { Build INSERT SQL from non-ignored mappings }
+  LFields := '';
+  LParams := '';
+  for I := 0 to aFieldMap.Mappings.Count - 1 do
+  begin
+    LMapping := aFieldMap.Mappings[I];
+    if LMapping.MappingType = fmtIgnore then
+      Continue;
+    if LFields <> '' then
+    begin
+      LFields := LFields + ', ';
+      LParams := LParams + ', ';
+    end;
+    LFields := LFields + LMapping.TargetField;
+    LParams := LParams + ':' + LMapping.TargetField;
+  end;
+
+  LSQL := SysUtils.Format('INSERT INTO %s (%s) VALUES (%s)',
+    [aFieldMap.TargetTable, LFields, LParams]);
+
+  { Open source DataSet }
+  FSourceQuery.SQL.Clear;
+  FSourceQuery.SQL.Add(SysUtils.Format('SELECT * FROM %s', [aFieldMap.SourceTable]));
+  FSourceQuery.Open;
+
+  if not Assigned(FSourceQuery.DataSet) then
+    Exit;
+
+  LRecordIndex := 0;
+  FSourceQuery.DataSet.First;
+  while not FSourceQuery.DataSet.Eof do
+  begin
+    Inc(LRecordIndex);
+    Inc(aTableReport.TotalRecords);
+    try
+      FTargetQuery.SQL.Clear;
+      FTargetQuery.SQL.Add(LSQL);
+
+      for I := 0 to aFieldMap.Mappings.Count - 1 do
+      begin
+        LMapping := aFieldMap.Mappings[I];
+        if LMapping.MappingType = fmtIgnore then
+          Continue;
+
+        case LMapping.MappingType of
+          fmtDirect:
+            LValue := FSourceQuery.DataSet.FieldByName(LMapping.SourceField).Value;
+          fmtTransform:
+          begin
+            LValue := FSourceQuery.DataSet.FieldByName(LMapping.SourceField).Value;
+            if Assigned(LMapping.TransformFunc) then
+              LValue := LMapping.TransformFunc(LValue);
+          end;
+          fmtDefault:
+            LValue := LMapping.DefaultValue;
+          fmtLookup:
+          begin
+            LValue := FSourceQuery.DataSet.FieldByName(LMapping.SourceField).Value;
+            LValue := ResolveLookup(LMapping, LValue);
+          end;
+        end;
+
+        FTargetQuery.Params.ParamByName(LMapping.TargetField).Value := LValue;
+      end;
+
+      FTargetQuery.ExecSQL;
+      Inc(aTableReport.Migrated);
+    except
+      on E: Exception do
+      begin
+        LError.SourceTable := aFieldMap.SourceTable;
+        LError.RecordIndex := LRecordIndex;
+        LError.FieldName := '';
+        LError.ErrorMessage := E.Message;
+        LError.OriginalValue := Null;
+        aTableReport.AddError(LError);
+
+        LSkip := True;
+        if Assigned(FOnError) then
+          FOnError(LError, LSkip);
+
+        if LSkip then
+          Inc(aTableReport.Skipped)
+        else
+        begin
+          Inc(aTableReport.Failed);
+          raise;
+        end;
+      end;
+    end;
+
+    if Assigned(FOnProgress) then
+      FOnProgress(aFieldMap.SourceTable, LRecordIndex, aTableReport.TotalRecords);
+
+    FSourceQuery.DataSet.Next;
+  end;
+end;
+
+procedure TSimpleDataMigration.ExecuteCSVToQuery(aFieldMap: TFieldMap; aTableReport: TTableReport);
+var
+  LReader: TCSVReader;
+  LFields: String;
+  LParams: String;
+  LSQL: String;
+  I: Integer;
+  LMapping: TFieldMapping;
+  LValue: Variant;
+  LRecordIndex: Integer;
+  LError: TMigrationError;
+  LSkip: Boolean;
+begin
+  if not FileExists(FSourceFile) then
+    Exit;
+
+  LReader := TCSVReader.Create(FSourceFile);
+  try
+    { Build INSERT SQL from non-ignored mappings }
+    LFields := '';
+    LParams := '';
+    for I := 0 to aFieldMap.Mappings.Count - 1 do
+    begin
+      LMapping := aFieldMap.Mappings[I];
+      if LMapping.MappingType = fmtIgnore then
+        Continue;
+      if LFields <> '' then
+      begin
+        LFields := LFields + ', ';
+        LParams := LParams + ', ';
+      end;
+      LFields := LFields + LMapping.TargetField;
+      LParams := LParams + ':' + LMapping.TargetField;
+    end;
+
+    LSQL := SysUtils.Format('INSERT INTO %s (%s) VALUES (%s)',
+      [aFieldMap.TargetTable, LFields, LParams]);
+
+    LRecordIndex := 0;
+    while LReader.Next do
+    begin
+      Inc(LRecordIndex);
+      Inc(aTableReport.TotalRecords);
+      try
+        FTargetQuery.SQL.Clear;
+        FTargetQuery.SQL.Add(LSQL);
+
+        for I := 0 to aFieldMap.Mappings.Count - 1 do
+        begin
+          LMapping := aFieldMap.Mappings[I];
+          if LMapping.MappingType = fmtIgnore then
+            Continue;
+
+          case LMapping.MappingType of
+            fmtDirect:
+              LValue := LReader.ValueByHeader(LMapping.SourceField);
+            fmtTransform:
+            begin
+              LValue := LReader.ValueByHeader(LMapping.SourceField);
+              if Assigned(LMapping.TransformFunc) then
+                LValue := LMapping.TransformFunc(LValue);
+            end;
+            fmtDefault:
+              LValue := LMapping.DefaultValue;
+            fmtLookup:
+            begin
+              LValue := LReader.ValueByHeader(LMapping.SourceField);
+              LValue := ResolveLookup(LMapping, LValue);
+            end;
+          end;
+
+          FTargetQuery.Params.ParamByName(LMapping.TargetField).Value := LValue;
+        end;
+
+        FTargetQuery.ExecSQL;
+        Inc(aTableReport.Migrated);
+      except
+        on E: Exception do
+        begin
+          LError.SourceTable := aFieldMap.SourceTable;
+          LError.RecordIndex := LRecordIndex;
+          LError.FieldName := '';
+          LError.ErrorMessage := E.Message;
+          LError.OriginalValue := Null;
+          aTableReport.AddError(LError);
+
+          LSkip := True;
+          if Assigned(FOnError) then
+            FOnError(LError, LSkip);
+
+          if LSkip then
+            Inc(aTableReport.Skipped)
+          else
+          begin
+            Inc(aTableReport.Failed);
+            raise;
+          end;
+        end;
+      end;
+
+      if Assigned(FOnProgress) then
+        FOnProgress(aFieldMap.SourceTable, LRecordIndex, aTableReport.TotalRecords);
+    end;
+  finally
+    FreeAndNil(LReader);
+  end;
+end;
+
+procedure TSimpleDataMigration.ExecuteQueryToCSV(aFieldMap: TFieldMap; aTableReport: TTableReport);
+var
+  LWriter: TCSVWriter;
+  LHeaders: TArray<String>;
+  LValues: TArray<String>;
+  I: Integer;
+  LMapping: TFieldMapping;
+  LHeaderCount: Integer;
+  LRecordIndex: Integer;
+  LValue: Variant;
+  LError: TMigrationError;
+  LSkip: Boolean;
+begin
+  { Build headers from non-ignored target fields }
+  LHeaderCount := 0;
+  for I := 0 to aFieldMap.Mappings.Count - 1 do
+  begin
+    if aFieldMap.Mappings[I].MappingType <> fmtIgnore then
+      Inc(LHeaderCount);
+  end;
+
+  SetLength(LHeaders, LHeaderCount);
+  LHeaderCount := 0;
+  for I := 0 to aFieldMap.Mappings.Count - 1 do
+  begin
+    if aFieldMap.Mappings[I].MappingType <> fmtIgnore then
+    begin
+      LHeaders[LHeaderCount] := aFieldMap.Mappings[I].TargetField;
+      Inc(LHeaderCount);
+    end;
+  end;
+
+  LWriter := TCSVWriter.Create(FTargetFile, LHeaders);
+  try
+    { Open source DataSet }
+    FSourceQuery.SQL.Clear;
+    FSourceQuery.SQL.Add(SysUtils.Format('SELECT * FROM %s', [aFieldMap.SourceTable]));
+    FSourceQuery.Open;
+
+    if not Assigned(FSourceQuery.DataSet) then
+    begin
+      LWriter.Flush;
+      Exit;
+    end;
+
+    LRecordIndex := 0;
+    FSourceQuery.DataSet.First;
+    while not FSourceQuery.DataSet.Eof do
+    begin
+      Inc(LRecordIndex);
+      Inc(aTableReport.TotalRecords);
+      try
+        SetLength(LValues, Length(LHeaders));
+        LHeaderCount := 0;
+        for I := 0 to aFieldMap.Mappings.Count - 1 do
+        begin
+          LMapping := aFieldMap.Mappings[I];
+          if LMapping.MappingType = fmtIgnore then
+            Continue;
+
+          case LMapping.MappingType of
+            fmtDirect:
+              LValue := FSourceQuery.DataSet.FieldByName(LMapping.SourceField).Value;
+            fmtTransform:
+            begin
+              LValue := FSourceQuery.DataSet.FieldByName(LMapping.SourceField).Value;
+              if Assigned(LMapping.TransformFunc) then
+                LValue := LMapping.TransformFunc(LValue);
+            end;
+            fmtDefault:
+              LValue := LMapping.DefaultValue;
+            fmtLookup:
+            begin
+              LValue := FSourceQuery.DataSet.FieldByName(LMapping.SourceField).Value;
+              LValue := ResolveLookup(LMapping, LValue);
+            end;
+          end;
+
+          LValues[LHeaderCount] := VarToStr(LValue);
+          Inc(LHeaderCount);
+        end;
+
+        LWriter.WriteRow(LValues);
+        Inc(aTableReport.Migrated);
+      except
+        on E: Exception do
+        begin
+          LError.SourceTable := aFieldMap.SourceTable;
+          LError.RecordIndex := LRecordIndex;
+          LError.FieldName := '';
+          LError.ErrorMessage := E.Message;
+          LError.OriginalValue := Null;
+          aTableReport.AddError(LError);
+
+          LSkip := True;
+          if Assigned(FOnError) then
+            FOnError(LError, LSkip);
+
+          if LSkip then
+            Inc(aTableReport.Skipped)
+          else
+          begin
+            Inc(aTableReport.Failed);
+            raise;
+          end;
+        end;
+      end;
+
+      if Assigned(FOnProgress) then
+        FOnProgress(aFieldMap.SourceTable, LRecordIndex, aTableReport.TotalRecords);
+
+      FSourceQuery.DataSet.Next;
+    end;
+
+    LWriter.Flush;
+  finally
+    FreeAndNil(LWriter);
+  end;
+end;
+
+function TSimpleDataMigration.ResolveLookup(aMapping: TFieldMapping; aSourceValue: Variant): Variant;
+begin
+  Result := aSourceValue;
+  if not Assigned(FTargetQuery) then
+    Exit;
+
+  FTargetQuery.SQL.Clear;
+  FTargetQuery.SQL.Add(SysUtils.Format('SELECT %s FROM %s WHERE %s = :pValue',
+    [aMapping.ReturnField, aMapping.LookupTable, aMapping.LookupField]));
+  FTargetQuery.Params.ParamByName('pValue').Value := aSourceValue;
+  FTargetQuery.Open;
+
+  if Assigned(FTargetQuery.DataSet) and not FTargetQuery.DataSet.IsEmpty then
+    Result := FTargetQuery.DataSet.FieldByName(aMapping.ReturnField).Value;
 end;
 
 function TSimpleDataMigration.SaveToJSON(const aFilePath: String): TSimpleDataMigration;

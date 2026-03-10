@@ -60,6 +60,19 @@ type
     procedure TestReadCSV_EmptyFile_ShouldReturnEmptyList;
   end;
 
+  TTestMigrationExecute = class(TTestCase)
+  published
+    procedure TestExecute_EmptyMaps_ShouldReturnEmptyReport;
+    procedure TestExecute_NoSourceOrTarget_ShouldSkip;
+    procedure TestExecute_MultipleMaps_ShouldProcessAll;
+  end;
+
+  TTestCSVMigration = class(TTestCase)
+  published
+    procedure TestCSVToQuery_NoTarget_ShouldNotCrash;
+    procedure TestQueryToCSV_NoSource_ShouldNotCrash;
+  end;
+
 implementation
 
 { TTestMigrationReport }
@@ -634,11 +647,178 @@ begin
   end;
 end;
 
+{ TTestMigrationExecute }
+
+procedure TTestMigrationExecute.TestExecute_EmptyMaps_ShouldReturnEmptyReport;
+var
+  LMigration: TSimpleDataMigration;
+  LReport: TMigrationReport;
+begin
+  LMigration := TSimpleDataMigration.Create;
+  try
+    LReport := LMigration.Execute;
+    try
+      CheckEquals(0, LReport.TotalRecords, 'TotalRecords should be 0 with no maps');
+      CheckEquals(0, LReport.Migrated, 'Migrated should be 0 with no maps');
+      CheckEquals(0, LReport.Failed, 'Failed should be 0 with no maps');
+      CheckEquals(0, LReport.Skipped, 'Skipped should be 0 with no maps');
+      CheckEquals(0, LReport.Tables.Count, 'Tables count should be 0');
+      CheckTrue(LReport.DurationMs >= 0, 'Duration should be >= 0');
+    finally
+      FreeAndNil(LReport);
+    end;
+  finally
+    FreeAndNil(LMigration);
+  end;
+end;
+
+procedure TTestMigrationExecute.TestExecute_NoSourceOrTarget_ShouldSkip;
+var
+  LMigration: TSimpleDataMigration;
+  LReport: TMigrationReport;
+begin
+  LMigration := TSimpleDataMigration.Create;
+  try
+    { Add maps but no source or target configured }
+    LMigration
+      .Map('SRC_TABLE', 'TGT_TABLE')
+        .Field('ID', 'ID')
+        .Field('NAME', 'NOME')
+      .&End;
+
+    LReport := LMigration.Execute;
+    try
+      CheckEquals(1, LReport.Tables.Count, 'Should have 1 table report');
+      CheckEquals(0, LReport.TotalRecords, 'TotalRecords should be 0 without source/target');
+      CheckEquals(0, LReport.Migrated, 'Migrated should be 0 without source/target');
+    finally
+      FreeAndNil(LReport);
+    end;
+  finally
+    FreeAndNil(LMigration);
+  end;
+end;
+
+procedure TTestMigrationExecute.TestExecute_MultipleMaps_ShouldProcessAll;
+var
+  LMigration: TSimpleDataMigration;
+  LReport: TMigrationReport;
+begin
+  LMigration := TSimpleDataMigration.Create;
+  try
+    { Add multiple maps without source/target — they should all be skipped gracefully }
+    LMigration
+      .Map('TABLE1', 'TARGET1')
+        .Field('ID', 'ID')
+      .&End
+      .Map('TABLE2', 'TARGET2')
+        .Field('CODE', 'CODIGO')
+      .&End
+      .Map('TABLE3', 'TARGET3')
+        .Field('NAME', 'NOME')
+      .&End;
+
+    LReport := LMigration.Execute;
+    try
+      CheckEquals(3, LReport.Tables.Count, 'Should have 3 table reports');
+      CheckEquals('TABLE1', LReport.Tables[0].SourceTable, 'First source table should match');
+      CheckEquals('TARGET1', LReport.Tables[0].TargetTable, 'First target table should match');
+      CheckEquals('TABLE2', LReport.Tables[1].SourceTable, 'Second source table should match');
+      CheckEquals('TABLE3', LReport.Tables[2].SourceTable, 'Third source table should match');
+      CheckEquals(0, LReport.TotalRecords, 'TotalRecords should be 0 without source/target');
+    finally
+      FreeAndNil(LReport);
+    end;
+  finally
+    FreeAndNil(LMigration);
+  end;
+end;
+
+{ TTestCSVMigration }
+
+procedure TTestCSVMigration.TestCSVToQuery_NoTarget_ShouldNotCrash;
+var
+  LMigration: TSimpleDataMigration;
+  LReport: TMigrationReport;
+  LFilePath: String;
+  LWriter: TCSVWriter;
+begin
+  LFilePath := IncludeTrailingPathDelimiter(GetCurrentDir) + 'test_csv_to_query.csv';
+  { Create a CSV file as source }
+  LWriter := TCSVWriter.Create(LFilePath, ['ID', 'NAME']);
+  try
+    LWriter.WriteRow(['1', 'Alice']);
+    LWriter.WriteRow(['2', 'Bob']);
+    LWriter.Flush;
+  finally
+    FreeAndNil(LWriter);
+  end;
+
+  LMigration := TSimpleDataMigration.Create;
+  try
+    { Source is CSV but no target query — should not crash, just skip }
+    LMigration
+      .Source(LFilePath, mfCSV)
+      .Map('CSV_FILE', 'TARGET_TABLE')
+        .Field('ID', 'ID')
+        .Field('NAME', 'NOME')
+      .&End;
+
+    LReport := LMigration.Execute;
+    try
+      CheckEquals(1, LReport.Tables.Count, 'Should have 1 table report');
+      CheckEquals(0, LReport.TotalRecords, 'TotalRecords should be 0 without target query');
+      CheckEquals(0, LReport.Migrated, 'Migrated should be 0 without target query');
+    finally
+      FreeAndNil(LReport);
+    end;
+  finally
+    FreeAndNil(LMigration);
+    if FileExists(LFilePath) then
+      DeleteFile(LFilePath);
+  end;
+end;
+
+procedure TTestCSVMigration.TestQueryToCSV_NoSource_ShouldNotCrash;
+var
+  LMigration: TSimpleDataMigration;
+  LReport: TMigrationReport;
+  LFilePath: String;
+begin
+  LFilePath := IncludeTrailingPathDelimiter(GetCurrentDir) + 'test_query_to_csv.csv';
+
+  LMigration := TSimpleDataMigration.Create;
+  try
+    { Target is CSV but no source query — should not crash, just skip }
+    LMigration
+      .Target(LFilePath, mfCSV)
+      .Map('SOURCE_TABLE', 'CSV_FILE')
+        .Field('ID', 'ID')
+        .Field('NAME', 'NAME')
+      .&End;
+
+    LReport := LMigration.Execute;
+    try
+      CheckEquals(1, LReport.Tables.Count, 'Should have 1 table report');
+      CheckEquals(0, LReport.TotalRecords, 'TotalRecords should be 0 without source query');
+      CheckEquals(0, LReport.Migrated, 'Migrated should be 0 without source query');
+    finally
+      FreeAndNil(LReport);
+    end;
+  finally
+    FreeAndNil(LMigration);
+    if FileExists(LFilePath) then
+      DeleteFile(LFilePath);
+  end;
+end;
+
 initialization
   RegisterTest('DataMigration', TTestMigrationReport.Suite);
   RegisterTest('DataMigration', TTestFieldTransform.Suite);
   RegisterTest('DataMigration', TTestFieldMap.Suite);
   RegisterTest('DataMigration', TTestSimpleDataMigration.Suite);
   RegisterTest('DataMigration', TTestCSVHelper.Suite);
+  RegisterTest('DataMigration', TTestMigrationExecute.Suite);
+  RegisterTest('DataMigration', TTestCSVMigration.Suite);
 
 end.
