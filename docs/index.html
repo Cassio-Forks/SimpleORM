@@ -192,9 +192,6 @@
       <li><a href="#mcp-server">MCP Server (AI)</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#rules">Rules</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#skills">Skills</a> <span class="badge badge-new">NEW</span></li>
-      <li><a href="#builtin-skills">Skills Built-in</a> <span class="badge badge-new">NEW</span></li>
-      <li><a href="#erp-skills">Skills ERP</a> <span class="badge badge-new">NEW</span></li>
-      <li><a href="#ai-skills">Skills AI</a> <span class="badge badge-new">NEW</span></li>
       <li><a href="#agents">Agents</a> <span class="badge badge-new">NEW</span></li>
     </ul>
   </nav>
@@ -1180,230 +1177,58 @@ end;</code></pre>
 <!-- ============================================ -->
 <section id="skills">
   <h2>Skills (Habilidades) <span class="badge badge-new">NEW</span></h2>
-  <p>Plugins reutilizaveis que se conectam ao DAO via fluent API. Executam antes ou depois de operacoes CRUD.</p>
+  <p>Plugins reutilizaveis que se conectam ao DAO via fluent API. Executam antes ou depois de operacoes CRUD. O SimpleORM oferece 19 Skills prontas organizadas em 3 categorias.</p>
 
-  <h3>Skills built-in</h3>
+  <p><strong><a href="skills.html">Documentacao completa de Skills &rarr;</a></strong></p>
+
+  <h3>Skills Built-in (SimpleSkill.pas)</h3>
+  <p>8 Skills de infraestrutura para logging, auditoria, validacao e integracao.</p>
   <table>
-    <thead>
-      <tr><th>Skill</th><th>Descricao</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>TSkillLog</td><td>Loga operacoes com detalhes da entidade</td></tr>
-      <tr><td>TSkillNotify</td><td>Dispara callback apos operacao</td></tr>
-      <tr><td>TSkillAudit</td><td>Grava registro de auditoria em tabela do banco</td></tr>
-    </tbody>
+    <tr><th>Skill</th><th>Descricao</th></tr>
+    <tr><td><code>TSkillLog</code></td><td>Loga operacao via Logger ou OutputDebugString/Writeln</td></tr>
+    <tr><td><code>TSkillNotify</code></td><td>Dispara callback <code>TProc&lt;TObject&gt;</code></td></tr>
+    <tr><td><code>TSkillAudit</code></td><td>Insere registro em tabela de auditoria</td></tr>
+    <tr><td><code>TSkillTimestamp</code></td><td>Preenche campos de data automaticamente</td></tr>
+    <tr><td><code>TSkillValidate</code></td><td>Chama TSimpleValidator.Validate automaticamente</td></tr>
+    <tr><td><code>TSkillGuardDelete</code></td><td>Bloqueia delete com registros dependentes</td></tr>
+    <tr><td><code>TSkillHistory</code></td><td>Grava snapshot antes de update/delete</td></tr>
+    <tr><td><code>TSkillWebhook</code></td><td>HTTP POST fire-and-forget com JSON</td></tr>
   </table>
 
-  <h3>Uso</h3>
-  <pre><code>DAOPedido := TSimpleDAO&lt;TPedido&gt;
-  .New(Conn)
-  .Skill(TSkillLog.New('app', srAfterInsert))
-  .Skill(TSkillAudit.New('AUDIT_LOG', srAfterInsert))
-  .Skill(TSkillNotify.New(
-    procedure(aObj: TObject)
-    begin
-      Writeln('Pedido inserido!');
-    end, srAfterInsert));
+  <h3>Skills ERP (SimpleSkill.pas)</h3>
+  <p>4 Skills para ERPs brasileiros: numeracao sequencial, calculo de totais, estoque e parcelas. Inclui atributos <code>[CPF]</code> e <code>[CNPJ]</code> para validacao de documentos.</p>
+  <table>
+    <tr><th>Skill</th><th>Descricao</th></tr>
+    <tr><td><code>TSkillSequence</code></td><td>Numeracao sequencial via tabela de controle</td></tr>
+    <tr><td><code>TSkillCalcTotal</code></td><td>Calcula total: Qtd * Preco - Desconto</td></tr>
+    <tr><td><code>TSkillStockMove</code></td><td>Registra movimentacao de estoque</td></tr>
+    <tr><td><code>TSkillDuplicate</code></td><td>Gera parcelas financeiras</td></tr>
+  </table>
 
-DAOPedido.Insert(Pedido);</code></pre>
+  <h3>Skills AI (SimpleAISkill.pas)</h3>
+  <p>7 Skills baseadas em IA para enriquecimento, validacao/moderacao e analise de sentimento via LLM.</p>
+  <table>
+    <tr><th>Skill</th><th>Descricao</th></tr>
+    <tr><td><code>TSkillAIEnrich</code></td><td>Gera conteudo via prompt template com <code>{PropertyName}</code></td></tr>
+    <tr><td><code>TSkillAITranslate</code></td><td>Traducao automatica entre campos</td></tr>
+    <tr><td><code>TSkillAISummarize</code></td><td>Resumo automatico de texto</td></tr>
+    <tr><td><code>TSkillAITags</code></td><td>Geracao automatica de tags/keywords</td></tr>
+    <tr><td><code>TSkillAIModerate</code></td><td>Moderacao de conteudo com bloqueio</td></tr>
+    <tr><td><code>TSkillAIValidate</code></td><td>Validacao com regra em linguagem natural</td></tr>
+    <tr><td><code>TSkillAISentiment</code></td><td>Analise de sentimento (POSITIVO/NEGATIVO/NEUTRO)</td></tr>
+  </table>
 
-  <h3>Criar skill customizado</h3>
-  <pre><code>TSkillEnviarEmail = class(TInterfacedObject, iSimpleSkill)
-  function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
-  function Name: String;
-  function RunAt: TSkillRunAt;
-end;</code></pre>
-
-  <p class="note">Skills sao opcionais. Se nenhum skill for registrado, o DAO funciona normalmente.</p>
-</section>
-
-<!-- ============================================ -->
-<section id="builtin-skills">
-<h2>Skills Built-in</h2>
-
-<p>O SimpleORM inclui 8 Skills prontas para uso. Todas implementam <code>iSimpleSkill</code> e sao adicionadas via <code>.Skill()</code> no DAO.</p>
-
-<table>
-<tr><th>Skill</th><th>Descricao</th><th>RunAt</th></tr>
-<tr><td><code>TSkillLog</code></td><td>Loga operacao via Logger ou OutputDebugString/Writeln</td><td>Configuravel</td></tr>
-<tr><td><code>TSkillNotify</code></td><td>Dispara callback <code>TProc&lt;TObject&gt;</code></td><td>Configuravel</td></tr>
-<tr><td><code>TSkillAudit</code></td><td>Insere registro em tabela de auditoria</td><td>Configuravel</td></tr>
-<tr><td><code>TSkillTimestamp</code></td><td>Preenche campos de data (CREATED_AT, UPDATED_AT) via RTTI</td><td>srBeforeInsert / srBeforeUpdate</td></tr>
-<tr><td><code>TSkillValidate</code></td><td>Chama TSimpleValidator.Validate automaticamente</td><td>srBeforeInsert / srBeforeUpdate</td></tr>
-<tr><td><code>TSkillGuardDelete</code></td><td>Bloqueia delete quando existem registros dependentes</td><td>srBeforeDelete</td></tr>
-<tr><td><code>TSkillHistory</code></td><td>Grava snapshot dos valores antes de update/delete</td><td>srBeforeUpdate / srBeforeDelete</td></tr>
-<tr><td><code>TSkillWebhook</code></td><td>HTTP POST fire-and-forget com JSON da entidade</td><td>srAfterInsert / srAfterUpdate / srAfterDelete</td></tr>
-</table>
-
-<h3>Exemplo: Timestamp + Validacao + Log</h3>
+  <h3>Exemplo</h3>
 <pre><code>DAO := TSimpleDAO&lt;TPedido&gt;.New(Query)
   .Skill(TSkillTimestamp.New('CREATED_AT', srBeforeInsert))
-  .Skill(TSkillTimestamp.New('UPDATED_AT', srBeforeUpdate))
   .Skill(TSkillValidate.New(srBeforeInsert))
-  .Skill(TSkillValidate.New(srBeforeUpdate))
   .Skill(TSkillLog.New('App', srAfterInsert))
-  .Skill(TSkillLog.New('App', srAfterUpdate));</code></pre>
+  .Skill(TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO', 'DESCONTO'))
+  .Skill(TSkillAISentiment.New('COMENTARIO', 'SENTIMENTO'));
 
-<h3>Exemplo: Guard Delete</h3>
-<pre><code>DAO := TSimpleDAO&lt;TPedido&gt;.New(Query)
-  .Skill(TSkillGuardDelete.New('ITEM_PEDIDO', 'ID_PEDIDO'))
-  .Skill(TSkillGuardDelete.New('PAGAMENTO', 'ID_PEDIDO'));
+DAO.Insert(Pedido);</code></pre>
 
-// Se existirem itens ou pagamentos vinculados, o delete sera bloqueado
-// com ESimpleGuardDelete</code></pre>
-
-<h3>Exemplo: History</h3>
-<pre><code>DAO := TSimpleDAO&lt;TPedido&gt;.New(Query)
-  .Skill(TSkillHistory.New('PEDIDO_HISTORY', srBeforeUpdate))
-  .Skill(TSkillHistory.New('PEDIDO_HISTORY', srBeforeDelete));</code></pre>
-
-<p class="note"><strong>DDL para TSkillHistory:</strong><br>
-<code>CREATE TABLE ENTITY_HISTORY (ID INTEGER PRIMARY KEY, ENTITY_NAME VARCHAR(100), RECORD_ID VARCHAR(50), FIELD_NAME VARCHAR(100), OLD_VALUE VARCHAR(4000), OPERATION VARCHAR(20), CREATED_AT TIMESTAMP);</code></p>
-
-<h3>Exemplo: Webhook</h3>
-<pre><code>DAO := TSimpleDAO&lt;TPedido&gt;.New(Query)
-  .Skill(TSkillWebhook.New('https://api.example.com/hooks', srAfterInsert))
-  .Skill(TSkillWebhook.New('https://api.example.com/hooks', srAfterUpdate, 'Bearer token123'));</code></pre>
-
-<p class="note"><strong>Fire-and-forget:</strong> Se o POST falhar, o erro e logado mas a operacao CRUD NAO e bloqueada.</p>
-
-</section>
-
-<!-- ============================================ -->
-<section id="erp-skills">
-<h2>Skills ERP <span class="badge badge-new">NEW</span></h2>
-
-<p>Skills focadas para ERPs comerciais brasileiros. Incluem validacao de documentos (CPF/CNPJ) e automacoes comuns como numeracao sequencial, calculo de totais, movimentacao de estoque e geracao de parcelas.</p>
-
-<h3>Atributos de Validacao BR</h3>
-
-<table>
-<tr><th>Atributo</th><th>Descricao</th></tr>
-<tr><td><code>[CPF]</code></td><td>Valida CPF brasileiro (11 digitos, algoritmo de verificacao)</td></tr>
-<tr><td><code>[CNPJ]</code></td><td>Valida CNPJ brasileiro (14 digitos, algoritmo de verificacao)</td></tr>
-</table>
-
-<pre><code>type
-  [Tabela('CLIENTE')]
-  TCliente = class
-  published
-    [Campo('CPF'), CPF]
-    property CPF: String read FCPF write FCPF;
-
-    [Campo('CNPJ'), CNPJ]
-    property CNPJ: String read FCNPJ write FCNPJ;
-  end;
-
-// Validacao automatica via TSimpleValidator.Validate(Cliente)
-// ou via TSkillValidate no pipeline do DAO</code></pre>
-
-<h3>Skills ERP</h3>
-
-<table>
-<tr><th>Skill</th><th>Descricao</th><th>RunAt</th></tr>
-<tr><td><code>TSkillSequence</code></td><td>Numeracao sequencial via tabela de controle</td><td>srBeforeInsert</td></tr>
-<tr><td><code>TSkillCalcTotal</code></td><td>Calcula total: Qtd * Preco - Desconto</td><td>srBeforeInsert / srBeforeUpdate</td></tr>
-<tr><td><code>TSkillStockMove</code></td><td>Registra movimentacao de estoque</td><td>srAfterInsert / srAfterDelete</td></tr>
-<tr><td><code>TSkillDuplicate</code></td><td>Gera parcelas financeiras</td><td>srAfterInsert</td></tr>
-</table>
-
-<h3>Exemplo: Numeracao Sequencial</h3>
-<pre><code>// Parametros: campo destino, tabela de controle, serie
-DAO.Skill(TSkillSequence.New('NUMERO', 'NUMERACAO', 'PEDIDO'));</code></pre>
-
-<h3>Exemplo: Calculo de Total</h3>
-<pre><code>// Parametros: campo total, campo quantidade, campo preco, campo desconto
-DAO.Skill(TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO', 'DESCONTO'));</code></pre>
-
-<h3>Exemplo: Movimentacao de Estoque</h3>
-<pre><code>// Parametros: tabela estoque, campo produto, campo quantidade, RunAt
-DAO.Skill(TSkillStockMove.New('MOV_ESTOQUE', 'PRODUTO_ID', 'QUANTIDADE', srAfterInsert))
-   .Skill(TSkillStockMove.New('MOV_ESTOQUE', 'PRODUTO_ID', 'QUANTIDADE', srAfterDelete));</code></pre>
-
-<h3>Exemplo: Geracao de Parcelas</h3>
-<pre><code>// Parametros: tabela parcelas, campo valor total, qtd parcelas, intervalo em dias
-DAO.Skill(TSkillDuplicate.New('PARCELA', 'VALOR_TOTAL', 3, 30));</code></pre>
-
-<h3>DDL das Tabelas de Suporte</h3>
-
-<pre><code>-- TSkillSequence
-CREATE TABLE NUMERACAO (
-  SERIE         VARCHAR(50) PRIMARY KEY,
-  ULTIMO_NUMERO INTEGER DEFAULT 0
-);
-
--- TSkillStockMove
-CREATE TABLE MOV_ESTOQUE (
-  ID          INTEGER PRIMARY KEY,
-  PRODUTO_ID  INTEGER,
-  QUANTIDADE  DOUBLE PRECISION,
-  TIPO        VARCHAR(10),
-  ENTITY_NAME VARCHAR(100),
-  CREATED_AT  TIMESTAMP
-);
-
--- TSkillDuplicate
-CREATE TABLE PARCELA (
-  ID          INTEGER PRIMARY KEY,
-  ENTITY_ID   INTEGER,
-  NUMERO      INTEGER,
-  VALOR       DOUBLE PRECISION,
-  VENCIMENTO  DATE,
-  STATUS      VARCHAR(20),
-  CREATED_AT  TIMESTAMP
-);</code></pre>
-
-</section>
-
-<!-- ============================================ -->
-<section id="ai-skills">
-  <h2>Skills AI <span class="badge badge-new">NEW</span></h2>
-  <p>7 Skills baseadas em IA para enriquecimento, validacao/moderacao e analise de sentimento via LLM. Todas ficam em <code>SimpleAISkill.pas</code>.</p>
-
-  <h3>Referencia</h3>
-  <table>
-    <thead>
-      <tr><th>Skill</th><th>Tipo</th><th>Sem AIClient</th><th>RunAt Default</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>TSkillAIEnrich</td><td>Enriquecimento</td><td>Ignora</td><td>srBeforeInsert</td></tr>
-      <tr><td>TSkillAITranslate</td><td>Enriquecimento</td><td>Ignora</td><td>srBeforeInsert</td></tr>
-      <tr><td>TSkillAISummarize</td><td>Enriquecimento</td><td>Ignora</td><td>srBeforeInsert</td></tr>
-      <tr><td>TSkillAITags</td><td>Enriquecimento</td><td>Ignora</td><td>srBeforeInsert</td></tr>
-      <tr><td>TSkillAIModerate</td><td>Validacao</td><td>Raise Exception</td><td>srBeforeInsert</td></tr>
-      <tr><td>TSkillAIValidate</td><td>Validacao</td><td>Raise Exception</td><td>srBeforeInsert</td></tr>
-      <tr><td>TSkillAISentiment</td><td>Analise</td><td>Ignora</td><td>srBeforeInsert</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Exemplos</h3>
-
-  <h4>TSkillAIEnrich - Gerar conteudo com template</h4>
-<pre><code>DAO.Skill(TSkillAIEnrich.New('DESCRICAO',
-  'Gere uma descricao comercial para o produto {NOME} da categoria {CATEGORIA}'));</code></pre>
-
-  <h4>TSkillAITranslate - Traducao automatica</h4>
-<pre><code>DAO.Skill(TSkillAITranslate.New('DESCRICAO', 'DESCRIPTION_EN', 'English'))
-   .Skill(TSkillAITranslate.New('DESCRICAO', 'DESCRIPCION_ES', 'Spanish'));</code></pre>
-
-  <h4>TSkillAISummarize - Resumo automatico</h4>
-<pre><code>DAO.Skill(TSkillAISummarize.New('TEXTO_COMPLETO', 'RESUMO', 200));</code></pre>
-
-  <h4>TSkillAITags - Geracao de tags</h4>
-<pre><code>DAO.Skill(TSkillAITags.New('DESCRICAO', 'TAGS', 5));</code></pre>
-
-  <h4>TSkillAIModerate - Moderacao de conteudo</h4>
-<pre><code>DAO.Skill(TSkillAIModerate.New('COMENTARIO',
-  'Rejeitar conteudo com linguagem ofensiva ou spam'));</code></pre>
-
-  <h4>TSkillAIValidate - Validacao com regra natural</h4>
-<pre><code>DAO.Skill(TSkillAIValidate.New(
-  'O preco deve ser coerente com a categoria do produto'));</code></pre>
-
-  <h4>TSkillAISentiment - Analise de sentimento</h4>
-<pre><code>DAO.Skill(TSkillAISentiment.New('COMENTARIO', 'SENTIMENTO'));</code></pre>
-
-  <p class="note"><strong>Nota:</strong> Skills de validacao/moderacao lancam <code>ESimpleAIModeration</code> quando detectam problema ou quando AIClient e nil. Skills de enriquecimento/analise ignoram silenciosamente se AIClient for nil.</p>
+  <p class="note">Skills sao opcionais. Se nenhum skill for registrado, o DAO funciona normalmente. Para documentacao detalhada com exemplos completos, parametros, DDL e casos de uso, veja a <a href="skills.html">pagina dedicada de Skills</a>.</p>
 </section>
 
 <!-- ============================================ -->

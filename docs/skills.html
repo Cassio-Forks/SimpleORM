@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimpleORM - Skills</title>
+  <style>
+    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950; --orange: #d29922; --red: #f85149; --code-bg: #0d1117; --sidebar-width: 280px; --sidebar-hover: #1c2128; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--accent); }
+    h2 { font-size: 1.6rem; margin-top: 3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
+    h3 { font-size: 1.2rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text); }
+    h4 { font-size: 1.05rem; margin-top: 1.2rem; margin-bottom: 0.4rem; color: var(--text2); }
+    p { margin-bottom: 1rem; color: var(--text2); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; background: var(--surface); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; color: var(--green); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1.5rem; }
+    pre code { background: none; padding: 0; color: var(--text); }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td { text-align: left; padding: 0.6rem 0.8rem; border: 1px solid var(--border); }
+    th { background: var(--surface); color: var(--text); font-weight: 600; }
+    td { color: var(--text2); }
+    td code { color: var(--green); }
+    .badge { display: inline-block; padding: 0.15em 0.5em; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
+    .badge-new { background: #1f3a1f; color: var(--green); }
+    .subtitle { color: var(--text2); font-size: 1.1rem; margin-bottom: 2rem; }
+    section { margin-bottom: 2rem; }
+    .note { background: #1a2332; border-left: 3px solid var(--accent); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    .warning { background: #2a1f0a; border-left: 3px solid var(--orange); padding: 0.8rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1rem; }
+    footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text2); font-size: 0.9rem; }
+    .sidebar-toggle-input { display: none; }
+    .sidebar-toggle-label { display: none; }
+    .sidebar-overlay { display: none; }
+    .sidebar { position: fixed; top: 0; left: 0; width: var(--sidebar-width); height: 100vh; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem 0; overflow-y: auto; z-index: 100; }
+    .sidebar-header { padding: 0 1rem 1rem; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+    .sidebar-header h2 { font-size: 1.2rem; margin: 0; border: none; padding: 0; color: var(--accent); }
+    .sidebar-header .lang-switch { font-size: 0.85rem; margin: 0.3rem 0 0; }
+    .sidebar nav ul { list-style: none; margin: 0; padding: 0; }
+    .sidebar nav li { margin: 0; }
+    .sidebar nav li a { display: block; padding: 0.4rem 1rem; color: var(--text2); text-decoration: none; font-size: 0.9rem; transition: background 0.15s; }
+    .sidebar nav li a:hover { background: var(--sidebar-hover); color: var(--text); text-decoration: none; }
+    .sidebar nav li .badge { font-size: 0.7em; vertical-align: middle; margin-left: 0.3em; }
+    .content { margin-left: var(--sidebar-width); padding: 2rem 2.5rem; max-width: calc(960px + var(--sidebar-width)); }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+      .sidebar-toggle-label { display: block; position: fixed; top: 0.7rem; left: 0.7rem; z-index: 200; font-size: 1.6rem; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.6rem; cursor: pointer; line-height: 1; }
+      .sidebar-overlay { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 90; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; cursor: pointer; }
+      .sidebar-toggle-input:checked ~ .sidebar { transform: translateX(0); }
+      .sidebar-toggle-input:checked ~ .sidebar-overlay { opacity: 1; visibility: visible; }
+      .content { margin-left: 0; padding: 3.5rem 1.5rem 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-input">
+<label for="sidebar-toggle" class="sidebar-toggle-label">&#9776;</label>
+<label for="sidebar-toggle" class="sidebar-overlay"></label>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2>SimpleORM Skills</h2>
+    <p class="lang-switch"><a href="en/skills.html">English</a> | <a href="index.html">Docs Principal</a></p>
+  </div>
+  <nav>
+    <ul>
+      <li><a href="#introducao">Introducao</a></li>
+      <li><a href="#como-criar">Como Criar uma Skill</a></li>
+      <li><a href="#skills-builtin">Skills Built-in</a></li>
+      <li><a href="#skill-log">&nbsp;&nbsp;TSkillLog</a></li>
+      <li><a href="#skill-notify">&nbsp;&nbsp;TSkillNotify</a></li>
+      <li><a href="#skill-audit">&nbsp;&nbsp;TSkillAudit</a></li>
+      <li><a href="#skill-timestamp">&nbsp;&nbsp;TSkillTimestamp</a></li>
+      <li><a href="#skill-validate">&nbsp;&nbsp;TSkillValidate</a></li>
+      <li><a href="#skill-guarddelete">&nbsp;&nbsp;TSkillGuardDelete</a></li>
+      <li><a href="#skill-history">&nbsp;&nbsp;TSkillHistory</a></li>
+      <li><a href="#skill-webhook">&nbsp;&nbsp;TSkillWebhook</a></li>
+      <li><a href="#skills-erp">Skills ERP</a></li>
+      <li><a href="#cpf-cnpj">&nbsp;&nbsp;CPF / CNPJ</a></li>
+      <li><a href="#skill-sequence">&nbsp;&nbsp;TSkillSequence</a></li>
+      <li><a href="#skill-calctotal">&nbsp;&nbsp;TSkillCalcTotal</a></li>
+      <li><a href="#skill-stockmove">&nbsp;&nbsp;TSkillStockMove</a></li>
+      <li><a href="#skill-duplicate">&nbsp;&nbsp;TSkillDuplicate</a></li>
+      <li><a href="#skills-ai">Skills AI</a></li>
+      <li><a href="#skill-ai-enrich">&nbsp;&nbsp;TSkillAIEnrich</a></li>
+      <li><a href="#skill-ai-translate">&nbsp;&nbsp;TSkillAITranslate</a></li>
+      <li><a href="#skill-ai-summarize">&nbsp;&nbsp;TSkillAISummarize</a></li>
+      <li><a href="#skill-ai-tags">&nbsp;&nbsp;TSkillAITags</a></li>
+      <li><a href="#skill-ai-moderate">&nbsp;&nbsp;TSkillAIModerate</a></li>
+      <li><a href="#skill-ai-validate">&nbsp;&nbsp;TSkillAIValidate</a></li>
+      <li><a href="#skill-ai-sentiment">&nbsp;&nbsp;TSkillAISentiment</a></li>
+      <li><a href="#exemplo-completo">Exemplo Completo</a></li>
+      <li><a href="#exceptions">Exceptions</a></li>
+    </ul>
+  </nav>
+</aside>
+
+<main class="content">
+
+  <h1>SimpleORM Skills</h1>
+  <p class="subtitle">Sistema de plugins para interceptar e enriquecer operacoes CRUD automaticamente.</p>
+
+  <!-- ============================================================ -->
+  <!-- INTRODUCAO -->
+  <!-- ============================================================ -->
+  <section id="introducao">
+    <h2>Introducao</h2>
+
+    <p>
+      Skills sao unidades de comportamento reutilizaveis que se conectam ao pipeline de operacoes
+      do <code>TSimpleDAO&lt;T&gt;</code>. Cada Skill implementa a interface <code>iSimpleSkill</code>
+      e e executada automaticamente antes ou depois de operacoes de Insert, Update ou Delete.
+    </p>
+
+    <h3>Interface iSimpleSkill</h3>
+    <p>Toda Skill implementa esta interface, declarada em <code>SimpleInterface.pas</code>:</p>
+    <pre><code>iSimpleSkill = interface
+  ['{GUID}']
+  function RunAt: TSkillRunAt;
+  procedure Execute(const aContext: iSimpleSkillContext);
+end;</code></pre>
+
+    <h3>TSkillRunAt</h3>
+    <p>O enum <code>TSkillRunAt</code> define quando a Skill e executada:</p>
+    <table>
+      <tr><th>Valor</th><th>Descricao</th></tr>
+      <tr><td><code>srBeforeInsert</code></td><td>Antes do INSERT no banco</td></tr>
+      <tr><td><code>srAfterInsert</code></td><td>Apos o INSERT no banco</td></tr>
+      <tr><td><code>srBeforeUpdate</code></td><td>Antes do UPDATE no banco</td></tr>
+      <tr><td><code>srAfterUpdate</code></td><td>Apos o UPDATE no banco</td></tr>
+      <tr><td><code>srBeforeDelete</code></td><td>Antes do DELETE no banco</td></tr>
+      <tr><td><code>srAfterDelete</code></td><td>Apos o DELETE no banco</td></tr>
+    </table>
+
+    <h3>API Fluente via .Skill()</h3>
+    <p>
+      Skills sao registradas no DAO usando o metodo fluente <code>.Skill()</code>.
+      Voce pode encadear quantas Skills quiser:
+    </p>
+    <pre><code>LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
+  .Skill(TSkillLog.New('APP', srAfterInsert))
+  .Skill(TSkillValidate.New)
+  .Skill(TSkillTimestamp.New('CREATED_AT', srBeforeInsert))
+  .Skill(TSkillTimestamp.New('UPDATED_AT', srBeforeUpdate));</code></pre>
+
+    <div class="note">
+      <p>Skills sao executadas na ordem em que foram registradas. A ordem importa: se uma Skill de validacao lanca excecao, as Skills subsequentes nao serao executadas.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- COMO CRIAR UMA SKILL -->
+  <!-- ============================================================ -->
+  <section id="como-criar">
+    <h2>Como Criar uma Skill Customizada</h2>
+
+    <p>
+      Para criar uma Skill customizada, basta implementar a interface <code>iSimpleSkill</code>
+      e registrar no DAO via <code>.Skill()</code>.
+    </p>
+
+    <h3>Passo 1: Implementar a Interface</h3>
+    <pre><code>unit SimpleSkillCustom;
+
+interface
+
+uses
+  SimpleInterface,
+  SimpleTypes;
+
+type
+  TSkillCustom = class(TInterfacedObject, iSimpleSkill)
+  private
+    FRunAt: TSkillRunAt;
+  public
+    class function New(aRunAt: TSkillRunAt): iSimpleSkill;
+    function RunAt: TSkillRunAt;
+    procedure Execute(const aContext: iSimpleSkillContext);
+  end;
+
+implementation
+
+class function TSkillCustom.New(aRunAt: TSkillRunAt): iSimpleSkill;
+begin
+  Result := Self.Create;
+  TSkillCustom(Result).FRunAt := aRunAt;
+end;
+
+function TSkillCustom.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+procedure TSkillCustom.Execute(const aContext: iSimpleSkillContext);
+begin
+  // aContext.Entity — objeto da entidade
+  // aContext.Operation — tipo da operacao (soInsert, soUpdate, soDelete)
+  // aContext.Query — instancia iSimpleQuery (pode ser nil)
+  // aContext.Logger — instancia iSimpleQueryLogger (pode ser nil)
+  // aContext.AIClient — instancia iSimpleAIClient (pode ser nil)
+
+  // Sua logica customizada aqui
+end;
+
+end.</code></pre>
+
+    <h3>Passo 2: Registrar no DAO</h3>
+    <pre><code>LDAO := TSimpleDAO&lt;TCliente&gt;.New(LQuery)
+  .Skill(TSkillCustom.New(srBeforeInsert));</code></pre>
+
+    <div class="note">
+      <p>O contexto (<code>iSimpleSkillContext</code>) fornece acesso ao objeto da entidade, a operacao sendo realizada, e a instancia do Query. Use RTTI para acessar propriedades da entidade de forma generica.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SKILLS BUILT-IN -->
+  <!-- ============================================================ -->
+  <section id="skills-builtin">
+    <h2>Skills Built-in</h2>
+    <p>
+      O SimpleORM inclui 8 Skills prontas para uso, declaradas em <code>SimpleSkill.pas</code>.
+      Basta instanciar e registrar no DAO.
+    </p>
+  </section>
+
+  <!-- TSkillLog -->
+  <section id="skill-log">
+    <h3>TSkillLog</h3>
+    <p>Loga operacoes via Logger (se disponivel) ou <code>OutputDebugString</code> (Windows) / <code>Writeln</code> (console).</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aPrefix: String; aRunAt: TSkillRunAt): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aPrefix</code></td><td><code>String</code></td><td>Prefixo da mensagem de log (ex: nome da aplicacao)</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (tipicamente <code>srAfterInsert</code>, <code>srAfterUpdate</code>, <code>srAfterDelete</code>)</td></tr>
+    </table>
+
+    <h4>Formato da Mensagem</h4>
+    <pre><code>[PREFIX] OPERATION on ENTITY: field1=val1, field2=val2</code></pre>
+
+    <h4>Exemplo de Uso</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TCliente&gt;.New(LQuery)
+  .Skill(TSkillLog.New('VENDAS', srAfterInsert))
+  .Skill(TSkillLog.New('VENDAS', srAfterUpdate))
+  .Skill(TSkillLog.New('VENDAS', srAfterDelete));
+
+// Ao inserir um cliente, o log sera:
+// [VENDAS] INSERT on CLIENTE: ID=1, NOME=Joao Silva, EMAIL=joao@email.com</code></pre>
+
+    <div class="note">
+      <p>Se um <code>iSimpleQueryLogger</code> estiver configurado no DAO via <code>.Logger()</code>, o TSkillLog o utiliza. Caso contrario, usa <code>OutputDebugString</code> no Windows ou <code>Writeln</code> em aplicacoes console.</p>
+    </div>
+  </section>
+
+  <!-- TSkillNotify -->
+  <section id="skill-notify">
+    <h3>TSkillNotify</h3>
+    <p>Dispara um callback <code>TProc&lt;TObject&gt;</code> apos uma operacao. Ideal para notificacoes, envio de email, atualizacao de cache, ou qualquer acao customizada.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(aCallback: TProc&lt;TObject&gt;; aRunAt: TSkillRunAt): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aCallback</code></td><td><code>TProc&lt;TObject&gt;</code></td><td>Procedimento anonimo recebendo a entidade como parametro</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao</td></tr>
+    </table>
+
+    <h4>Exemplo de Uso</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TPedido&gt;.New(LQuery)
+  .Skill(TSkillNotify.New(
+    procedure(aEntity: TObject)
+    var
+      LPedido: TPedido;
+    begin
+      LPedido := aEntity as TPedido;
+      EnviarEmailConfirmacao(LPedido.Email, LPedido.Numero);
+    end,
+    srAfterInsert
+  ))
+  .Skill(TSkillNotify.New(
+    procedure(aEntity: TObject)
+    begin
+      CacheManager.Invalidate('pedidos');
+    end,
+    srAfterUpdate
+  ));</code></pre>
+
+    <div class="warning">
+      <p>O callback e executado de forma sincrona na mesma thread. Se precisar de processamento assincrono, inicie uma thread dentro do callback.</p>
+    </div>
+  </section>
+
+  <!-- TSkillAudit -->
+  <section id="skill-audit">
+    <h3>TSkillAudit</h3>
+    <p>Grava um registro de auditoria em uma tabela do banco de dados a cada operacao CRUD. Requer que o <code>iSimpleQuery</code> esteja disponivel no contexto.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aTableName: String; aRunAt: TSkillRunAt): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aTableName</code></td><td><code>String</code></td><td>Nome da tabela de auditoria no banco</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (tipicamente <code>srAfterInsert</code>, <code>srAfterUpdate</code>, <code>srAfterDelete</code>)</td></tr>
+    </table>
+
+    <h4>DDL da Tabela de Auditoria</h4>
+    <pre><code>CREATE TABLE AUDIT_LOG (
+  ID            INTEGER PRIMARY KEY,
+  ENTITY_NAME   VARCHAR(100) NOT NULL,
+  RECORD_ID     VARCHAR(50) NOT NULL,
+  OPERATION     VARCHAR(20) NOT NULL,
+  DETAILS       VARCHAR(4000),
+  CREATED_AT    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+
+    <h4>Exemplo de Uso</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TCliente&gt;.New(LQuery)
+  .Skill(TSkillAudit.New('AUDIT_LOG', srAfterInsert))
+  .Skill(TSkillAudit.New('AUDIT_LOG', srAfterUpdate))
+  .Skill(TSkillAudit.New('AUDIT_LOG', srAfterDelete));
+
+// Ao inserir um cliente, sera gravado na AUDIT_LOG:
+// ENTITY_NAME = 'CLIENTE'
+// RECORD_ID = '42'
+// OPERATION = 'INSERT'
+// DETAILS = 'NOME=Joao Silva, EMAIL=joao@email.com'
+// CREATED_AT = 2026-03-10 14:30:00</code></pre>
+
+    <div class="warning">
+      <p>A tabela de auditoria DEVE existir no banco antes de usar esta Skill. Caso contrario, o INSERT de auditoria falhara e a excecao sera propagada.</p>
+    </div>
+  </section>
+
+  <!-- TSkillTimestamp -->
+  <section id="skill-timestamp">
+    <h3>TSkillTimestamp</h3>
+    <p>Preenche automaticamente um campo de data/hora na entidade usando <code>Now</code>. Ideal para campos como <code>CREATED_AT</code> e <code>UPDATED_AT</code>.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aFieldName: String; aRunAt: TSkillRunAt): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aFieldName</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> que sera preenchido</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao</td></tr>
+    </table>
+
+    <h4>Exemplo de Uso</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
+  .Skill(TSkillTimestamp.New('CREATED_AT', srBeforeInsert))
+  .Skill(TSkillTimestamp.New('UPDATED_AT', srBeforeUpdate));
+
+// Entidade:
+// [Tabela('PRODUTO')]
+// TProduto = class
+// published
+//   [Campo('CREATED_AT')]
+//   property CriadoEm: TDateTime read FCriadoEm write FCriadoEm;
+//   [Campo('UPDATED_AT')]
+//   property AtualizadoEm: TDateTime read FAtualizadoEm write FAtualizadoEm;
+// end;
+
+// Ao inserir, CREATED_AT recebe Now automaticamente.
+// Ao atualizar, UPDATED_AT recebe Now automaticamente.</code></pre>
+
+    <div class="note">
+      <p>O campo e localizado via RTTI pelo nome do atributo <code>[Campo]</code>. Se o campo nao for encontrado na entidade, a Skill e ignorada silenciosamente.</p>
+    </div>
+  </section>
+
+  <!-- TSkillValidate -->
+  <section id="skill-validate">
+    <h3>TSkillValidate</h3>
+    <p>Chama <code>TSimpleValidator.Validate</code> automaticamente antes da operacao. Valida todos os atributos de validacao presentes na entidade.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (padrao: <code>srBeforeInsert</code>)</td></tr>
+    </table>
+
+    <h4>Atributos Validados</h4>
+    <table>
+      <tr><th>Atributo</th><th>Validacao</th></tr>
+      <tr><td><code>[NotNull]</code></td><td>Campo nao pode ser vazio ou nulo</td></tr>
+      <tr><td><code>[NotZero]</code></td><td>Campo numerico nao pode ser zero</td></tr>
+      <tr><td><code>[Format(max, min)]</code></td><td>Tamanho da string deve estar entre min e max</td></tr>
+      <tr><td><code>[Email]</code></td><td>Formato de email valido</td></tr>
+      <tr><td><code>[MinValue(n)]</code></td><td>Valor minimo permitido</td></tr>
+      <tr><td><code>[MaxValue(n)]</code></td><td>Valor maximo permitido</td></tr>
+      <tr><td><code>[Regex('pattern', 'msg')]</code></td><td>Valor deve corresponder ao regex</td></tr>
+      <tr><td><code>[CPF]</code></td><td>CPF valido (com algoritmo de digitos)</td></tr>
+      <tr><td><code>[CNPJ]</code></td><td>CNPJ valido (com algoritmo de digitos)</td></tr>
+    </table>
+
+    <h4>Exemplo de Uso</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TCliente&gt;.New(LQuery)
+  .Skill(TSkillValidate.New(srBeforeInsert))
+  .Skill(TSkillValidate.New(srBeforeUpdate));
+
+// Se a validacao falhar, lanca ESimpleValidator com todas as mensagens acumuladas.
+// A operacao de INSERT/UPDATE NAO sera executada.</code></pre>
+
+    <div class="warning">
+      <p>Se a validacao falhar, a excecao <code>ESimpleValidator</code> e lancada e a operacao e interrompida. Trate a excecao no codigo chamador para exibir as mensagens ao usuario.</p>
+    </div>
+  </section>
+
+  <!-- TSkillGuardDelete -->
+  <section id="skill-guarddelete">
+    <h3>TSkillGuardDelete</h3>
+    <p>Bloqueia a exclusao de um registro quando existem registros dependentes em uma tabela filha. Previne violacoes de integridade referencial de forma amigavel.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aChildTable, aFKField: String): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aChildTable</code></td><td><code>String</code></td><td>Nome da tabela filha que pode ter registros dependentes</td></tr>
+      <tr><td><code>aFKField</code></td><td><code>String</code></td><td>Nome do campo de FK na tabela filha que referencia a PK da entidade</td></tr>
+    </table>
+
+    <div class="note">
+      <p>O <code>RunAt</code> e fixo em <code>srBeforeDelete</code>. Nao e necessario informar.</p>
+    </div>
+
+    <h4>Comportamento</h4>
+    <p>Executa a seguinte query antes do DELETE:</p>
+    <pre><code>SELECT COUNT(*) FROM [aChildTable] WHERE [aFKField] = :pPK</code></pre>
+    <p>Se o resultado for maior que zero, lanca <code>ESimpleGuardDelete</code> e o DELETE nao e executado.</p>
+
+    <h4>Exemplo de Uso</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TCliente&gt;.New(LQuery)
+  .Skill(TSkillGuardDelete.New('PEDIDO', 'ID_CLIENTE'))
+  .Skill(TSkillGuardDelete.New('CONTA_RECEBER', 'ID_CLIENTE'));
+
+// Ao tentar deletar um cliente que tem pedidos:
+// ESimpleGuardDelete: 'Nao e possivel excluir. Existem registros dependentes em PEDIDO.'
+
+// Voce pode registrar multiplos guards para verificar varias tabelas filhas.</code></pre>
+  </section>
+
+  <!-- TSkillHistory -->
+  <section id="skill-history">
+    <h3>TSkillHistory</h3>
+    <p>Grava um snapshot dos valores da entidade antes de uma alteracao. Cada campo e gravado como um registro separado na tabela de historico.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aHistoryTable: String; aRunAt: TSkillRunAt): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aHistoryTable</code></td><td><code>String</code></td><td>Nome da tabela de historico no banco</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (tipicamente <code>srBeforeUpdate</code> ou <code>srBeforeDelete</code>)</td></tr>
+    </table>
+
+    <h4>DDL da Tabela de Historico</h4>
+    <pre><code>CREATE TABLE ENTITY_HISTORY (
+  ID            INTEGER PRIMARY KEY,
+  ENTITY_NAME   VARCHAR(100) NOT NULL,
+  RECORD_ID     VARCHAR(50) NOT NULL,
+  FIELD_NAME    VARCHAR(100) NOT NULL,
+  OLD_VALUE     VARCHAR(4000),
+  OPERATION     VARCHAR(20) NOT NULL,
+  CREATED_AT    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+
+    <h4>Exemplo de Uso</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TCliente&gt;.New(LQuery)
+  .Skill(TSkillHistory.New('ENTITY_HISTORY', srBeforeUpdate))
+  .Skill(TSkillHistory.New('ENTITY_HISTORY', srBeforeDelete));
+
+// Ao atualizar o cliente ID=42 (NOME='Joao' -&gt; 'Joao Silva'),
+// sera gravado na ENTITY_HISTORY:
+//
+// ENTITY_NAME = 'CLIENTE'
+// RECORD_ID   = '42'
+// FIELD_NAME  = 'NOME'
+// OLD_VALUE   = 'Joao'
+// OPERATION   = 'UPDATE'
+// CREATED_AT  = 2026-03-10 14:30:00
+//
+// (um registro por campo da entidade)</code></pre>
+
+    <div class="note">
+      <p>Para UPDATE, os valores gravados sao os valores ANTES da alteracao (old values). Para DELETE, todos os valores atuais sao gravados como snapshot final.</p>
+    </div>
+  </section>
+
+  <!-- TSkillWebhook -->
+  <section id="skill-webhook">
+    <h3>TSkillWebhook</h3>
+    <p>Envia um HTTP POST fire-and-forget com o JSON da entidade para uma URL configurada. Ideal para integracoes externas, webhooks e notificacoes em tempo real.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aURL: String; aRunAt: TSkillRunAt; const aAuthHeader: String = ''): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aURL</code></td><td><code>String</code></td><td>URL de destino do POST</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao</td></tr>
+      <tr><td><code>aAuthHeader</code></td><td><code>String</code></td><td>Valor do header <code>Authorization</code> (opcional). Ex: <code>'Bearer token123'</code></td></tr>
+    </table>
+
+    <h4>Exemplo de Uso</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TPedido&gt;.New(LQuery)
+  .Skill(TSkillWebhook.New(
+    'https://api.empresa.com/webhooks/pedido-criado',
+    srAfterInsert,
+    'Bearer meu-token-secreto'
+  ))
+  .Skill(TSkillWebhook.New(
+    'https://api.empresa.com/webhooks/pedido-cancelado',
+    srAfterDelete
+  ));
+
+// O JSON enviado segue o formato do TSimpleSerializer:
+// {
+//   "ID_PEDIDO": 42,
+//   "NUMERO": "PED-2026-001",
+//   "VALOR_TOTAL": 1500.00,
+//   "ID_CLIENTE": 7
+// }</code></pre>
+
+    <div class="warning">
+      <p>Se o HTTP POST falhar (timeout, erro de rede, status &gt;= 400), o erro e logado mas NAO bloqueia a operacao CRUD. A entidade sera salva normalmente. Para cenarios onde a falha do webhook deve bloquear a operacao, crie uma Skill customizada.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SKILLS ERP -->
+  <!-- ============================================================ -->
+  <section id="skills-erp">
+    <h2>Skills ERP</h2>
+    <p>
+      Skills especializadas para cenarios de ERP e gestao empresarial, declaradas em <code>SimpleERPSkill.pas</code>.
+      Inclui validacao de documentos brasileiros (CPF/CNPJ) e skills para numeracao, calculo, estoque e duplicatas.
+    </p>
+  </section>
+
+  <!-- CPF / CNPJ -->
+  <section id="cpf-cnpj">
+    <h3>Atributos CPF e CNPJ</h3>
+    <p>
+      Os atributos <code>[CPF]</code> e <code>[CNPJ]</code> permitem validacao automatica de documentos brasileiros
+      em properties de entidades. A validacao e executada pelo <code>TSimpleValidator</code>.
+    </p>
+
+    <h4>Uso em Entidades</h4>
+    <pre><code>[Tabela('CLIENTE')]
+TCliente = class
+private
+  FCPF: String;
+  FCNPJ: String;
+  // getters e setters...
+published
+  [Campo('CPF')]
+  [CPF]
+  property CPF: String read FCPF write FCPF;
+
+  [Campo('CNPJ')]
+  [CNPJ]
+  property CNPJ: String read FCNPJ write FCNPJ;
+end;</code></pre>
+
+    <h4>Algoritmo de Validacao</h4>
+    <p>A validacao segue o algoritmo oficial da Receita Federal:</p>
+    <table>
+      <tr><th>Etapa</th><th>CPF</th><th>CNPJ</th></tr>
+      <tr><td>1. Strip mascara</td><td>Remove <code>.</code> e <code>-</code></td><td>Remove <code>.</code>, <code>/</code> e <code>-</code></td></tr>
+      <tr><td>2. Tamanho</td><td>Deve ter 11 digitos</td><td>Deve ter 14 digitos</td></tr>
+      <tr><td>3. Todos iguais</td><td>Rejeita (ex: 111.111.111-11)</td><td>Rejeita (ex: 11.111.111/1111-11)</td></tr>
+      <tr><td>4. Digitos verificadores</td><td>Calcula e compara 2 digitos</td><td>Calcula e compara 2 digitos</td></tr>
+    </table>
+
+    <h4>Exemplos</h4>
+    <pre><code>// CPF valido (com ou sem mascara):
+LCliente.CPF := '529.982.247-25';  // OK
+LCliente.CPF := '52998224725';     // OK
+
+// CPF invalido:
+LCliente.CPF := '111.111.111-11';  // FALHA: todos digitos iguais
+LCliente.CPF := '123.456.789-00';  // FALHA: digitos verificadores incorretos
+LCliente.CPF := '123';             // FALHA: tamanho incorreto
+
+// CNPJ valido:
+LCliente.CNPJ := '11.222.333/0001-81';  // OK
+LCliente.CNPJ := '11222333000181';       // OK
+
+// CNPJ invalido:
+LCliente.CNPJ := '11.111.111/1111-11';  // FALHA: todos digitos iguais
+LCliente.CNPJ := '00.000.000/0000-00';  // FALHA: todos digitos iguais</code></pre>
+
+    <div class="note">
+      <p>A validacao aceita o documento com ou sem mascara. A mascara e removida automaticamente antes do calculo dos digitos verificadores.</p>
+    </div>
+  </section>
+
+  <!-- TSkillSequence -->
+  <section id="skill-sequence">
+    <h3>TSkillSequence</h3>
+    <p>Gera numeracao sequencial automatica para campos como numero de pedido, numero de nota fiscal, etc. Utiliza uma tabela de controle no banco para manter o ultimo numero gerado por serie.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aTargetField, aControlTable, aSeries: String): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aTargetField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> que recebera o numero gerado</td></tr>
+      <tr><td><code>aControlTable</code></td><td><code>String</code></td><td>Nome da tabela de controle de numeracao</td></tr>
+      <tr><td><code>aSeries</code></td><td><code>String</code></td><td>Identificador da serie (permite multiplas sequencias independentes)</td></tr>
+    </table>
+
+    <div class="note">
+      <p>O <code>RunAt</code> e fixo em <code>srBeforeInsert</code>. Nao e necessario informar.</p>
+    </div>
+
+    <h4>DDL da Tabela de Controle</h4>
+    <pre><code>CREATE TABLE NUMERACAO (
+  ID              INTEGER PRIMARY KEY,
+  SERIE           VARCHAR(50) NOT NULL UNIQUE,
+  ULTIMO_NUMERO   INTEGER NOT NULL DEFAULT 0
+);
+
+-- Inserir a serie antes do primeiro uso:
+INSERT INTO NUMERACAO (ID, SERIE, ULTIMO_NUMERO) VALUES (1, 'PEDIDO', 0);
+INSERT INTO NUMERACAO (ID, SERIE, ULTIMO_NUMERO) VALUES (2, 'NF', 0);</code></pre>
+
+    <h4>Comportamento</h4>
+    <p>A cada execucao:</p>
+    <ol>
+      <li>Faz <code>SELECT ULTIMO_NUMERO FROM [tabela] WHERE SERIE = :pSerie</code></li>
+      <li>Incrementa o valor em 1</li>
+      <li>Faz <code>UPDATE [tabela] SET ULTIMO_NUMERO = :pNumero WHERE SERIE = :pSerie</code></li>
+      <li>Atribui o novo numero ao campo da entidade via RTTI</li>
+    </ol>
+
+    <h4>Exemplo Completo</h4>
+    <pre><code>[Tabela('PEDIDO')]
+TPedido = class
+private
+  FId: Integer;
+  FNumero: Integer;
+  FIdCliente: Integer;
+  FValorTotal: Currency;
+  // getters e setters...
+published
+  [Campo('ID_PEDIDO')][PK][AutoInc]
+  property Id: Integer read FId write FId;
+
+  [Campo('NUMERO')]
+  property Numero: Integer read FNumero write FNumero;
+
+  [Campo('ID_CLIENTE')][FK]
+  property IdCliente: Integer read FIdCliente write FIdCliente;
+
+  [Campo('VALOR_TOTAL')]
+  property ValorTotal: Currency read FValorTotal write FValorTotal;
+end;
+
+// Configuracao do DAO:
+LDAO := TSimpleDAO&lt;TPedido&gt;.New(LQuery)
+  .Skill(TSkillSequence.New('NUMERO', 'NUMERACAO', 'PEDIDO'));
+
+// Ao inserir:
+LPedido := TPedido.Create;
+try
+  LPedido.IdCliente := 42;
+  LPedido.ValorTotal := 1500.00;
+  // Nao precisa setar Numero — sera preenchido automaticamente!
+  LDAO.Insert(LPedido);
+  Writeln('Pedido criado com numero: ', LPedido.Numero);
+finally
+  LPedido.Free;
+end;</code></pre>
+  </section>
+
+  <!-- TSkillCalcTotal -->
+  <section id="skill-calctotal">
+    <h3>TSkillCalcTotal</h3>
+    <p>Calcula automaticamente o valor total de um item baseado em quantidade, preco unitario e desconto. Ideal para itens de pedido, orcamentos e notas fiscais.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aTotalField, aQtyField, aPriceField, aDiscountField: String): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aTotalField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> que recebera o total calculado</td></tr>
+      <tr><td><code>aQtyField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> de quantidade</td></tr>
+      <tr><td><code>aPriceField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> de preco unitario</td></tr>
+      <tr><td><code>aDiscountField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> de desconto</td></tr>
+    </table>
+
+    <h4>Formula</h4>
+    <pre><code>Total = (Quantidade * Preco) - Desconto</code></pre>
+    <p>O resultado e arredondado para 2 casas decimais usando <code>SimpleRoundTo</code>.</p>
+
+    <div class="note">
+      <p>O <code>RunAt</code> e executado em <code>srBeforeInsert</code> E <code>srBeforeUpdate</code> automaticamente. Nao e necessario registrar duas vezes.</p>
+    </div>
+
+    <h4>Exemplo Completo</h4>
+    <pre><code>[Tabela('ITEM_PEDIDO')]
+TItemPedido = class
+private
+  FId: Integer;
+  FIdPedido: Integer;
+  FIdProduto: Integer;
+  FQuantidade: Double;
+  FPrecoUnitario: Currency;
+  FDesconto: Currency;
+  FValorTotal: Currency;
+  // getters e setters...
+published
+  [Campo('ID_ITEM')][PK][AutoInc]
+  property Id: Integer read FId write FId;
+
+  [Campo('ID_PEDIDO')][FK]
+  property IdPedido: Integer read FIdPedido write FIdPedido;
+
+  [Campo('ID_PRODUTO')][FK]
+  property IdProduto: Integer read FIdProduto write FIdProduto;
+
+  [Campo('QUANTIDADE')]
+  property Quantidade: Double read FQuantidade write FQuantidade;
+
+  [Campo('PRECO_UNITARIO')]
+  property PrecoUnitario: Currency read FPrecoUnitario write FPrecoUnitario;
+
+  [Campo('DESCONTO')]
+  property Desconto: Currency read FDesconto write FDesconto;
+
+  [Campo('VALOR_TOTAL')]
+  property ValorTotal: Currency read FValorTotal write FValorTotal;
+end;
+
+// Configuracao do DAO:
+LDAO := TSimpleDAO&lt;TItemPedido&gt;.New(LQuery)
+  .Skill(TSkillCalcTotal.New('VALOR_TOTAL', 'QUANTIDADE', 'PRECO_UNITARIO', 'DESCONTO'));
+
+// Ao inserir:
+LItem := TItemPedido.Create;
+try
+  LItem.IdPedido := 1;
+  LItem.IdProduto := 10;
+  LItem.Quantidade := 3;
+  LItem.PrecoUnitario := 49.90;
+  LItem.Desconto := 10.00;
+  // Nao precisa setar ValorTotal — sera calculado automaticamente!
+  // ValorTotal = (3 * 49.90) - 10.00 = 139.70
+  LDAO.Insert(LItem);
+  Writeln('Total calculado: ', CurrToStr(LItem.ValorTotal));
+finally
+  LItem.Free;
+end;</code></pre>
+  </section>
+
+  <!-- TSkillStockMove -->
+  <section id="skill-stockmove">
+    <h3>TSkillStockMove</h3>
+    <p>Registra automaticamente movimentacoes de estoque ao inserir ou deletar registros. Grava entradas e saidas em uma tabela de movimentacao.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aStockTable, aProductField, aQtyField: String; aRunAt: TSkillRunAt): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aStockTable</code></td><td><code>String</code></td><td>Nome da tabela de movimentacao de estoque</td></tr>
+      <tr><td><code>aProductField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> que identifica o produto</td></tr>
+      <tr><td><code>aQtyField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> de quantidade</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao</td></tr>
+    </table>
+
+    <h4>Comportamento</h4>
+    <table>
+      <tr><th>Operacao</th><th>Tipo Gravado</th><th>Descricao</th></tr>
+      <tr><td>INSERT</td><td><code>'ENTRADA'</code></td><td>Registro de entrada de estoque</td></tr>
+      <tr><td>DELETE</td><td><code>'SAIDA'</code></td><td>Registro de saida de estoque</td></tr>
+    </table>
+
+    <h4>DDL da Tabela de Movimentacao</h4>
+    <pre><code>CREATE TABLE MOV_ESTOQUE (
+  ID            INTEGER PRIMARY KEY,
+  ID_PRODUTO    INTEGER NOT NULL,
+  QUANTIDADE    DOUBLE PRECISION NOT NULL,
+  TIPO          VARCHAR(20) NOT NULL,
+  CREATED_AT    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+
+    <h4>Exemplo Completo</h4>
+    <pre><code>[Tabela('COMPRA_ITEM')]
+TCompraItem = class
+private
+  FId: Integer;
+  FIdProduto: Integer;
+  FQuantidade: Double;
+  // getters e setters...
+published
+  [Campo('ID_ITEM')][PK][AutoInc]
+  property Id: Integer read FId write FId;
+
+  [Campo('ID_PRODUTO')][FK]
+  property IdProduto: Integer read FIdProduto write FIdProduto;
+
+  [Campo('QUANTIDADE')]
+  property Quantidade: Double read FQuantidade write FQuantidade;
+end;
+
+// Configuracao do DAO:
+LDAO := TSimpleDAO&lt;TCompraItem&gt;.New(LQuery)
+  .Skill(TSkillStockMove.New('MOV_ESTOQUE', 'ID_PRODUTO', 'QUANTIDADE', srAfterInsert))
+  .Skill(TSkillStockMove.New('MOV_ESTOQUE', 'ID_PRODUTO', 'QUANTIDADE', srBeforeDelete));
+
+// Ao inserir um item de compra (Produto 10, Qty 50):
+// MOV_ESTOQUE recebe: ID_PRODUTO=10, QUANTIDADE=50, TIPO='ENTRADA'
+
+// Ao deletar o item:
+// MOV_ESTOQUE recebe: ID_PRODUTO=10, QUANTIDADE=50, TIPO='SAIDA'</code></pre>
+  </section>
+
+  <!-- TSkillDuplicate -->
+  <section id="skill-duplicate">
+    <h3>TSkillDuplicate</h3>
+    <p>Gera automaticamente parcelas financeiras (duplicatas) apos a insercao de um registro. Divide o valor total em N parcelas com vencimentos sequenciais.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aInstallmentTable, aTotalField: String; aInstallments, aIntervalDays: Integer): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aInstallmentTable</code></td><td><code>String</code></td><td>Nome da tabela de parcelas</td></tr>
+      <tr><td><code>aTotalField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> com o valor total a ser parcelado</td></tr>
+      <tr><td><code>aInstallments</code></td><td><code>Integer</code></td><td>Numero de parcelas</td></tr>
+      <tr><td><code>aIntervalDays</code></td><td><code>Integer</code></td><td>Intervalo em dias entre vencimentos</td></tr>
+    </table>
+
+    <div class="note">
+      <p>O <code>RunAt</code> e fixo em <code>srAfterInsert</code>. Nao e necessario informar.</p>
+    </div>
+
+    <h4>DDL da Tabela de Parcelas</h4>
+    <pre><code>CREATE TABLE PARCELA (
+  ID              INTEGER PRIMARY KEY,
+  ID_ORIGEM       INTEGER NOT NULL,
+  ENTITY_NAME     VARCHAR(100) NOT NULL,
+  NUMERO_PARCELA  INTEGER NOT NULL,
+  VALOR           DECIMAL(15,2) NOT NULL,
+  VENCIMENTO      DATE NOT NULL,
+  STATUS          VARCHAR(20) DEFAULT 'ABERTA'
+);</code></pre>
+
+    <h4>Comportamento</h4>
+    <p>Ao inserir, a Skill:</p>
+    <ol>
+      <li>Le o valor total do campo especificado via RTTI</li>
+      <li>Divide o valor por N parcelas</li>
+      <li>Calcula o vencimento de cada parcela: <code>Now + (intervalo * numero_parcela)</code></li>
+      <li>Insere N registros na tabela de parcelas</li>
+    </ol>
+
+    <h4>Exemplo Completo</h4>
+    <pre><code>[Tabela('VENDA')]
+TVenda = class
+private
+  FId: Integer;
+  FIdCliente: Integer;
+  FValorTotal: Currency;
+  // getters e setters...
+published
+  [Campo('ID_VENDA')][PK][AutoInc]
+  property Id: Integer read FId write FId;
+
+  [Campo('ID_CLIENTE')][FK]
+  property IdCliente: Integer read FIdCliente write FIdCliente;
+
+  [Campo('VALOR_TOTAL')]
+  property ValorTotal: Currency read FValorTotal write FValorTotal;
+end;
+
+// Configuracao do DAO — 3 parcelas a cada 30 dias:
+LDAO := TSimpleDAO&lt;TVenda&gt;.New(LQuery)
+  .Skill(TSkillDuplicate.New('PARCELA', 'VALOR_TOTAL', 3, 30));
+
+// Ao inserir uma venda de R$ 900.00:
+LVenda := TVenda.Create;
+try
+  LVenda.IdCliente := 42;
+  LVenda.ValorTotal := 900.00;
+  LDAO.Insert(LVenda);
+finally
+  LVenda.Free;
+end;
+
+// Resultado na tabela PARCELA:
+// | NUMERO_PARCELA | VALOR  | VENCIMENTO  | STATUS |
+// |----------------|--------|-------------|--------|
+// | 1              | 300.00 | 2026-04-09  | ABERTA |
+// | 2              | 300.00 | 2026-05-09  | ABERTA |
+// | 3              | 300.00 | 2026-06-08  | ABERTA |</code></pre>
+
+    <div class="note">
+      <p>Se o valor total nao for divisivel igualmente, a diferenca de centavos e adicionada a ultima parcela para garantir que a soma das parcelas seja exatamente igual ao valor total.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SKILLS AI -->
+  <!-- ============================================================ -->
+  <section id="skills-ai">
+    <h2>Skills AI</h2>
+    <p>
+      Skills de inteligencia artificial declaradas em <code>SimpleAISkill.pas</code>.
+      Todas requerem uma instancia de <code>iSimpleAIClient</code> no contexto do DAO.
+    </p>
+
+    <div class="note">
+      <p>Skills de enriquecimento e analise (<code>TSkillAIEnrich</code>, <code>TSkillAITranslate</code>, <code>TSkillAISummarize</code>, <code>TSkillAITags</code>, <code>TSkillAISentiment</code>) ignoram silenciosamente se <code>AIClient = nil</code>.</p>
+    </div>
+
+    <div class="warning">
+      <p>Skills de validacao e moderacao (<code>TSkillAIModerate</code>, <code>TSkillAIValidate</code>) lancam <code>ESimpleAIModeration</code> se <code>AIClient = nil</code>, pois sao consideradas criticas para a integridade dos dados.</p>
+    </div>
+  </section>
+
+  <!-- TSkillAIEnrich -->
+  <section id="skill-ai-enrich">
+    <h3>TSkillAIEnrich</h3>
+    <p>Gera conteudo automaticamente via LLM usando um prompt template. O resultado e atribuido a um campo da entidade.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aTargetField, aPromptTemplate: String; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aTargetField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> que recebera o texto gerado</td></tr>
+      <tr><td><code>aPromptTemplate</code></td><td><code>String</code></td><td>Template do prompt com placeholders <code>{PropertyName}</code></td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (padrao: <code>srBeforeInsert</code>)</td></tr>
+    </table>
+
+    <h4>Template de Prompt</h4>
+    <p>O template suporta placeholders no formato <code>{NomeDaProperty}</code>. Cada placeholder e substituido pelo valor atual da property da entidade via RTTI antes de enviar ao LLM.</p>
+
+    <h4>Exemplo: Gerar Descricao Comercial</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
+  .Skill(TSkillAIEnrich.New(
+    'DESCRICAO_COMERCIAL',
+    'Crie uma descricao comercial atraente para o produto "{Nome}" ' +
+    'da categoria "{Categoria}" com preco R$ {Preco}. ' +
+    'Maximo 200 caracteres.',
+    srBeforeInsert
+  ));
+
+// Ao inserir um produto com Nome='Camiseta Polo', Categoria='Vestuario', Preco=89.90:
+// O LLM gera algo como: "Camiseta Polo premium em algodao egipcio. Conforto e
+// elegancia para o dia a dia. Caimento perfeito, acabamento impecavel."</code></pre>
+
+    <h4>Exemplo: Gerar Biografia</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TUsuario&gt;.New(LQuery)
+  .Skill(TSkillAIEnrich.New(
+    'BIO',
+    'Crie uma breve biografia profissional para {Nome}, ' +
+    'que trabalha como {Cargo} na area de {Departamento}. ' +
+    'Tom profissional, maximo 150 caracteres.',
+    srBeforeInsert
+  ));</code></pre>
+
+    <h4>Exemplo com Multiplos Placeholders</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TImovel&gt;.New(LQuery)
+  .Skill(TSkillAIEnrich.New(
+    'ANUNCIO',
+    'Crie um texto de anuncio para um imovel: {TipoImovel} com ' +
+    '{Quartos} quartos, {AreaM2}m2, no bairro {Bairro}, cidade {Cidade}. ' +
+    'Destaque os pontos fortes. Maximo 300 caracteres.',
+    srBeforeInsert
+  ));</code></pre>
+
+    <div class="note">
+      <p>Se o <code>AIClient</code> nao estiver configurado (nil), a Skill e ignorada e o campo alvo nao e preenchido.</p>
+    </div>
+  </section>
+
+  <!-- TSkillAITranslate -->
+  <section id="skill-ai-translate">
+    <h3>TSkillAITranslate</h3>
+    <p>Traduz automaticamente o conteudo de um campo para outro idioma, gravando o resultado em um campo diferente da entidade.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aSourceField, aTargetField, aTargetLanguage: String; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aSourceField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> de origem (texto a traduzir)</td></tr>
+      <tr><td><code>aTargetField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> de destino (traducao)</td></tr>
+      <tr><td><code>aTargetLanguage</code></td><td><code>String</code></td><td>Idioma de destino (ex: <code>'English'</code>, <code>'Spanish'</code>)</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (padrao: <code>srBeforeInsert</code>)</td></tr>
+    </table>
+
+    <h4>Prompt Interno</h4>
+    <pre><code>Translate the following text to {Language}. Return only the translation, nothing else.</code></pre>
+
+    <h4>Exemplo: Traducao para Ingles e Espanhol</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
+  .Skill(TSkillAITranslate.New('DESCRICAO', 'DESCRICAO_EN', 'English', srBeforeInsert))
+  .Skill(TSkillAITranslate.New('DESCRICAO', 'DESCRICAO_ES', 'Spanish', srBeforeInsert));
+
+// Ao inserir um produto com DESCRICAO='Camiseta de algodao premium':
+// DESCRICAO_EN = 'Premium cotton t-shirt'
+// DESCRICAO_ES = 'Camiseta de algodon premium'</code></pre>
+
+    <h4>Exemplo: Traducao Antes de Update</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TArtigo&gt;.New(LQuery)
+  .Skill(TSkillAITranslate.New('TITULO', 'TITULO_EN', 'English', srBeforeUpdate));
+
+// A traducao e refeita a cada atualizacao do artigo.</code></pre>
+
+    <div class="note">
+      <p>Se o campo de origem estiver vazio, a Skill e ignorada e o campo de destino nao e alterado.</p>
+    </div>
+  </section>
+
+  <!-- TSkillAISummarize -->
+  <section id="skill-ai-summarize">
+    <h3>TSkillAISummarize</h3>
+    <p>Gera automaticamente um resumo de um texto longo, gravando o resultado em outro campo da entidade.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aSourceField, aTargetField: String; aMaxLength: Integer = 0; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aSourceField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> com o texto a resumir</td></tr>
+      <tr><td><code>aTargetField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> que recebera o resumo</td></tr>
+      <tr><td><code>aMaxLength</code></td><td><code>Integer</code></td><td>Limite maximo de caracteres do resumo (0 = sem limite)</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (padrao: <code>srBeforeInsert</code>)</td></tr>
+    </table>
+
+    <h4>Prompt Interno</h4>
+    <pre><code>// Quando aMaxLength &gt; 0:
+Summarize the following text in at most N characters. Return only the summary, nothing else.
+
+// Quando aMaxLength = 0:
+Summarize the following text concisely. Return only the summary, nothing else.</code></pre>
+
+    <h4>Exemplo: Resumo para Listagem</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TArtigo&gt;.New(LQuery)
+  .Skill(TSkillAISummarize.New('CONTEUDO', 'RESUMO', 200, srBeforeInsert));
+
+// Ao inserir um artigo com CONTEUDO de 5000 caracteres:
+// RESUMO recebe um texto de no maximo 200 caracteres.</code></pre>
+
+    <h4>Exemplo: Resumo para SEO</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TPagina&gt;.New(LQuery)
+  .Skill(TSkillAISummarize.New('CONTEUDO', 'META_DESCRIPTION', 160, srBeforeInsert))
+  .Skill(TSkillAISummarize.New('CONTEUDO', 'META_DESCRIPTION', 160, srBeforeUpdate));
+
+// Meta description para SEO, limitada a 160 caracteres.</code></pre>
+  </section>
+
+  <!-- TSkillAITags -->
+  <section id="skill-ai-tags">
+    <h3>TSkillAITags</h3>
+    <p>Extrai automaticamente tags/keywords de um texto, gravando como string separada por virgulas em outro campo.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aSourceField, aTargetField: String; aMaxTags: Integer = 5; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aSourceField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> com o texto fonte</td></tr>
+      <tr><td><code>aTargetField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> que recebera as tags</td></tr>
+      <tr><td><code>aMaxTags</code></td><td><code>Integer</code></td><td>Numero maximo de tags a gerar (padrao: 5)</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (padrao: <code>srBeforeInsert</code>)</td></tr>
+    </table>
+
+    <h4>Prompt Interno</h4>
+    <pre><code>Extract at most N keywords from the following text. Return them as a comma-separated list, nothing else.</code></pre>
+
+    <h4>Exemplo: Tags para Busca</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
+  .Skill(TSkillAITags.New('DESCRICAO', 'TAGS', 5, srBeforeInsert));
+
+// Ao inserir um produto com DESCRICAO='Camiseta polo masculina azul em algodao':
+// TAGS = 'camiseta, polo, masculina, azul, algodao'</code></pre>
+
+    <h4>Exemplo: Tags para Categorizacao</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TArtigo&gt;.New(LQuery)
+  .Skill(TSkillAITags.New('CONTEUDO', 'KEYWORDS', 10, srBeforeInsert))
+  .Skill(TSkillAITags.New('CONTEUDO', 'KEYWORDS', 10, srBeforeUpdate));
+
+// Regenera keywords a cada atualizacao do conteudo.</code></pre>
+  </section>
+
+  <!-- TSkillAIModerate -->
+  <section id="skill-ai-moderate">
+    <h3>TSkillAIModerate</h3>
+    <p>Modera conteudo usando o LLM. Se o conteudo for rejeitado, lanca excecao e bloqueia a operacao. Esta e uma Skill critica — se <code>AIClient = nil</code>, lanca <code>ESimpleAIModeration</code>.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aField: String; const aPolicy: String = ''; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> a ser moderado</td></tr>
+      <tr><td><code>aPolicy</code></td><td><code>String</code></td><td>Politica de moderacao customizada (opcional). Se vazio, usa moderacao geral</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (padrao: <code>srBeforeInsert</code>)</td></tr>
+    </table>
+
+    <h4>Comportamento</h4>
+    <p>O LLM responde em um dos formatos:</p>
+    <ul>
+      <li><code>APPROVED</code> — conteudo aprovado, operacao continua normalmente</li>
+      <li><code>REJECTED: motivo</code> — conteudo rejeitado, lanca <code>ESimpleAIModeration</code> com o motivo</li>
+    </ul>
+
+    <h4>Exemplo: Moderacao Geral</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TComentario&gt;.New(LQuery)
+  .Skill(TSkillAIModerate.New('TEXTO', '', srBeforeInsert));
+
+// Se o comentario contiver conteudo ofensivo, a insercao e bloqueada.</code></pre>
+
+    <h4>Exemplo: Moderacao com Politica Customizada</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TReview&gt;.New(LQuery)
+  .Skill(TSkillAIModerate.New(
+    'CONTEUDO',
+    'Reject content that contains: spam links, competitor mentions, ' +
+    'personal attacks, or fake reviews. Allow constructive criticism.',
+    srBeforeInsert
+  ));</code></pre>
+
+    <h4>Exemplo: Tratamento de Rejeicao</h4>
+    <pre><code>try
+  LDAO.Insert(LComentario);
+except
+  on E: ESimpleAIModeration do
+  begin
+    Writeln('Conteudo rejeitado: ' + E.Message);
+    // Exibir mensagem ao usuario ou logar a tentativa
+  end;
+end;</code></pre>
+
+    <div class="warning">
+      <p>Se <code>AIClient = nil</code>, esta Skill lanca <code>ESimpleAIModeration</code> imediatamente. Diferente das Skills de enriquecimento, a moderacao e considerada critica e NAO pode ser ignorada.</p>
+    </div>
+  </section>
+
+  <!-- TSkillAIValidate -->
+  <section id="skill-ai-validate">
+    <h3>TSkillAIValidate</h3>
+    <p>Valida dados da entidade usando uma regra expressa em linguagem natural. O LLM analisa TODOS os campos da entidade e decide se os dados sao validos. Skill critica — lanca excecao se <code>AIClient = nil</code>.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aRule: String; const aErrorMessage: String = ''; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aRule</code></td><td><code>String</code></td><td>Regra de validacao em linguagem natural</td></tr>
+      <tr><td><code>aErrorMessage</code></td><td><code>String</code></td><td>Mensagem de erro customizada (opcional). Se vazio, usa o motivo retornado pelo LLM</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (padrao: <code>srBeforeInsert</code>)</td></tr>
+    </table>
+
+    <h4>Comportamento</h4>
+    <p>A Skill envia todos os campos da entidade (extraidos via <code>[Campo]</code> RTTI) ao LLM junto com a regra. O LLM responde:</p>
+    <ul>
+      <li><code>VALID</code> — dados validos, operacao continua</li>
+      <li><code>INVALID: motivo</code> — dados invalidos, lanca <code>ESimpleAIModeration</code></li>
+    </ul>
+
+    <h4>Exemplo: Validar Coerencia de Preco</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
+  .Skill(TSkillAIValidate.New(
+    'O preco de venda deve ser maior que o preco de custo. ' +
+    'A margem de lucro deve ser de pelo menos 10%.',
+    '',  // usa motivo do LLM como mensagem de erro
+    srBeforeInsert
+  ));</code></pre>
+
+    <h4>Exemplo: Validar Endereco Completo</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TCliente&gt;.New(LQuery)
+  .Skill(TSkillAIValidate.New(
+    'O endereco deve conter rua, numero, cidade e estado. ' +
+    'O CEP deve ter formato valido (XXXXX-XXX). ' +
+    'O estado deve ser uma sigla brasileira valida (ex: SP, RJ, MG).',
+    '',
+    srBeforeInsert
+  ));</code></pre>
+
+    <h4>Exemplo: Mensagem de Erro Customizada</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TPedido&gt;.New(LQuery)
+  .Skill(TSkillAIValidate.New(
+    'O valor total do pedido nao pode exceder o limite de credito do cliente.',
+    'Pedido excede o limite de credito disponivel. Consulte o gerente.',
+    srBeforeInsert
+  ));
+
+// Se invalido, a mensagem de erro sera sempre:
+// 'Pedido excede o limite de credito disponivel. Consulte o gerente.'
+// (independente do motivo retornado pelo LLM)</code></pre>
+
+    <div class="warning">
+      <p>Se <code>AIClient = nil</code>, esta Skill lanca <code>ESimpleAIModeration</code> imediatamente. A validacao por IA e considerada critica.</p>
+    </div>
+  </section>
+
+  <!-- TSkillAISentiment -->
+  <section id="skill-ai-sentiment">
+    <h3>TSkillAISentiment</h3>
+    <p>Analisa o sentimento de um texto e grava o resultado (<code>POSITIVO</code>, <code>NEGATIVO</code> ou <code>NEUTRO</code>) em outro campo da entidade.</p>
+
+    <h4>Construtor</h4>
+    <pre><code>class function New(const aSourceField, aTargetField: String; aRunAt: TSkillRunAt = srBeforeInsert): iSimpleSkill;</code></pre>
+
+    <h4>Parametros</h4>
+    <table>
+      <tr><th>Parametro</th><th>Tipo</th><th>Descricao</th></tr>
+      <tr><td><code>aSourceField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> com o texto a analisar</td></tr>
+      <tr><td><code>aTargetField</code></td><td><code>String</code></td><td>Nome do campo <code>[Campo]</code> que recebera o sentimento</td></tr>
+      <tr><td><code>aRunAt</code></td><td><code>TSkillRunAt</code></td><td>Momento de execucao (padrao: <code>srBeforeInsert</code>)</td></tr>
+    </table>
+
+    <h4>Valores Possiveis</h4>
+    <table>
+      <tr><th>Valor</th><th>Descricao</th></tr>
+      <tr><td><code>POSITIVO</code></td><td>Texto com sentimento positivo</td></tr>
+      <tr><td><code>NEGATIVO</code></td><td>Texto com sentimento negativo</td></tr>
+      <tr><td><code>NEUTRO</code></td><td>Texto sem sentimento claro ou informativo</td></tr>
+    </table>
+
+    <h4>Exemplo: Analise de Comentario</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TComentario&gt;.New(LQuery)
+  .Skill(TSkillAISentiment.New('TEXTO', 'SENTIMENTO', srBeforeInsert));
+
+// Ao inserir um comentario 'Produto excelente! Entrega rapida!':
+// SENTIMENTO = 'POSITIVO'
+
+// Ao inserir 'Produto veio com defeito, pessimo atendimento':
+// SENTIMENTO = 'NEGATIVO'
+
+// Ao inserir 'Recebi o produto ontem':
+// SENTIMENTO = 'NEUTRO'</code></pre>
+
+    <h4>Exemplo: Filtrar Reviews por Sentimento</h4>
+    <pre><code>LDAO := TSimpleDAO&lt;TReview&gt;.New(LQuery)
+  .Skill(TSkillAISentiment.New('CONTEUDO', 'SENTIMENTO', srBeforeInsert));
+
+// Depois, para buscar apenas reviews positivas:
+LLista := TObjectList&lt;TReview&gt;.Create;
+try
+  TSimpleDAO&lt;TReview&gt;.New(LQuery)
+    .SQL
+      .Where('SENTIMENTO = :pSentimento')
+    .&amp;End
+    .Find(LLista);
+finally
+  LLista.Free;
+end;</code></pre>
+
+    <div class="note">
+      <p>Se <code>AIClient = nil</code>, a Skill e ignorada silenciosamente e o campo de sentimento nao e preenchido. Diferente de <code>TSkillAIModerate</code> e <code>TSkillAIValidate</code>, a analise de sentimento NAO e considerada critica.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- EXEMPLO COMPLETO -->
+  <!-- ============================================================ -->
+  <section id="exemplo-completo">
+    <h2>Exemplo Completo</h2>
+    <p>
+      Este exemplo demonstra um pipeline completo combinando Skills Built-in, ERP e AI
+      numa unica configuracao de DAO para uma entidade de Pedido.
+    </p>
+
+    <pre><code>program ExemploSkillsCompleto;
+
+{$APPTYPE CONSOLE}
+
+uses
+  SimpleDAO,
+  SimpleInterface,
+  SimpleSkill,
+  SimpleERPSkill,
+  SimpleAISkill,
+  SimpleQueryFiredac,
+  System.SysUtils,
+  System.Generics.Collections;
+
+var
+  LQuery: iSimpleQuery;
+  LDAO: iSimpleDAO&lt;TPedido&gt;;
+  LPedido: TPedido;
+begin
+  LQuery := TSimpleQueryFiredac.New(FDConnection1);
+
+  LDAO := TSimpleDAO&lt;TPedido&gt;.New(LQuery)
+    // === Skills Built-in ===
+    // Validacao automatica de atributos
+    .Skill(TSkillValidate.New(srBeforeInsert))
+    .Skill(TSkillValidate.New(srBeforeUpdate))
+
+    // Timestamp automatico
+    .Skill(TSkillTimestamp.New('CREATED_AT', srBeforeInsert))
+    .Skill(TSkillTimestamp.New('UPDATED_AT', srBeforeUpdate))
+
+    // Log de operacoes
+    .Skill(TSkillLog.New('ERP', srAfterInsert))
+    .Skill(TSkillLog.New('ERP', srAfterUpdate))
+    .Skill(TSkillLog.New('ERP', srAfterDelete))
+
+    // Auditoria no banco
+    .Skill(TSkillAudit.New('AUDIT_LOG', srAfterInsert))
+    .Skill(TSkillAudit.New('AUDIT_LOG', srAfterUpdate))
+    .Skill(TSkillAudit.New('AUDIT_LOG', srAfterDelete))
+
+    // Historico antes de alteracoes
+    .Skill(TSkillHistory.New('ENTITY_HISTORY', srBeforeUpdate))
+    .Skill(TSkillHistory.New('ENTITY_HISTORY', srBeforeDelete))
+
+    // Guard delete — nao deletar pedido com itens
+    .Skill(TSkillGuardDelete.New('ITEM_PEDIDO', 'ID_PEDIDO'))
+    .Skill(TSkillGuardDelete.New('PARCELA', 'ID_ORIGEM'))
+
+    // Webhook para sistema externo
+    .Skill(TSkillWebhook.New(
+      'https://api.empresa.com/webhooks/pedido',
+      srAfterInsert,
+      'Bearer token-secreto'
+    ))
+
+    // Notificacao customizada
+    .Skill(TSkillNotify.New(
+      procedure(aEntity: TObject)
+      begin
+        Writeln('Pedido processado com sucesso!');
+      end,
+      srAfterInsert
+    ))
+
+    // === Skills ERP ===
+    // Numeracao sequencial automatica
+    .Skill(TSkillSequence.New('NUMERO', 'NUMERACAO', 'PEDIDO'))
+
+    // Geracao de parcelas (3x a cada 30 dias)
+    .Skill(TSkillDuplicate.New('PARCELA', 'VALOR_TOTAL', 3, 30))
+
+    // === Skills AI ===
+    // Gerar observacao automatica
+    .Skill(TSkillAIEnrich.New(
+      'OBSERVACAO',
+      'Gere uma observacao interna sobre o pedido #{Numero} do cliente {NomeCliente} ' +
+      'no valor de R$ {ValorTotal}. Maximo 100 caracteres.',
+      srAfterInsert
+    ))
+
+    // Validacao de coerencia por IA
+    .Skill(TSkillAIValidate.New(
+      'O valor total deve ser compativel com a quantidade de itens. ' +
+      'Pedidos acima de R$ 50.000 requerem aprovacao.',
+      'Pedido requer aprovacao gerencial.',
+      srBeforeInsert
+    ));
+
+  // Usar o DAO normalmente:
+  LPedido := TPedido.Create;
+  try
+    LPedido.IdCliente := 42;
+    LPedido.NomeCliente := 'Joao Silva';
+    LPedido.ValorTotal := 1500.00;
+    // Numero sera gerado pelo TSkillSequence
+    // CREATED_AT sera preenchido pelo TSkillTimestamp
+    // Validacao, auditoria, log, webhook, parcelas — tudo automatico!
+    LDAO.Insert(LPedido);
+    Writeln('Pedido #', LPedido.Numero, ' criado com sucesso!');
+  finally
+    LPedido.Free;
+  end;
+
+  Readln;
+end.</code></pre>
+
+    <div class="note">
+      <p>A ordem de registro das Skills importa. Skills de validacao devem vir primeiro (antes do insert), Skills de enriquecimento no meio, e Skills de notificacao/log por ultimo (apos o insert). Skills <code>srBefore*</code> sao executadas antes da operacao SQL, Skills <code>srAfter*</code> apos.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- EXCEPTIONS -->
+  <!-- ============================================================ -->
+  <section id="exceptions">
+    <h2>Exceptions</h2>
+    <p>Tabela de exceptions lancadas pelas Skills e quando elas ocorrem.</p>
+
+    <table>
+      <tr>
+        <th>Exception</th>
+        <th>Lancada por</th>
+        <th>Quando</th>
+      </tr>
+      <tr>
+        <td><code>ESimpleValidator</code></td>
+        <td><code>TSkillValidate</code></td>
+        <td>Quando qualquer atributo de validacao falha (<code>[NotNull]</code>, <code>[NotZero]</code>, <code>[Format]</code>, <code>[Email]</code>, <code>[MinValue]</code>, <code>[MaxValue]</code>, <code>[Regex]</code>, <code>[CPF]</code>, <code>[CNPJ]</code>). A mensagem contem todas as falhas acumuladas.</td>
+      </tr>
+      <tr>
+        <td><code>ESimpleGuardDelete</code></td>
+        <td><code>TSkillGuardDelete</code></td>
+        <td>Quando existem registros dependentes na tabela filha. Mensagem: <code>'Nao e possivel excluir. Existem registros dependentes em [TABELA].'</code></td>
+      </tr>
+      <tr>
+        <td><code>ESimpleAIModeration</code></td>
+        <td><code>TSkillAIModerate</code></td>
+        <td>Quando o conteudo e rejeitado pelo LLM. Mensagem contem o motivo da rejeicao. Tambem lancada quando <code>AIClient = nil</code>.</td>
+      </tr>
+      <tr>
+        <td><code>ESimpleAIModeration</code></td>
+        <td><code>TSkillAIValidate</code></td>
+        <td>Quando os dados sao considerados invalidos pelo LLM. Mensagem contem o motivo ou a <code>aErrorMessage</code> customizada. Tambem lancada quando <code>AIClient = nil</code>.</td>
+      </tr>
+    </table>
+
+    <h3>Tratamento de Exceptions</h3>
+    <pre><code>try
+  LDAO.Insert(LEntidade);
+except
+  on E: ESimpleValidator do
+    Writeln('Validacao falhou: ' + E.Message);
+
+  on E: ESimpleGuardDelete do
+    Writeln('Exclusao bloqueada: ' + E.Message);
+
+  on E: ESimpleAIModeration do
+    Writeln('IA rejeitou: ' + E.Message);
+end;</code></pre>
+
+    <div class="warning">
+      <p>Exceptions lancadas por Skills <code>srBefore*</code> interrompem a operacao CRUD — o INSERT/UPDATE/DELETE NAO sera executado. Exceptions em Skills <code>srAfter*</code> ocorrem apos a operacao ja ter sido gravada no banco.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>SimpleORM Skills Documentation &mdash; Gerado para SimpleORM</p>
+    <p><a href="index.html">Voltar para documentacao principal</a></p>
+  </footer>
+
+</main>
+
+</body>
+</html>
