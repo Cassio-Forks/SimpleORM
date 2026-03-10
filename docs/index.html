@@ -1385,35 +1385,39 @@ LDAO := TSimpleDAO&lt;TProduto&gt;.New(LQuery)
   <h3>Migracao DB-to-DB</h3>
   <pre><code>uses SimpleDataMigration;
 
-LMigration := TSimpleDataMigration.New(LQueryOrigem, LQueryDestino)
-  .TableMap('CLIENTES_ANTIGO', 'CLIENTES')
+LMigration := TSimpleDataMigration.New
+  .Source(LQueryOrigem)
+  .Target(LQueryDestino)
+  .Map('CLIENTES_ANTIGO', 'CLIENTES')
     .Field('NOME_COMPLETO', 'NOME')
-    .Transform('NOME', TFieldTransform.Upper)
+    .Transform('NOME_COMPLETO', 'NOME', TFieldTransform.Upper)
     .DefaultValue('STATUS', '1')
     .Field('CPF_CNPJ', 'DOCUMENTO')
-    .Transform('DOCUMENTO', TFieldTransform.Trim)
+    .Transform('CPF_CNPJ', 'DOCUMENTO', TFieldTransform.Trim)
     .Ignore('CAMPO_OBSOLETO')
   .&amp;End
-  .OnProgress(procedure(aTable: string; aCurrent, aTotal: Integer)
+  .OnProgress(procedure(aTable: String; aCurrent, aTotal: Integer)
     begin
       Writeln(SysUtils.Format('%s: %d/%d', [aTable, aCurrent, aTotal]));
     end)
-  .OnError(procedure(aTable: string; aRecord: Integer; aMsg: string)
+  .OnError(procedure(aError: TMigrationError; var aSkip: Boolean)
     begin
-      Writeln(SysUtils.Format('Erro em %s registro %d: %s', [aTable, aRecord, aMsg]));
+      Writeln(SysUtils.Format('Erro em %s registro %d: %s',
+        [aError.SourceTable, aError.RecordIndex, aError.ErrorMessage]));
+      aSkip := True;
     end);
 
 LReport := LMigration.Execute;</code></pre>
 
   <h3>Migracao CSV-to-DB</h3>
-  <pre><code>LMigration := TSimpleDataMigration.New(LQueryDestino)
-  .SourceFormat(mfCSV)
-  .SourceFile('clientes_export.csv')
-  .TableMap('', 'CLIENTES')
+  <pre><code>LMigration := TSimpleDataMigration.New
+  .Source('clientes_export.csv', mfCSV)
+  .Target(LQueryDestino)
+  .Map('', 'CLIENTES')
     .Field('nome', 'NOME')
-    .Transform('NOME', TFieldTransform.Upper)
+    .Transform('nome', 'NOME', TFieldTransform.Upper)
     .Field('email', 'EMAIL')
-    .Transform('EMAIL', TFieldTransform.Lower)
+    .Transform('email', 'EMAIL', TFieldTransform.Lower)
     .DefaultValue('DATA_IMPORT', '2026-03-10')
   .&amp;End;
 
@@ -1441,29 +1445,43 @@ LReport := LMigration.Execute;</code></pre>
 LMigration.SaveToJSON('migracao_clientes.json');
 
 // Carregar mapeamento salvo
-LMigration := TSimpleDataMigration.New(LQueryOrigem, LQueryDestino)
-  .LoadFromJSON('migracao_clientes.json');
+LMigration := TSimpleDataMigration.New
+  .LoadFromJSON('migracao_clientes.json')
+  .Source(LQueryOrigem)
+  .Target(LQueryDestino);
 
 LReport := LMigration.Execute;</code></pre>
 
   <h3>Relatorio de Migracao</h3>
   <pre><code>LReport := LMigration.Execute;
+try
+  Writeln('Total: ', LReport.TotalRecords);
+  Writeln('Migrados: ', LReport.Migrated);
+  Writeln('Falhas: ', LReport.Failed);
+  Writeln('Ignorados: ', LReport.Skipped);
+  Writeln('Duracao: ', LReport.DurationMs, 'ms');
 
-Writeln('Total: ', LReport.TotalRecords);
-Writeln('Migrados: ', LReport.Migrated);
-Writeln('Falhas: ', LReport.Failed);
-Writeln('Ignorados: ', LReport.Skipped);
+  // Exportar relatorio
+  LJSON := LReport.ToJSON;  // retorna TJSONObject (caller deve liberar)
+  try
+    Writeln(LJSON.ToString);
+  finally
+    LJSON.Free;
+  end;
 
-// Exportar relatorio
-LReport.ToJSON('relatorio.json');
-LReport.ToCSV('relatorio.csv');
+  LCSVContent := LReport.ToCSV;  // retorna String
 
-// Detalhes por tabela
-for LTable in LReport.Tables do
-begin
-  Writeln(LTable.TableName, ': ', LTable.Migrated, ' migrados, ', LTable.Failed, ' falhas');
-  for LError in LTable.Errors do
-    Writeln('  Registro ', LError.RecordIndex, ': ', LError.Message);
+  // Detalhes por tabela
+  for LTable in LReport.Tables do
+  begin
+    Writeln(LTable.SourceTable, ' -> ', LTable.TargetTable, ': ',
+      LTable.Migrated, ' migrados, ', LTable.Failed, ' falhas');
+    for LError in LTable.Errors do
+      Writeln('  Registro ', LError.RecordIndex, ' [', LError.FieldName, ']: ',
+        LError.ErrorMessage);
+  end;
+finally
+  LReport.Free;
 end;</code></pre>
 
   <p class="note"><strong>Nota:</strong> A migracao usa transacoes automaticas por tabela. Em caso de erro, o rollback e feito apenas na tabela atual, preservando as tabelas ja migradas com sucesso.</p>

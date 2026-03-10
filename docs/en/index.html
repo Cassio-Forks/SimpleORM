@@ -1386,35 +1386,39 @@ LDAO := TSimpleDAO&lt;TProduct&gt;.New(LQuery)
   <h3>DB-to-DB Migration</h3>
   <pre><code>uses SimpleDataMigration;
 
-LMigration := TSimpleDataMigration.New(LQuerySource, LQueryTarget)
-  .TableMap('OLD_CUSTOMERS', 'CUSTOMERS')
+LMigration := TSimpleDataMigration.New
+  .Source(LQuerySource)
+  .Target(LQueryTarget)
+  .Map('OLD_CUSTOMERS', 'CUSTOMERS')
     .Field('FULL_NAME', 'NAME')
-    .Transform('NAME', TFieldTransform.Upper)
+    .Transform('FULL_NAME', 'NAME', TFieldTransform.Upper)
     .DefaultValue('STATUS', '1')
     .Field('TAX_ID', 'DOCUMENT')
-    .Transform('DOCUMENT', TFieldTransform.Trim)
+    .Transform('TAX_ID', 'DOCUMENT', TFieldTransform.Trim)
     .Ignore('OBSOLETE_FIELD')
   .&amp;End
-  .OnProgress(procedure(aTable: string; aCurrent, aTotal: Integer)
+  .OnProgress(procedure(aTable: String; aCurrent, aTotal: Integer)
     begin
       Writeln(SysUtils.Format('%s: %d/%d', [aTable, aCurrent, aTotal]));
     end)
-  .OnError(procedure(aTable: string; aRecord: Integer; aMsg: string)
+  .OnError(procedure(aError: TMigrationError; var aSkip: Boolean)
     begin
-      Writeln(SysUtils.Format('Error in %s record %d: %s', [aTable, aRecord, aMsg]));
+      Writeln(SysUtils.Format('Error in %s record %d: %s',
+        [aError.SourceTable, aError.RecordIndex, aError.ErrorMessage]));
+      aSkip := True;
     end);
 
 LReport := LMigration.Execute;</code></pre>
 
   <h3>CSV-to-DB Migration</h3>
-  <pre><code>LMigration := TSimpleDataMigration.New(LQueryTarget)
-  .SourceFormat(mfCSV)
-  .SourceFile('customers_export.csv')
-  .TableMap('', 'CUSTOMERS')
+  <pre><code>LMigration := TSimpleDataMigration.New
+  .Source('customers_export.csv', mfCSV)
+  .Target(LQueryTarget)
+  .Map('', 'CUSTOMERS')
     .Field('name', 'NAME')
-    .Transform('NAME', TFieldTransform.Upper)
+    .Transform('name', 'NAME', TFieldTransform.Upper)
     .Field('email', 'EMAIL')
-    .Transform('EMAIL', TFieldTransform.Lower)
+    .Transform('email', 'EMAIL', TFieldTransform.Lower)
     .DefaultValue('IMPORT_DATE', '2026-03-10')
   .&amp;End;
 
@@ -1442,29 +1446,43 @@ LReport := LMigration.Execute;</code></pre>
 LMigration.SaveToJSON('customer_migration.json');
 
 // Load saved mapping
-LMigration := TSimpleDataMigration.New(LQuerySource, LQueryTarget)
-  .LoadFromJSON('customer_migration.json');
+LMigration := TSimpleDataMigration.New
+  .LoadFromJSON('customer_migration.json')
+  .Source(LQuerySource)
+  .Target(LQueryTarget);
 
 LReport := LMigration.Execute;</code></pre>
 
   <h3>Migration Report</h3>
   <pre><code>LReport := LMigration.Execute;
+try
+  Writeln('Total: ', LReport.TotalRecords);
+  Writeln('Migrated: ', LReport.Migrated);
+  Writeln('Failed: ', LReport.Failed);
+  Writeln('Skipped: ', LReport.Skipped);
+  Writeln('Duration: ', LReport.DurationMs, 'ms');
 
-Writeln('Total: ', LReport.TotalRecords);
-Writeln('Migrated: ', LReport.Migrated);
-Writeln('Failed: ', LReport.Failed);
-Writeln('Skipped: ', LReport.Skipped);
+  // Export report
+  LJSON := LReport.ToJSON;  // returns TJSONObject (caller must free)
+  try
+    Writeln(LJSON.ToString);
+  finally
+    LJSON.Free;
+  end;
 
-// Export report
-LReport.ToJSON('report.json');
-LReport.ToCSV('report.csv');
+  LCSVContent := LReport.ToCSV;  // returns String
 
-// Per-table details
-for LTable in LReport.Tables do
-begin
-  Writeln(LTable.TableName, ': ', LTable.Migrated, ' migrated, ', LTable.Failed, ' failed');
-  for LError in LTable.Errors do
-    Writeln('  Record ', LError.RecordIndex, ': ', LError.Message);
+  // Per-table details
+  for LTable in LReport.Tables do
+  begin
+    Writeln(LTable.SourceTable, ' -> ', LTable.TargetTable, ': ',
+      LTable.Migrated, ' migrated, ', LTable.Failed, ' failed');
+    for LError in LTable.Errors do
+      Writeln('  Record ', LError.RecordIndex, ' [', LError.FieldName, ']: ',
+        LError.ErrorMessage);
+  end;
+finally
+  LReport.Free;
 end;</code></pre>
 
   <p class="note"><strong>Note:</strong> Migration uses automatic transactions per table. On error, rollback is done only for the current table, preserving tables already migrated successfully.</p>
