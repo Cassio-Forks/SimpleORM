@@ -56,6 +56,7 @@ type
     function FindOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
     function UpdateOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
     function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
+    function AIClient(aValue: iSimpleAIClient): iSimpleDAO<T>;
     function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
     function OnBeforeUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;

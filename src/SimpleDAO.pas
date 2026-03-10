@@ -17,6 +17,8 @@ uses
 {$ENDIF}
 {$ENDIF}
     SimpleDAOSQLAttribute,
+    SimpleAIProcessor,
+    SimpleAIAttributes,
     System.Threading;
 
 Type
@@ -42,6 +44,7 @@ Type
         FRawParams: TDictionary<String, Variant>;
         FCacheEnabled: Boolean;
         FCache: TDictionary<String, T>;
+        FAIClient: iSimpleAIClient;
         function FillParameter(aInstance: T): iSimpleDAO<T>; overload;
         function FillParameter(aInstance: T; aId: Variant)
           : iSimpleDAO<T>; overload;
@@ -86,6 +89,7 @@ Type
         function FindOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
         function UpdateOrCreate(const aField: String; aValue: Variant; aEntity: T): T;
         function Logger(aLogger: iSimpleQueryLogger): iSimpleDAO<T>;
+        function AIClient(aValue: iSimpleAIClient): iSimpleDAO<T>;
         function OnBeforeInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
         function OnAfterInsert(aCallback: TSimpleCallback): iSimpleDAO<T>;
         function OnBeforeUpdate(aCallback: TSimpleCallback): iSimpleDAO<T>;
@@ -372,10 +376,20 @@ function TSimpleDAO<T>.Insert(aValue: T): iSimpleDAO<T>;
 var
     aSQL: String;
     SW: TStopwatch;
+    LAIProcessor: TSimpleAIProcessor;
 begin
     Result := Self;
     if Assigned(FOnBeforeInsert) then
       FOnBeforeInsert(aValue);
+    if FAIClient <> nil then
+    begin
+      LAIProcessor := TSimpleAIProcessor.New(FAIClient);
+      try
+        LAIProcessor.Process(aValue);
+      finally
+        FreeAndNil(LAIProcessor);
+      end;
+    end;
     TSimpleSQL<T>.New(aValue).Insert(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
@@ -418,6 +432,12 @@ begin
     Result := Self;
     FLogger := aLogger;
 end;
+
+function TSimpleDAO<T>.AIClient(aValue: iSimpleAIClient): iSimpleDAO<T>;
+begin
+    Result := Self;
+    FAIClient := aValue;
+end;
 {$IFNDEF CONSOLE}
 
 function TSimpleDAO<T>.Update: iSimpleDAO<T>;
@@ -444,10 +464,20 @@ function TSimpleDAO<T>.Update(aValue: T): iSimpleDAO<T>;
 var
     aSQL: String;
     SW: TStopwatch;
+    LAIProcessor: TSimpleAIProcessor;
 begin
     Result := Self;
     if Assigned(FOnBeforeUpdate) then
       FOnBeforeUpdate(aValue);
+    if FAIClient <> nil then
+    begin
+      LAIProcessor := TSimpleAIProcessor.New(FAIClient);
+      try
+        LAIProcessor.Process(aValue);
+      finally
+        FreeAndNil(LAIProcessor);
+      end;
+    end;
     TSimpleSQL<T>.New(aValue).Update(aSQL);
     FQuery.SQL.Clear;
     FQuery.SQL.Add(aSQL);
