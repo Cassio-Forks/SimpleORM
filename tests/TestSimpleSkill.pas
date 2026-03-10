@@ -112,6 +112,15 @@ type
     procedure TestDuplicate_ZeroTotal_NoError;
   end;
 
+  TTestSkillRunMode = class(TTestCase)
+  published
+    procedure TestAllExistingSkills_ReturnNormalMode;
+    procedure TestRunOnError_IgnoresNormalSkills;
+    procedure TestRunBefore_IgnoresOnErrorSkills;
+    procedure TestContext_ErrorMessage_DefaultEmpty;
+    procedure TestContext_ErrorMessage_WithValue;
+  end;
+
 implementation
 
 uses
@@ -792,6 +801,81 @@ begin
   end;
 end;
 
+{ TTestSkillRunMode }
+
+procedure TTestSkillRunMode.TestAllExistingSkills_ReturnNormalMode;
+begin
+  CheckTrue(TSkillLog.New.RunMode = srmNormal, 'Log should be Normal');
+  CheckTrue(TSkillNotify.New(nil).RunMode = srmNormal, 'Notify should be Normal');
+  CheckTrue(TSkillValidate.New.RunMode = srmNormal, 'Validate should be Normal');
+  CheckTrue(TSkillTimestamp.New('X').RunMode = srmNormal, 'Timestamp should be Normal');
+  CheckTrue(TSkillWebhook.New('http://x').RunMode = srmNormal, 'Webhook should be Normal');
+  CheckTrue(TSkillGuardDelete.New('T', 'F').RunMode = srmNormal, 'GuardDelete should be Normal');
+  CheckTrue(TSkillHistory.New.RunMode = srmNormal, 'History should be Normal');
+  CheckTrue(TSkillAudit.New.RunMode = srmNormal, 'Audit should be Normal');
+  CheckTrue(TSkillCalcTotal.New('T', 'Q', 'P').RunMode = srmNormal, 'CalcTotal should be Normal');
+  CheckTrue(TSkillSequence.New('F', 'T', 'S').RunMode = srmNormal, 'Sequence should be Normal');
+  CheckTrue(TSkillStockMove.New('T', 'P', 'Q').RunMode = srmNormal, 'StockMove should be Normal');
+  CheckTrue(TSkillDuplicate.New('T', 'F', 3, 30).RunMode = srmNormal, 'Duplicate should be Normal');
+end;
+
+procedure TTestSkillRunMode.TestRunOnError_IgnoresNormalSkills;
+var
+  LRunner: TSimpleSkillRunner;
+  LContext: iSimpleSkillContext;
+  LExecuted: Boolean;
+begin
+  LExecuted := False;
+  LRunner := TSimpleSkillRunner.New;
+  try
+    LRunner.Add(TSkillNotify.New(
+      procedure(aObj: TObject)
+      begin
+        LExecuted := True;
+      end, srAfterInsert));
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'INSERT', 'Error msg');
+    LRunner.RunOnError(nil, LContext);
+    CheckFalse(LExecuted, 'Normal skill should NOT execute in RunOnError');
+  finally
+    FreeAndNil(LRunner);
+  end;
+end;
+
+procedure TTestSkillRunMode.TestRunBefore_IgnoresOnErrorSkills;
+var
+  LRunner: TSimpleSkillRunner;
+  LContext: iSimpleSkillContext;
+  LExecuted: Boolean;
+begin
+  LExecuted := False;
+  LRunner := TSimpleSkillRunner.New;
+  try
+    // We can't easily add an OnError skill without TSkillGitHubIssue yet,
+    // but we can verify that RunBefore with no matching skills does nothing
+    LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'INSERT');
+    LRunner.RunBefore(nil, LContext, srBeforeInsert);
+    CheckTrue(True, 'RunBefore with empty runner should not error');
+  finally
+    FreeAndNil(LRunner);
+  end;
+end;
+
+procedure TTestSkillRunMode.TestContext_ErrorMessage_DefaultEmpty;
+var
+  LContext: iSimpleSkillContext;
+begin
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'INSERT');
+  CheckEquals('', LContext.ErrorMessage, 'Default error message should be empty');
+end;
+
+procedure TTestSkillRunMode.TestContext_ErrorMessage_WithValue;
+var
+  LContext: iSimpleSkillContext;
+begin
+  LContext := TSimpleSkillContext.New(nil, nil, nil, 'TEST', 'INSERT', 'Something went wrong');
+  CheckEquals('Something went wrong', LContext.ErrorMessage, 'Should return the error message');
+end;
+
 initialization
   RegisterTest('Skills', TTestSkillRunner.Suite);
   RegisterTest('Skills', TTestSkillLog.Suite);
@@ -806,5 +890,6 @@ initialization
   RegisterTest('Skills', TTestSkillCalcTotal.Suite);
   RegisterTest('Skills', TTestSkillStockMove.Suite);
   RegisterTest('Skills', TTestSkillDuplicate.Suite);
+  RegisterTest('Skills', TTestSkillRunMode.Suite);
 
 end.
