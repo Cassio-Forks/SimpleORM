@@ -253,6 +253,37 @@ type
     function RunMode: TSkillRunMode;
   end;
 
+  { Built-in: TSkillGitHubIssue }
+  TSkillGitHubIssue = class(TInterfacedObject, iSimpleSkill)
+  private
+    FRepo: String;
+    FToken: String;
+    FRunAt: TSkillRunAt;
+    FRunMode: TSkillRunMode;
+    FLabels: TArray<String>;
+    FTitleTpl: String;
+    FBodyTpl: String;
+    function ReplacePlaceholders(const aTemplate: String;
+      aEntity: TObject; aContext: iSimpleSkillContext): String;
+    function BuildDefaultTitle(aContext: iSimpleSkillContext): String;
+    function BuildDefaultBody(aEntity: TObject; aContext: iSimpleSkillContext): String;
+  public
+    constructor Create(const aRepo, aToken: String;
+      aRunAt: TSkillRunAt = srAfterInsert;
+      aRunMode: TSkillRunMode = srmNormal);
+    destructor Destroy; override;
+    class function New(const aRepo, aToken: String;
+      aRunAt: TSkillRunAt = srAfterInsert;
+      aRunMode: TSkillRunMode = srmNormal): TSkillGitHubIssue;
+    function Labels(aLabels: TArray<String>): TSkillGitHubIssue;
+    function TitleTemplate(const aTemplate: String): TSkillGitHubIssue;
+    function BodyTemplate(const aTemplate: String): TSkillGitHubIssue;
+    function Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+    function Name: String;
+    function RunAt: TSkillRunAt;
+    function RunMode: TSkillRunMode;
+  end;
+
 implementation
 
 uses
@@ -1212,6 +1243,187 @@ end;
 function TSkillDuplicate.RunMode: TSkillRunMode;
 begin
   Result := srmNormal;
+end;
+
+{ TSkillGitHubIssue }
+
+constructor TSkillGitHubIssue.Create(const aRepo, aToken: String;
+  aRunAt: TSkillRunAt; aRunMode: TSkillRunMode);
+begin
+  FRepo := aRepo;
+  FToken := aToken;
+  FRunAt := aRunAt;
+  FRunMode := aRunMode;
+  FTitleTpl := '';
+  FBodyTpl := '';
+end;
+
+destructor TSkillGitHubIssue.Destroy;
+begin
+  inherited;
+end;
+
+class function TSkillGitHubIssue.New(const aRepo, aToken: String;
+  aRunAt: TSkillRunAt; aRunMode: TSkillRunMode): TSkillGitHubIssue;
+begin
+  Result := Self.Create(aRepo, aToken, aRunAt, aRunMode);
+end;
+
+function TSkillGitHubIssue.Labels(aLabels: TArray<String>): TSkillGitHubIssue;
+begin
+  Result := Self;
+  FLabels := aLabels;
+end;
+
+function TSkillGitHubIssue.TitleTemplate(const aTemplate: String): TSkillGitHubIssue;
+begin
+  Result := Self;
+  FTitleTpl := aTemplate;
+end;
+
+function TSkillGitHubIssue.BodyTemplate(const aTemplate: String): TSkillGitHubIssue;
+begin
+  Result := Self;
+  FBodyTpl := aTemplate;
+end;
+
+function TSkillGitHubIssue.ReplacePlaceholders(const aTemplate: String;
+  aEntity: TObject; aContext: iSimpleSkillContext): String;
+begin
+  Result := aTemplate;
+  Result := StringReplace(Result, '{entity}', aContext.EntityName, [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(Result, '{operation}', aContext.Operation, [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(Result, '{error}', aContext.ErrorMessage, [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(Result, '{timestamp}', DateToISO8601(Now), [rfReplaceAll, rfIgnoreCase]);
+end;
+
+function TSkillGitHubIssue.BuildDefaultTitle(aContext: iSimpleSkillContext): String;
+begin
+  if FRunMode = srmOnError then
+    Result := '[SimpleORM Error] ' + aContext.Operation + ' on ' + aContext.EntityName +
+      ': ' + aContext.ErrorMessage
+  else
+    Result := '[SimpleORM] ' + aContext.Operation + ' on ' + aContext.EntityName;
+end;
+
+function TSkillGitHubIssue.BuildDefaultBody(aEntity: TObject;
+  aContext: iSimpleSkillContext): String;
+var
+  LEntityJSON: TJSONObject;
+  LEntityStr: String;
+begin
+  LEntityStr := '(no entity data)';
+  if aEntity <> nil then
+  begin
+    try
+      LEntityJSON := TSimpleSerializer.EntityToJSON<TObject>(aEntity);
+      try
+        LEntityStr := LEntityJSON.ToJSON;
+      finally
+        LEntityJSON.Free;
+      end;
+    except
+      LEntityStr := '(serialization error)';
+    end;
+  end;
+
+  Result := '## Details' + #13#10 +
+    '- **Entity:** ' + aContext.EntityName + #13#10 +
+    '- **Operation:** ' + aContext.Operation + #13#10 +
+    '- **Timestamp:** ' + DateToISO8601(Now) + #13#10;
+
+  if aContext.ErrorMessage <> '' then
+    Result := Result + '- **Error:** ' + aContext.ErrorMessage + #13#10;
+
+  Result := Result + #13#10 + '## Entity Data' + #13#10 +
+    '```json' + #13#10 + LEntityStr + #13#10 + '```' + #13#10 +
+    #13#10 + '---' + #13#10 + '*Created by SimpleORM TSkillGitHubIssue*';
+end;
+
+function TSkillGitHubIssue.Execute(aEntity: TObject; aContext: iSimpleSkillContext): iSimpleSkill;
+var
+  LClient: THTTPClient;
+  LTitle, LBody: String;
+  LURL: String;
+  LPayload: TJSONObject;
+  LLabelsArr: TJSONArray;
+  LLabel: String;
+  LStream: TStringStream;
+begin
+  Result := Self;
+
+  if FTitleTpl <> '' then
+    LTitle := ReplacePlaceholders(FTitleTpl, aEntity, aContext)
+  else
+    LTitle := BuildDefaultTitle(aContext);
+
+  if FBodyTpl <> '' then
+    LBody := ReplacePlaceholders(FBodyTpl, aEntity, aContext)
+  else
+    LBody := BuildDefaultBody(aEntity, aContext);
+
+  LURL := 'https://api.github.com/repos/' + FRepo + '/issues';
+
+  LClient := THTTPClient.Create;
+  try
+    try
+      LPayload := TJSONObject.Create;
+      try
+        LPayload.AddPair('title', LTitle);
+        LPayload.AddPair('body', LBody);
+
+        if Length(FLabels) > 0 then
+        begin
+          LLabelsArr := TJSONArray.Create;
+          for LLabel in FLabels do
+            LLabelsArr.Add(LLabel);
+          LPayload.AddPair('labels', LLabelsArr);
+        end;
+
+        LStream := TStringStream.Create(LPayload.ToJSON, TEncoding.UTF8);
+        try
+          LClient.ContentType := 'application/json';
+          LClient.CustomHeaders['Authorization'] := 'Bearer ' + FToken;
+          LClient.CustomHeaders['Accept'] := 'application/vnd.github+json';
+          LClient.CustomHeaders['User-Agent'] := 'SimpleORM';
+          LClient.ConnectionTimeout := 5000;
+          LClient.ResponseTimeout := 10000;
+          LClient.Post(LURL, LStream);
+        finally
+          LStream.Free;
+        end;
+      finally
+        LPayload.Free;
+      end;
+    except
+      on E: Exception do
+      begin
+        {$IFDEF MSWINDOWS}
+        OutputDebugString(PChar('[Skill:GitHubIssue] Error: ' + E.Message));
+        {$ENDIF}
+        {$IFDEF CONSOLE}
+        Writeln('[Skill:GitHubIssue] Error: ', E.Message);
+        {$ENDIF}
+      end;
+    end;
+  finally
+    LClient.Free;
+  end;
+end;
+
+function TSkillGitHubIssue.Name: String;
+begin
+  Result := 'github-issue';
+end;
+
+function TSkillGitHubIssue.RunAt: TSkillRunAt;
+begin
+  Result := FRunAt;
+end;
+
+function TSkillGitHubIssue.RunMode: TSkillRunMode;
+begin
+  Result := FRunMode;
 end;
 
 end.
