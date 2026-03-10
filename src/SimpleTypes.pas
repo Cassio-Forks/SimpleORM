@@ -6,6 +6,7 @@ type
   TSQLType = (Firebird, MySQL, SQLite, Oracle);
   TRuleAction = (raBeforeInsert, raAfterInsert, raBeforeUpdate, raAfterUpdate, raBeforeDelete, raAfterDelete);
   TSkillRunAt = (srBeforeInsert, srAfterInsert, srBeforeUpdate, srAfterUpdate, srBeforeDelete, srAfterDelete);
+  TSkillRunMode = (srmNormal, srmOnError);
   TAgentOperation = (aoAfterInsert, aoAfterUpdate, aoAfterDelete);
   TAgentCondition = reference to function(aEntity: TObject): Boolean;
 
@@ -19,6 +20,8 @@ type
   end;
 
   TSupabaseRealtimeCallback = reference to procedure(aEvent: TSupabaseRealtimeEvent);
+
+  TSimpleErrorCallback = reference to procedure(aEntity: TObject; aException: Exception);
 
 implementation
 
