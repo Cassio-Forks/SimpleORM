@@ -216,6 +216,19 @@ type
     procedure React(aEntity: TObject; aOperation: TAgentOperation);
   end;
 
+  iSimpleSupabaseRealtime = interface
+    ['{D4E5F6A7-B8C9-4123-9DEF-456789ABCDEF}']
+    function Subscribe(aTable: String): iSimpleSupabaseRealtime;
+    function Unsubscribe(aTable: String): iSimpleSupabaseRealtime;
+    function OnInsert(aCallback: TSupabaseRealtimeCallback): iSimpleSupabaseRealtime;
+    function OnUpdate(aCallback: TSupabaseRealtimeCallback): iSimpleSupabaseRealtime;
+    function OnDelete(aCallback: TSupabaseRealtimeCallback): iSimpleSupabaseRealtime;
+    function OnChange(aTable: String; aCallback: TSupabaseRealtimeCallback): iSimpleSupabaseRealtime;
+    function Connect: iSimpleSupabaseRealtime;
+    function Disconnect: iSimpleSupabaseRealtime;
+    function IsConnected: Boolean;
+  end;
+
 implementation
 
 end.

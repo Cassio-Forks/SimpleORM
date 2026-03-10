@@ -9,6 +9,17 @@ type
   TAgentOperation = (aoAfterInsert, aoAfterUpdate, aoAfterDelete);
   TAgentCondition = reference to function(aEntity: TObject): Boolean;
 
+  TSupabaseEventType = (setInsert, setUpdate, setDelete);
+
+  TSupabaseRealtimeEvent = record
+    Table: String;
+    EventType: TSupabaseEventType;
+    OldRecord: String;
+    NewRecord: String;
+  end;
+
+  TSupabaseRealtimeCallback = reference to procedure(aEvent: TSupabaseRealtimeEvent);
+
 implementation
 
 end.
